@@ -184,7 +184,7 @@ This is a personal project shared as-is. The server and the CLI are used every d
 
 - iPhone native features (Apple Health, Live Activities, alarms, CallKit, Face ID, Screen Time blocking) are built but have not all been tested on a real device. Screen Time blocking ships turned off.
 - Android uses JavaScript fallbacks for those native features.
-- The server has mostly been run on Windows; macOS and Linux should work but are less tested.
+- The server targets Windows today. Worktree jobs use NTFS junctions and the restart scripts are PowerShell, so on macOS or Linux those two parts need porting; the CLI runs on both.
 
 Issues and pull requests are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
 

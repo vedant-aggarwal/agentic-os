@@ -1,4 +1,6 @@
 # Server and CLI tests on every push and pull request.
+# Windows, because that's where the server runs today: worktree jobs use NTFS junctions and the
+# restart scripts are PowerShell. The CLI also runs on Linux.
 name: CI
 on:
   push:
@@ -7,8 +9,8 @@ on:
 permissions:
   contents: read
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  server:
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -18,14 +20,25 @@ jobs:
         run: bun install
       # the server shells out to ffmpeg (voice) and to the agentos CLI (modules)
       - name: ffmpeg
-        run: sudo apt-get update -q && sudo apt-get install -y -q ffmpeg
+        run: choco install ffmpeg -y --no-progress
       - name: agentos CLI on PATH
+        shell: bash
         run: |
           mkdir -p "$RUNNER_TEMP/bin"
-          bun build cli/src/agentos.ts --compile --outfile "$RUNNER_TEMP/bin/agentos"
+          bun build cli/src/agentos.ts --compile --outfile "$RUNNER_TEMP/bin/agentos.exe"
           echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
       - name: Server tests
         run: bun test server
+  cli:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
       - name: CLI tests
         working-directory: cli
         run: bun test src
