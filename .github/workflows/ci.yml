@@ -33,8 +33,11 @@ jobs:
           mkdir -p "$RUNNER_TEMP/bin"
           bun build cli/src/agentos.ts --compile --outfile "$RUNNER_TEMP/bin/agentos.exe"
           echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+      # the runner's default TEMP is an 8.3 short path (C:\Users\RUNNER~1\...), which git resolves differently
       - name: Server tests
-        run: bun test server
+        run: |
+          $env:TEMP = $env:RUNNER_TEMP; $env:TMP = $env:RUNNER_TEMP
+          bun test server
       - name: CLI tests
         working-directory: cli
         run: bun test src
