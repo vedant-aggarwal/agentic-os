@@ -16,6 +16,14 @@ jobs:
           bun-version: latest
       - name: Install
         run: bun install
+      # the server shells out to ffmpeg (voice) and to the agentos CLI (modules)
+      - name: ffmpeg
+        run: sudo apt-get update -q && sudo apt-get install -y -q ffmpeg
+      - name: agentos CLI on PATH
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          bun build cli/src/agentos.ts --compile --outfile "$RUNNER_TEMP/bin/agentos"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
       - name: Server tests
         run: bun test server
       - name: CLI tests
