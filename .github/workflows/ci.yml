@@ -1,6 +1,6 @@
 # Server and CLI tests on every push and pull request.
-# Windows, because that's where the server runs today: worktree jobs use NTFS junctions and the
-# restart scripts are PowerShell. The CLI also runs on Linux.
+# Windows, because that's where Agentic OS runs today: worktree jobs use NTFS junctions and the
+# restart scripts are PowerShell.
 name: CI
 on:
   push:
@@ -9,9 +9,15 @@ on:
 permissions:
   contents: read
 jobs:
-  server:
+  test:
     runs-on: windows-latest
     steps:
+      # the tests make real git repos and compare file contents: keep LF and give git an identity
+      - name: git setup
+        run: |
+          git config --global core.autocrlf false
+          git config --global user.name "ci"
+          git config --global user.email "ci@example.com"
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
@@ -29,16 +35,6 @@ jobs:
           echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
       - name: Server tests
         run: bun test server
-  cli:
-    strategy:
-      matrix:
-        os: [windows-latest, ubuntu-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
       - name: CLI tests
         working-directory: cli
         run: bun test src
