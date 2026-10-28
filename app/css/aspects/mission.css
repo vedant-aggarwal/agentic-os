@@ -1,0 +1,506 @@
+/* ═══ ASPECT · MISSION ═══════════════════════════════════════════════════════
+   The Mission app: Horizons (home), Graph, Purpose; the goal, horizon and direction pages; the add-goal, move,
+   check-in, exercise and purpose sheets; a widget card for Today. Owner: the Mission agent.
+   JS: js/aspects/mission.js (+ mission-data.js, mission-charts.js). Every class starts with mis- (charts: mc-, mk-).
+   Colour: --as is Mission's accent (progress, the thread, the one primary action). Time is ink: the tick on every
+   ring and the stripes that fill as a period goes. On pace is the done ink, behind is --needs. Tokens only.
+   Blocks: 1 shared · 2 OBSIDIAN · 3 MATTE (see css/system.css). */
+
+/* ═══ 1 · SHARED ═══════════════════════════════════════════════════════════ */
+.asp-mission, .mis-page, .mis-sheet, .mis-w, .mis-peek {
+  --ring-bg: var(--e1);
+  --mis-gone: color-mix(in srgb, var(--ink) 34%, transparent);   /* time that has gone */
+  --mis-on: var(--jobs-ink);                                     /* "on pace" as text */
+}
+.mis-sheet { --ring-bg: var(--e3); }
+
+/* ── words that carry a verdict ── */
+.mis-v { flex-shrink: 0; font-weight: var(--w-semibold); }
+.mis-v.on { color: var(--mis-on); }
+.mis-v.behind { color: var(--needs-ink); }
+.mis-v.done { color: var(--as-ink); }
+.mis-v.miss, .mis-v.drop { color: var(--ink-3); }
+.mis-dotsep { color: var(--ink-3); flex-shrink: 0; }
+.mis-tick { display: inline-block; width: 2px; height: 12px; border-radius: 1px; flex-shrink: 0; background: var(--ink); }
+.row .rmeta.ell-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; white-space: normal; overflow: hidden; }
+
+/* ── rings: the figure inside, and the check once it closes ── */
+.mis-rp { font-size: var(--fs-subhead); }
+.mis-rp small { margin-left: 0; font-size: var(--fs-caption); }
+.mis-rck { display: grid; place-items: center; color: var(--as-ink); }
+.mis-rck svg { width: 18px; height: 18px; stroke-width: 2.6; }
+.mis-rck.off { color: var(--ink-3); }
+.rg.mis-bring .mis-rp { font-size: var(--fs-fig-1); font-weight: var(--w-fig-l); }
+.rg.mis-bring .mis-rp small { font-size: var(--fs-fig-4); }
+.rg.mis-bring .mis-rck svg { width: 44px; height: 44px; stroke-width: 2.4; }
+
+/* ── the agent, inside the app: a small mark, her name, her read ── */
+.mis-av { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); }
+.mis-av svg { width: 17px; height: 17px; }
+.mis-av.sm { width: 24px; height: 24px; }
+.mis-av.sm svg { width: 15px; height: 15px; }
+.mis-wyn { margin: var(--s-3) var(--gutter) 0; padding: var(--s-4); border-radius: var(--r-lg); }
+.mis-nh { display: flex; align-items: center; gap: var(--s-2); }
+.mis-nn { font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); }
+.mis-nt { margin-left: auto; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+.mis-nx { margin: var(--s-3) 0 0; font-size: var(--fs-callout); line-height: var(--lh-callout); text-wrap: pretty; }
+.mis-na { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-4); }
+.mis-na .btn.sm { padding: 0 var(--s-3); }
+.mis-bread { margin-top: var(--s-3); }
+.mis-aline { display: flex; align-items: center; gap: var(--s-3); margin: var(--s-3) var(--gutter) 0; padding: var(--s-3) var(--s-3) var(--s-3) var(--s-4); border-radius: var(--r-lg); }
+.mis-aline p { flex: 1; min-width: 0; margin: 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); text-wrap: pretty; }
+.mis-aline .btn { flex-shrink: 0; }
+.mis-say { display: flex; align-items: flex-start; gap: var(--s-3); }
+.mis-say p { flex: 1; min-width: 0; margin: 0; font-size: var(--fs-callout); line-height: var(--lh-callout); text-wrap: pretty; }
+.mis-say p b { font-weight: var(--w-semibold); }
+.mis-say .mis-av { margin-top: -1px; }
+.mis-say-acts { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-3); padding-left: 36px; }
+
+/* ── Horizons: the north star under the title ── */
+.asp-mission .asp-head { padding-bottom: var(--s-1); }
+.mis-star { display: flex; align-items: flex-start; gap: var(--s-2); width: calc(100% - 2 * var(--gutter)); margin: 0 var(--gutter); padding: var(--s-1) 0 var(--s-2); text-align: left; color: var(--ink-2); font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.mis-star-i { flex-shrink: 0; color: var(--as-ink); padding-top: 1px; }
+.mis-star-i svg { width: 18px; height: 18px; }
+.mis-star-t { flex: 1; min-width: 0; text-wrap: pretty; }
+.mis-star .chev { align-self: center; }
+.mis-star:active { opacity: .6; }
+
+/* ── the hero: four horizons as rings, the streak beneath ── */
+.mis-hero { margin: var(--s-3) var(--gutter) 0; padding: var(--s-4) var(--s-3) var(--s-1); border-radius: var(--r-xl); }
+.mis-hhead { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3); margin: 0 var(--s-1) var(--s-3); font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.mis-hhead b { color: var(--ink); font-size: var(--fs-fig-3); margin-right: 2px; }
+.mis-hhead-r { font-size: var(--fs-footnote); color: var(--ink-3); white-space: nowrap; }
+.mis-hrings { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-1); }
+.mis-hr { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; padding: var(--s-1) 0 var(--s-2); border-radius: var(--r-md); transition: background-color var(--d-press); }
+.mis-hr:active { background: var(--row-press); }
+.mis-hp { font-size: var(--fs-fig-3); }
+.mis-hp small { margin-left: 1px; font-size: var(--fs-caption); }
+.mis-hn { margin-top: 2px; font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); white-space: nowrap; }
+.mis-hr .mis-v { margin-top: -6px; font-size: var(--fs-footnote); line-height: var(--lh-footnote); }
+.mis-hkey { display: flex; align-items: center; justify-content: center; gap: var(--s-2); margin: var(--s-1) 0 0; font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); }
+.mis-hkey .mis-tick { height: 11px; }
+.mis-streak { display: flex; align-items: center; gap: var(--s-3); width: 100%; margin-top: var(--s-3); padding: var(--s-3) var(--s-1); border-top: var(--hair) solid var(--sep); text-align: left; }
+.mis-streak:active { opacity: .7; }
+.mis-flame { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; background: color-mix(in srgb, var(--needs) 16%, transparent); color: var(--needs-ink); }
+.mis-flame svg { width: 19px; height: 19px; }
+.mis-st-b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.mis-st-t { font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+.mis-st-t .met { font-size: var(--fs-fig-3); margin-right: 2px; }
+.mis-st-s { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+
+/* ── a horizon band: its name, its time stripe, its goals ── */
+.mis-band { padding-top: var(--gap-sec); }
+.mis-bandh { display: flex; align-items: center; gap: var(--s-2); width: 100%; min-height: var(--hit); padding: 0 var(--gutter); text-align: left; }
+.mis-bandh:active { opacity: .6; }
+.mis-bn { font-size: var(--fs-title3); line-height: var(--lh-title3); font-weight: var(--w-semibold); }
+.mis-bc { font-size: var(--fs-subhead); color: var(--ink-3); }
+.mis-bl { margin-left: auto; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); white-space: nowrap; }
+.mis-bandh .chev { margin-left: var(--s-1); }
+.mis-bc { padding-top: 2px; }
+.mis-goals, .mis-dirs { margin-top: var(--s-1); }
+
+/* the time stripe: one cell per unit of the period, filled by how much of it has gone. It fills once as it opens */
+.mis-stripe { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: var(--g, 3px); margin: var(--s-1) var(--gutter) var(--s-3); }
+.mis-sc { position: relative; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.mis-sc > i { position: relative; display: block; height: 8px; border-radius: 3px; background: var(--fill-2); }
+.mis-sc > i::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--mis-gone);
+  transform-origin: left center; transform: scaleX(var(--f, 0));
+  transition: transform .46s var(--ease) calc(var(--i, 0) * 22ms);
+}
+.mis-stripe.pre .mis-sc > i::before { transform: scaleX(0); transition: none; }
+/* now: a hairline of ink where the time is, standing a little proud of the stripe */
+.mis-sc.now > i::after {
+  content: ""; position: absolute; top: -4px; bottom: -4px; left: calc(var(--f) * 100% - 1px); width: 2px; border-radius: 1px;
+  background: var(--ink); box-shadow: 0 0 0 1.5px var(--e0);
+  transition: opacity .2s var(--ease) calc(var(--i, 0) * 22ms + 380ms);
+}
+.mis-stripe.pre .mis-sc.now > i::after { opacity: 0; transition: none; }
+.mis-sc > span { font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); white-space: nowrap; }
+.mis-sc.now > span { color: var(--ink); font-weight: var(--w-semibold); }
+
+/* ── goal rows ── */
+.mis-grow { align-items: center; gap: var(--s-3); padding-top: var(--s-3); padding-bottom: var(--s-3); --sep-left: 74px; }
+.mis-grow .rbody { display: flex; flex-direction: column; gap: 3px; }
+.mis-gt { font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-wrap: pretty; }
+.mis-gm { display: flex; align-items: center; gap: var(--s-1); min-width: 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); white-space: nowrap; }
+.mis-gm-x { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.mis-gs { display: flex; align-items: center; gap: 5px; min-width: 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); white-space: nowrap; }
+.mis-gs svg { width: 12px; height: 12px; flex-shrink: 0; }
+.mis-gs span { overflow: hidden; text-overflow: ellipsis; }
+.mis-grow.is-closed .mis-gt { color: var(--ink-2); }
+.mis-grow.mis-new { animation: mis-flash 1.6s var(--ease) both; }
+@keyframes mis-flash { 0%, 30% { background: color-mix(in srgb, var(--as) 16%, transparent); } 100% { background: transparent; } }
+.mis-empty { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); margin-top: var(--s-1); }
+
+/* lifetime: the three directions under the purpose */
+.mis-dtile { color: var(--as-ink); }
+.mis-dir { --sep-left: 60px; }
+
+/* the agent's log, and the check-in at the foot */
+.mis-log .row { align-items: flex-start; --sep-left: 66px; }
+.mis-log .chev { align-self: center; }
+.mis-lt { width: 38px; flex-shrink: 0; padding-top: 3px; font-size: var(--fs-subhead); color: var(--ink-2); }
+.mis-foot { margin-top: var(--gap-sec); }
+.mis-foot .foot { margin-top: var(--s-2); text-align: center; color: var(--ink-3); }
+
+/* ── a goal page ── */
+.mis-gph { padding-bottom: var(--s-4); }
+.mis-gtitle { margin-top: var(--s-1); text-wrap: pretty; }
+.mis-asps { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-3); }
+.mis-achip { gap: 7px; }
+.mis-achip .dot { width: 8px; height: 8px; }
+.mis-ghero { margin: 0 var(--gutter); padding: var(--s-5) var(--s-4) var(--s-4); border-radius: var(--r-xl); }
+.mis-gh-top { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s-5); align-items: center; }
+.mis-gh-side { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-3); min-width: 0; }
+.mis-pill { gap: 5px; }
+.mis-pill svg { width: 13px; height: 13px; stroke-width: 2.4; }
+.mis-pill.on { --c: var(--mis-on); }
+.mis-pill.behind { --c: var(--needs-ink); }
+.mis-pill.done { --c: var(--as-ink); }
+.mis-pill.miss, .mis-pill.drop { --c: var(--ink-2); }
+.mis-stat { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mis-stat .met { font-size: var(--fs-fig-2); }
+.mis-stat .met small { font-size: var(--fs-subhead); }
+.mis-stat > span { display: flex; align-items: center; gap: var(--s-2); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.mis-when { font-size: var(--fs-title3); line-height: var(--lh-title3); font-weight: var(--w-semibold); }
+.mis-ghero > .mis-say { margin-top: var(--s-4); padding-top: var(--s-4); border-top: var(--hair) solid var(--sep); }
+.mis-next { gap: var(--s-3); }
+.mis-next .check { margin-top: 1px; }
+.mis-next-b { flex: 1; min-width: 0; text-align: left; min-height: var(--hit); display: flex; flex-direction: column; justify-content: center; }
+.mis-next.is-done .rtitle { color: var(--ink-3); text-decoration: line-through; text-decoration-color: var(--ink-4); }
+.mis-ms .row { align-items: flex-start; }
+.mis-msr .check { margin-top: 1px; }
+.mis-msr .rmeta.late { color: var(--needs-ink); }
+.mis-trow .rtitle.done { color: var(--ink-3); }
+.mis-ptile b { font-family: var(--round); font-size: var(--fs-subhead); }
+
+/* the thread: this goal at the bottom, the longer goals above it, the purpose at the top. The line rises once */
+.mis-thread { position: relative; margin: 0 var(--gutter); padding: var(--s-2) 0; border-radius: var(--r-lg); }
+.mis-thread::before {
+  content: ""; position: absolute; left: calc(var(--s-4) + 14px); top: 38px; bottom: 38px; width: 2px; border-radius: 1px;
+  background: color-mix(in srgb, var(--as) 72%, transparent);
+  transform-origin: 50% 100%; transition: transform .9s var(--ease-move);
+}
+.mis-thread.pre::before { transform: scaleY(0); transition: none; }
+.mis-tn { position: relative; z-index: 1; display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: 60px; padding: var(--s-2) var(--s-4); text-align: left; transition: background-color var(--d-press); }
+.mis-tn:active { background: var(--row-press); }
+.mis-tn-dot { width: 30px; height: 30px; flex-shrink: 0; display: grid; place-items: center; border-radius: 50%; background: var(--e1); }
+.mis-tn-dot.glyph { box-shadow: inset 0 0 0 2px var(--as); color: var(--as-ink); }
+.mis-tn-dot.glyph svg { width: 16px; height: 16px; }
+.mis-tn-b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.mis-tn-k { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.mis-tn-t { font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-wrap: pretty; }
+.mis-tn.top .mis-tn-t { font-weight: var(--w-regular); color: var(--ink-2); }
+.mis-tn.here .mis-tn-k { color: var(--as-ink); font-weight: var(--w-semibold); }
+.mis-tn-v { flex-shrink: 0; font-size: var(--fs-subhead); color: var(--ink-2); }
+
+/* charts */
+.mis-card { margin: 0 var(--gutter); padding: var(--s-4); border-radius: var(--r-lg); }
+.mis-chart { position: relative; }
+.mis-plot { position: relative; touch-action: pan-y; }
+.mis-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.mis-svg text { font-family: var(--font); font-size: 12px; font-variant-numeric: tabular-nums; }
+.mc-grid { stroke: var(--sep); stroke-width: 1; }
+.mc-tick { fill: var(--ink-3); }
+.mc-tick.now { fill: var(--ink); font-weight: var(--w-semibold); }
+.mc-pace { stroke: var(--ink-3); stroke-width: 1.5; stroke-linecap: round; }
+.mc-ref { fill: none; stroke: var(--ink-3); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.mc-line { fill: none; stroke: var(--as); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.mc-area { fill: var(--as); fill-opacity: .1; }
+.mc-now { stroke: var(--ink-4); stroke-width: 1; }
+.mc-dot { fill: var(--as); stroke: var(--e1); stroke-width: 2; }
+.mc-rdot { fill: var(--ink-3); stroke: var(--e1); stroke-width: 2; }
+.mc-pdot { fill: var(--e1); stroke: var(--ink-3); stroke-width: 1.5; }
+.mc-gap { stroke-width: 2; stroke-linecap: round; }
+.mc-gap.behind { stroke: var(--needs); }
+.mc-gap.ahead { stroke: var(--as); }
+.mc-val { fill: var(--ink); font-weight: var(--w-semibold); }
+.mc-lab2 { fill: var(--ink-2); }
+.mc-end { fill: var(--ink-2); }
+.mc-end.b { fill: var(--ink); font-weight: var(--w-semibold); }
+.mis-xh { position: absolute; top: 0; bottom: 26px; width: 1px; margin-left: -.5px; background: var(--ink-3); opacity: 0; pointer-events: none; transition: opacity var(--d-press); }
+.mis-tip { position: absolute; top: -6px; left: 0; translate: 0 -100%; z-index: 3; padding: 6px var(--s-3); border-radius: var(--r-sm); font-size: var(--fs-footnote); line-height: var(--lh-footnote); white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity var(--d-press); }
+.mis-tip b { font-weight: var(--w-bold); font-variant-numeric: tabular-nums; }
+.mis-tip span { margin-left: var(--s-1); color: var(--ink-2); }
+.mis-chart.scrub .mis-xh, .mis-chart.scrub .mis-tip { opacity: 1; }
+.mis-legend { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-4); margin-top: var(--s-3); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.mis-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.mk-line, .mk-ref { width: 14px; height: 2px; border-radius: 1px; background: var(--as); }
+.mk-ref { background: var(--ink-3); }
+.mk-bar { width: 10px; height: 10px; border-radius: 3px; background: var(--as); }
+.mk-bar.behind { background: var(--needs); }
+.mk-band { width: 14px; height: 10px; border-radius: 3px; background: var(--fill-2); }
+.mis-tbl { margin-top: var(--s-1); }
+.mis-tbl summary { display: inline-flex; align-items: center; min-height: var(--hit); font-size: var(--fs-footnote); font-weight: var(--w-semibold); color: var(--ink-2); cursor: pointer; list-style: none; }
+.mis-tbl summary::-webkit-details-marker { display: none; }
+.mis-tbl summary::after { content: ""; width: 7px; height: 7px; margin-left: var(--s-2); border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(45deg); transition: transform var(--d-state) var(--ease); }
+.mis-tbl[open] summary::after { transform: translateY(2px) rotate(-135deg); }
+.mis-tbl table { width: 100%; border-collapse: collapse; font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-variant-numeric: tabular-nums; }
+.mis-tbl th, .mis-tbl td { padding: 6px 0; text-align: left; border-bottom: var(--hair) solid var(--sep); }
+.mis-tbl th { color: var(--ink-3); font-weight: var(--w-semibold); }
+.mis-tbl td { color: var(--ink-2); }
+.mis-tbl td:not(:first-child), .mis-tbl th:not(:first-child) { text-align: right; }
+
+/* check-ins and notes */
+.mis-checks .row { align-items: flex-start; }
+.mis-cdot { width: 10px; height: 10px; margin-top: 6px; border-radius: 50%; flex-shrink: 0; background: var(--mis-on); }
+.mis-cdot.risk { background: var(--needs); }
+.mis-cdot.off { background: var(--fail); }
+.mis-addrow { color: var(--ink-2); }
+.mis-addrow .tile svg { width: 16px; height: 16px; }
+.mis-notes { display: block; margin: 0 var(--gutter); padding: var(--s-3) var(--s-4); border-radius: var(--r-lg); }
+.mis-notes textarea { display: block; width: 100%; border: 0; outline: 0; background: none; resize: none; color: var(--ink); font-size: var(--fs-callout); line-height: var(--lh-callout); }
+.mis-notes textarea::placeholder { color: var(--ink-3); }
+.mis-notes:focus-within { box-shadow: var(--e1-box), inset 0 0 0 1.5px var(--field-focus); }
+.mis-gacts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-2); margin: var(--gap-sec) var(--gutter) 0; }
+.mis-gacts .btn { padding: 0 var(--s-2); }
+.mis-gacts .btn svg { width: 17px; height: 17px; }
+.mis-donebtn { color: var(--as-ink); }
+.mis-again { margin-top: var(--gap-sec); }
+
+/* ── Graph ── */
+.mis-gstat { margin: 0 var(--gutter); padding: var(--s-5) var(--s-4) var(--s-4); border-radius: var(--r-xl); }
+.mis-big { display: flex; align-items: flex-end; gap: var(--s-3); }
+.mis-big > b { font-size: var(--fs-fig-hero); font-weight: var(--w-fig-l); line-height: .86; font-variant-numeric: proportional-nums; }
+.mis-big-l { display: flex; flex-direction: column; gap: 2px; padding-bottom: 2px; font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+.mis-big-l small { font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-regular); color: var(--ink-2); }
+.mis-gsub { margin: var(--s-4) 0 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); text-wrap: pretty; }
+.mis-gsub b { color: var(--ink); font-weight: var(--w-semibold); }
+.mis-comp { display: flex; gap: 2px; height: 12px; margin-top: var(--s-5); }
+.mis-comp > .mis-cp { min-width: 4px; border-radius: 2px; }
+.mis-comp > .mis-cp:first-child { border-radius: 4px 2px 2px 4px; }
+.mis-comp > .mis-cp:last-child { border-radius: 2px 4px 4px 2px; }
+.mis-cp { display: block; background: var(--as); }
+.mis-cp.pending { background: color-mix(in srgb, var(--as) 36%, transparent); }
+.mis-cp.missed { background: var(--ink-3); }
+.mis-cp.dropped { background: var(--fill-3); }
+.mis-comp-l { display: flex; justify-content: space-between; gap: var(--s-2); margin-top: var(--s-3); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.mis-comp-l span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.mis-comp-l .mis-cp { width: 10px; height: 10px; border-radius: 3px; }
+.mis-comp-l b { font-size: var(--fs-subhead); color: var(--ink); }
+
+/* pace by goal: a diverging bar around on pace. Name · track · value; the ±10 band and the zero line run the whole column */
+.mis-pb { --nw: 44%; --vw: 38px; --tw: calc(100% - var(--nw) - var(--vw)); }
+.mis-pb-axis { position: relative; height: var(--lh-caption); font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); }
+.mis-pb-axis span { position: absolute; top: 0; white-space: nowrap; }
+.mis-pb-axis .l { left: var(--nw); }
+.mis-pb-axis .z { left: calc(var(--nw) + var(--tw) * var(--z)); translate: -50% 0; color: var(--ink-2); font-weight: var(--w-semibold); }
+.mis-pb-axis .r { display: none; }
+.mis-pb-rows { position: relative; margin-top: var(--s-1); }
+.mis-pb-rows::before, .mis-pb-rows::after { content: ""; position: absolute; top: 0; bottom: 0; pointer-events: none; }
+.mis-pb-rows::before { left: calc(var(--nw) + var(--tw) * var(--b1)); width: calc(var(--tw) * (var(--b2) - var(--b1))); border-radius: 4px; background: var(--fill-1); }
+.mis-pb-rows::after { left: calc(var(--nw) + var(--tw) * var(--z)); width: 1px; background: var(--ink-4); }
+.mis-pb-g { position: relative; z-index: 1; margin: 0; padding: var(--s-3) 0 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.mis-pb-r { position: relative; z-index: 1; display: flex; align-items: center; width: 100%; min-height: var(--hit); text-align: left; border-radius: var(--r-sm); transition: background-color var(--d-press); }
+.mis-pb-r:active { background: var(--row-press); }
+.mis-pb-n { width: var(--nw); flex-shrink: 0; padding-right: var(--s-2); font-size: var(--fs-subhead); line-height: var(--lh-subhead); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mis-pb-t { position: relative; flex: 1; height: 28px; }
+.mis-pb-b { position: absolute; top: 9px; height: 10px; background: var(--as); }
+.mis-pb-b.neg { border-radius: 4px 0 0 4px; }
+.mis-pb-b.pos { border-radius: 0 4px 4px 0; }
+.mis-pb-b.behind { background: var(--needs); }
+.mis-pb-v { width: var(--vw); flex-shrink: 0; text-align: right; font-size: var(--fs-subhead); color: var(--ink-2); }
+.mis-pb .mis-legend { margin-top: var(--s-4); }
+
+/* weeks you closed: one square a week since the review; a month and a quarter as pills */
+.mis-wk-h { display: flex; align-items: center; gap: var(--s-3); }
+.mis-wk-h .mis-flame { width: 32px; height: 32px; }
+.mis-wk-t { font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+.mis-wk-t .met { font-size: var(--fs-fig-3); margin-right: 2px; }
+.mis-wk-r { margin-left: auto; font-size: var(--fs-footnote); color: var(--ink-2); white-space: nowrap; }
+.mis-wk-strip { display: block; width: 100%; margin-top: var(--s-4); padding: var(--s-1) 0; border-radius: var(--r-sm); text-align: left; }
+.mis-wk-strip:active { opacity: .7; }
+.mis-wk-g, .mis-wk-m { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); gap: 3px; }
+.mis-wq { display: grid; place-items: center; aspect-ratio: 1; border-radius: 5px; }
+.mis-wq svg { width: 11px; height: 11px; stroke-width: 3.2; }
+.mis-wq.hit { background: var(--as-fill); color: var(--as-on, var(--on-color)); }
+.mis-wq.miss { box-shadow: inset 0 0 0 1.5px var(--ink-4); }
+.mis-wq.now { box-shadow: inset 0 0 0 2px var(--needs); }
+.mis-wq.sm { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
+.mis-wk-m { margin-top: 6px; font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); }
+.mis-wk-m span { white-space: nowrap; }
+.mis-wk-k { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-4); margin-top: var(--s-2); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.mis-wk-k span { display: inline-flex; align-items: center; gap: 6px; }
+.mis-hits { display: flex; flex-direction: column; gap: var(--s-2); margin-top: var(--s-4); padding-top: var(--s-4); border-top: var(--hair) solid var(--sep); }
+.mis-hit-r { display: flex; flex-direction: column; gap: var(--s-2); }
+.mis-hit-r + .mis-hit-r { margin-top: var(--s-2); }
+.mis-hit-l { display: flex; justify-content: space-between; margin: 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.mis-hit-l span:last-child { color: var(--ink-3); }
+.mis-hit-g { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-2); }
+.mis-hp-c { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 34px; padding: 0 var(--s-2); border-radius: var(--r-pill); background: var(--fill-1); box-shadow: inset 0 0 0 1px var(--sep); font-size: var(--fs-footnote); white-space: nowrap; }
+.mis-hp-c b { font-weight: var(--w-semibold); }
+.mis-hp-c .met { color: var(--ink-2); font-size: var(--fs-footnote); }
+.mis-hp-c.full { background: color-mix(in srgb, var(--as) 20%, transparent); box-shadow: none; }
+.mis-hp-c.full .met { color: var(--as-ink); }
+.mis-hp-c.now { box-shadow: inset 0 0 0 1.5px var(--needs); }
+.mis-crow .mis-ct svg { width: 16px; height: 16px; }
+.mis-crow.done .mis-ct { color: var(--as-ink); }
+.mis-crow.missed .mis-ct, .mis-crow.dropped .mis-ct { color: var(--ink-3); }
+
+/* ── Purpose ── */
+.mis-pcard { margin: 0 var(--gutter); padding: var(--s-6) var(--s-5) var(--s-5); border-radius: var(--r-xl); }
+.mis-pc-i { display: block; color: var(--as-ink); }
+.mis-pc-i svg { width: 30px; height: 30px; stroke-width: 1.8; }
+.mis-ptext { margin: var(--s-4) 0 0; font-family: var(--ff-title); font-size: var(--fs-title1); line-height: var(--lh-title1); font-weight: var(--w-title); font-variation-settings: var(--fv-title); text-wrap: pretty; }
+.mis-pmeta { margin: var(--s-4) 0 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.mis-pacts { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-4); }
+.mis-vals .row { align-items: flex-start; }
+.mis-vn { width: 26px; height: 26px; margin-top: 1px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; background: color-mix(in srgb, var(--as) 18%, transparent); color: var(--as-ink); font-size: var(--fs-subhead); }
+.mis-vals .rmeta, .mis-vers .rmeta { white-space: normal; }
+.mis-vers .row { align-items: flex-start; --sep-left: 84px; }
+.mis-vd { width: 56px; flex-shrink: 0; padding-top: 2px; font-size: var(--fs-subhead); color: var(--ink-2); white-space: nowrap; }
+.row .rtitle.mis-vt { white-space: normal; text-wrap: pretty; }
+.mis-vers .rtitle.old { color: var(--ink-2); }
+.mis-gap { --sep-left: 60px; }
+.mis-gap .btn { flex-shrink: 0; }
+.mis-exr .rmeta > span { white-space: normal; }
+
+/* the tree: how every goal serves the purpose, one direction at a time */
+.mis-treecard { margin: 0 var(--gutter); padding: var(--s-1) var(--s-3) var(--s-2); border-radius: var(--r-lg); }
+.mis-tdir + .mis-tdir { border-top: var(--hair) solid var(--sep); }
+.mis-tdh { display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: 58px; padding: var(--s-2) var(--s-1); text-align: left; border-radius: var(--r-sm); }
+.mis-tdh:active { background: var(--row-press); }
+.mis-tdh-b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.mis-tdh-k { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.mis-tdh-t { font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+.mis-tdh-n { font-size: var(--fs-subhead); color: var(--ink-3); }
+.mis-tree, .mis-tree ul { list-style: none; margin: 0; padding: 0; }
+.mis-tree { margin: 0 0 var(--s-2) 19px; }
+.mis-tree.top { margin: var(--s-1) 0 var(--s-1) 2px; }
+.mis-tree ul { margin-left: 13px; }
+.mis-tree li { position: relative; padding-left: 18px; }
+.mis-tree li::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 1.5px; background: var(--ink-4); }
+.mis-tree li:last-child::before { bottom: auto; height: 23px; }
+.mis-tree li::after { content: ""; position: absolute; left: 0; top: 22px; width: 12px; height: 1.5px; background: var(--ink-4); }
+.mis-tnode { display: flex; align-items: center; gap: var(--s-2); width: 100%; min-height: var(--hit); padding: var(--s-1); text-align: left; border-radius: var(--r-sm); }
+.mis-tnode:active { background: var(--row-press); }
+.mis-tr-t { flex: 1; min-width: 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mis-tr-h { flex-shrink: 0; font-size: var(--fs-footnote); color: var(--ink-3); }
+.mis-tr-p { width: 38px; flex-shrink: 0; text-align: right; font-size: var(--fs-subhead); color: var(--ink-2); }
+
+/* ── a horizon page ── */
+.mis-hseg { margin: 0 0 var(--s-4); }
+.mis-hseg .seg { height: 40px; }
+.mis-hbody.mis-swap { animation: swap .24s var(--ease); }
+.mis-hstripe { margin: 0 var(--gutter); padding: var(--s-4) var(--s-3) var(--s-3); border-radius: var(--r-lg); }
+.mis-hstripe .mis-stripe { margin: 0; }
+.mis-hstripe .foot { margin: var(--s-3) var(--s-1) 0; }
+.mis-stripe.big .mis-sc > i { height: 12px; border-radius: 4px; }
+.mis-stripe.days { gap: var(--s-1); }
+.mis-stripe.days .mis-sc { align-items: center; gap: 5px; min-height: 64px; padding: 0 0 var(--s-1); border-radius: var(--r-sm); transition: background-color var(--d-press); }
+.mis-stripe.days .mis-sc > i { width: 100%; }
+.mis-stripe.days .mis-sc:active { background: var(--row-press); }
+.mis-stripe.days .mis-sc > span { margin-top: 4px; }
+.mis-sc > em { font-style: normal; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.mis-sc.now > em { color: var(--ink); }
+.mis-past { display: flex; align-items: center; gap: var(--s-4); margin: 0 var(--gutter); padding: var(--s-4); border-radius: var(--r-lg); font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.mis-past .met { font-size: var(--fs-fig-1); font-weight: var(--w-fig-l); }
+.mis-past .met small { font-size: var(--fs-fig-4); color: var(--ink-2); }
+.mis-nextp { display: flex; align-items: flex-start; gap: var(--s-3); margin-top: var(--gap-sec); color: var(--ink); font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.mis-nextp > span:last-child { flex: 1; min-width: 0; text-wrap: pretty; }
+
+/* ── sheets ── */
+.mis-addf { align-items: flex-start; margin: var(--s-2) var(--gutter) 0; padding: var(--s-2) var(--s-1) var(--s-2) var(--s-4); border-radius: var(--r-lg); }
+.mis-addf textarea { min-height: 52px; font-size: var(--fs-body); line-height: var(--lh-body); }
+.mis-addf .fbtn { margin-top: 2px; color: var(--ink-2); }
+.mis-add-h { margin: var(--s-5) calc(var(--gutter) + var(--s-1)) var(--s-2); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.mis-sug svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--ink-3); }
+.mis-draft { margin-top: var(--s-4); }
+.mis-draft.mis-in { animation: mis-rise .34s var(--ease) both; }
+@keyframes mis-rise { from { opacity: 0; transform: translateY(10px); } }
+.mis-think { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-4) var(--gutter); font-size: var(--fs-subhead); color: var(--ink-2); }
+.mis-dh { display: flex; align-items: center; gap: var(--s-2); padding: 0 calc(var(--gutter) + var(--s-1)) var(--s-2); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.mis-dr { align-items: center; gap: var(--s-3); }
+.mis-dr.col { flex-direction: column; align-items: stretch; gap: var(--s-2); }
+.mis-dk { width: 72px; flex-shrink: 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.mis-dr.col .mis-dk { width: auto; }
+.mis-di { flex: 1; min-width: 0; padding: 2px 0; border: 0; outline: 0; background: none; color: var(--ink); font-size: var(--fs-body); line-height: var(--lh-body); font-weight: var(--w-semibold); resize: none; }
+.mis-dv { font-size: var(--fs-body); line-height: var(--lh-body); }
+.mis-steps { margin: 0; padding-left: 22px; font-size: var(--fs-subhead); line-height: 1.6; }
+.mis-dn { margin: var(--s-3) calc(var(--gutter) + var(--s-1)) 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); text-wrap: pretty; }
+.mis-ckgo { margin-top: var(--s-5); }
+.mis-mv .rmeta { white-space: normal; }
+.mis-pick { color: var(--as-ink); }
+.mis-pick svg { width: 20px; height: 20px; }
+.mis-ckr .rbody { display: flex; flex-direction: column; }
+.mis-ckseg { width: 100%; margin-top: var(--s-2); }
+.mis-ckseg button { white-space: nowrap; }
+.mis-cknote { margin: var(--s-3) var(--gutter) 0; }
+.mis-wrow { align-items: flex-start; }
+.mis-wrow .mis-wq { width: 22px; flex-shrink: 0; margin-top: 1px; }
+.mis-ex { padding-top: var(--s-1); }
+.mis-ex-k { margin: 0 calc(var(--gutter) + var(--s-1)) var(--s-2); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.mis-ex-q { margin: 0 var(--gutter); padding: var(--s-3) var(--s-4) var(--s-3) var(--s-8); border-radius: var(--r-lg); background: var(--inlay); box-shadow: var(--inlay-box); font-size: var(--fs-body); line-height: var(--lh-body); }
+.mis-ex-q li + li { margin-top: var(--s-2); }
+.mis-ex > .mis-say, .mis-pedit > .mis-say { margin: var(--s-4) var(--gutter) 0; }
+.mis-pedit > .mis-say-acts { margin-left: var(--gutter); margin-right: var(--gutter); }
+.mis-pfield { align-items: flex-start; margin: var(--s-2) var(--gutter) 0; padding: var(--s-3) var(--s-4); border-radius: var(--r-lg); }
+.mis-pfield textarea { font-size: var(--fs-title3); line-height: 1.35; }
+
+/* the peek: hold a goal */
+.mis-peek { display: flex; align-items: center; gap: var(--s-4); padding: var(--s-4); }
+.mis-pk-b { flex: 1; min-width: 0; }
+.mis-pk-k { margin: 0; font-size: var(--fs-footnote); color: var(--as-ink); font-weight: var(--w-semibold); }
+.mis-pk-t { margin: 2px 0 0; font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+.mis-pk-s { margin: var(--s-2) 0 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+
+/* the widget Home may show */
+.mis-w { display: flex; flex-direction: column; gap: var(--s-1); width: 100%; padding: var(--s-3) var(--s-4); border-radius: var(--r-lg); text-align: left; }
+.mis-w-h { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2); margin-bottom: var(--s-1); }
+.mis-w-k { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-subhead); font-weight: var(--w-semibold); color: var(--as-ink); }
+.mis-w-k svg { width: 16px; height: 16px; }
+.mis-w-l { font-size: var(--fs-footnote); color: var(--ink-2); }
+.mis-w-r { display: flex; align-items: center; gap: var(--s-3); min-height: 38px; font-size: var(--fs-footnote); }
+.mis-w-t { flex: 1; min-width: 0; font-size: var(--fs-subhead); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mis-sc > i::before, .mis-sc.now > i::after, .mis-thread::before { transition: none !important; }
+  .mis-grow.mis-new, .mis-draft.mis-in { animation: none !important; }
+}
+
+/* ═══ 2 · OBSIDIAN ═════════════════════════════════════════════════════════ */
+/* nothing of its own: the stone, the glass and the ring light come from the skin */
+
+/* ═══ 3 · MATTE ════════════════════════════════════════════════════════════ */
+/* printed stock: the time stripe is ink on paper, the knockouts take the paper colour */
+:where(:root[data-skin="matte"]) .asp-mission, :where(:root[data-skin="matte"]) .mis-page, :where(:root[data-skin="matte"]) .mis-w { --ring-bg: var(--paper); --mis-gone: color-mix(in oklab, var(--ink) 38%, transparent); }
+:where(:root[data-skin="matte"]) .mis-sheet { --ring-bg: var(--float); }
+:where(:root[data-skin="matte"]) .mis-sc.now > i::after { box-shadow: 0 0 0 1.5px var(--bg); }
+:where(:root[data-skin="matte"]) .mis-tn-dot { background: var(--paper); }
+:where(:root[data-skin="matte"]) .mc-dot, :where(:root[data-skin="matte"]) .mc-rdot { stroke: var(--paper); }
+:where(:root[data-skin="matte"]) .mc-pdot { fill: var(--paper); }
+:where(:root[data-skin="matte"]) .mis-hp-c { box-shadow: var(--edge-2); background: var(--raised); }
+:where(:root[data-skin="matte"]) .mis-hp-c.full { background: color-mix(in oklab, var(--as) 22%, var(--paper)); box-shadow: none; }
+:where(:root[data-skin="matte"]) .mis-ex-q { box-shadow: var(--edge-2); }
+
+/* ── v2: real data states (Mission agent) ── */
+.mis-av:has(.am) { background: none; box-shadow: none; }
+.mis-v.none { color: var(--ink-3); }
+.mis-star.empty .mis-star-t { color: var(--ink-3); font-style: italic; }
+.mis-pcard.empty .mis-ptext { color: var(--ink-3); }
+.mis-streak.cold .mis-flame { color: var(--ink-4); }
+.mis-wk-g, .mis-wk-m { grid-template-columns: repeat(var(--n, 16), minmax(0, 1fr)); }
+.mis-wk-strip[style*="--n:1;"] .mis-wk-g, .mis-wk-strip[style*="--n:2;"] .mis-wk-g, .mis-wk-strip[style*="--n:3;"] .mis-wk-g { max-width: calc(var(--n) * 28px); }
+.mis-wk-strip[style*="--n:1;"] .mis-wk-m, .mis-wk-strip[style*="--n:2;"] .mis-wk-m, .mis-wk-strip[style*="--n:3;"] .mis-wk-m { max-width: calc(var(--n) * 28px); }
+.mis-wq.none { box-shadow: inset 0 0 0 1px var(--hair, var(--ink-4)); opacity: .5; }
+.mis-msr { align-items: flex-start; }
+.mis-msx { flex-shrink: 0; display: grid; place-items: center; width: 32px; height: 32px; margin: -4px -8px -4px 0; color: var(--ink-4); border-radius: 50%; transition: color var(--d-press), background-color var(--d-press); }
+.mis-msx svg { width: 14px; height: 14px; }
+.mis-msx:active { color: var(--needs-ink); background: var(--ctl); }
+.mis-msadd { gap: var(--s-3); color: var(--ink-2); }
+.mis-msadd .tile svg { width: 16px; height: 16px; }
+.mis-msadd input { flex: 1; min-width: 0; min-height: 44px; border: 0; background: none; color: var(--ink); font: inherit; font-size: 16px; padding: 0; outline: none; }
+.mis-msadd input::placeholder { color: var(--ink-3); }
+.mis-msadd:focus-within { background: color-mix(in srgb, var(--as) 6%, transparent); }
+.mis-tn.add .mis-tn-k { color: var(--ink-3); }
+.mis-tn.add .mis-tn-t { color: var(--as-ink); font-weight: var(--w-semibold); }
+.mis-dm { width: 100%; border: 0; background: none; color: var(--ink); font: inherit; font-size: 16px; padding: 2px 0; outline: none; }
+.mis-famchips { margin: var(--s-3) var(--gutter) 0; }
+.mis-famchips .chip svg { width: 14px; height: 14px; margin-right: 4px; }
+.mis-scanr { gap: var(--s-3); align-items: flex-start; }
+.mis-scanr input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--as); flex-shrink: 0; }
+.mis-dropbtn { color: var(--ink-3); margin-top: var(--s-2); }
+.mis-dropbtn svg { width: 14px; height: 14px; }
+.mis-think .am { flex-shrink: 0; }
+.mis-pacts .btn .am, .mis-say-acts .btn .am { margin-right: 6px; }

@@ -1,0 +1,406 @@
+/* ═══ SCREEN · TODAY ══════════════════════════════════════════════════════════
+   Owner: area (a) Today + Tasks + the task, event and sleep sheets + the accessory (app/ui/STRUCTURE.md).
+   Loaded after styles.css and work/work.css, so a rule here wins over the legacy one it amends at equal weight.
+   Blocks: 1 · SHARED (both skins) · 2 · OBSIDIAN · 3 · MATTE, skin rules written :where(:root[data-skin="…"]) .x.
+   The design is j15/mockup/final's Today (css/screens/today.css): one hero carries the first screen (the block you
+   are in with its countdown, the day strip and the day's three rings), every live job sits right under it, above the
+   fold, and everything else is ink on a surface. app.js draws it with real data (renderHero, renderTodayJobs,
+   renderBrief, renderNight); the timeline keeps its real geometry (drag to plan) in the mockup's schedule language. */
+
+/* ═══ 1 · SHARED ═══════════════════════════════════════════════════════════ */
+
+/* ── page head: the large title shares the bar's row with Wyn and the account, as in iOS, so the first screen starts
+   a bar higher. The scroller keeps its padding, so the sticky switch keeps its place under the bar ── */
+.today-head { margin-top: calc(var(--s-1) - var(--topbar-h)); padding: 0 0 var(--s-3); }
+.today-head .large-title { display: flex; align-items: center; min-height: var(--hit); padding-right: 168px; white-space: nowrap; }
+.today-head .hero-date { margin-top: 0; }
+.navbar .nav-lead { display: inline-flex; }
+/* Today's bar carries Wyn and the account on the right: a longer title (This week) moves aside rather than under them */
+#navbar { grid-template-columns: 1fr auto 1fr; }
+
+/* ── the hero: now and its countdown, the day strip, what is next, then the day's three rings along the foot ── */
+.t-hero { border-radius: var(--r-lg); overflow: hidden; --ring-bg: var(--e1); transition: transform var(--d-press) var(--ease); }
+.t-hero:has(.hero-now:active) { transform: scale(.985); }
+.hero-now { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; column-gap: var(--s-3); width: 100%; padding: var(--s-4) var(--s-4) 0; text-align: left; }
+.hero-now:focus-visible, .hn-next:focus-visible, .hn-strip:focus-visible { outline-offset: -3px; border-radius: var(--r-lg); }
+.hn-txt { display: flex; flex-direction: column; min-width: 0; }
+.hn-k { display: flex; align-items: center; gap: var(--s-2); min-width: 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); color: var(--ink-2); }
+.hn-k > span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hn-k .b-moon { width: 14px; height: 14px; flex: none; fill: currentColor; }
+.hn-t { margin-top: var(--s-1); font-size: var(--fs-title2); line-height: var(--lh-title2); font-weight: var(--w-bold); color: var(--ink); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.hn-m { margin-top: 2px; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+/* the countdown is the card's one focal figure */
+.hn-cd { display: flex; flex-direction: column; align-items: flex-end; }
+.hn-cd .met { display: block; font-size: var(--fs-fig-hero); font-weight: var(--w-fig-l); line-height: .92; color: var(--ink); white-space: nowrap; }
+.hn-cd small { margin-top: var(--s-1); font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); color: var(--ink-2); }
+/* the day strip, waking to bedtime: what is spent in grey, the block you are in in Today's colour, what is left as
+   slots. A tap shows that time in the schedule, so the row is a 44pt target */
+.hn-strip { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--s-2); min-height: var(--hit); margin-top: var(--s-1); padding: 0 var(--s-4); font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); cursor: pointer; touch-action: manipulation; }
+.hs-track { position: relative; display: block; height: 8px; border-radius: var(--r-track); background: var(--fill-1); }
+.hs-track i { position: absolute; top: 0; bottom: 0; border-radius: var(--r-track); background: var(--fill-3); box-shadow: 0 0 0 1.5px var(--e1); }
+.hs-track i.past { background: color-mix(in srgb, var(--ink-3) 72%, transparent); }
+.hs-track i.cur { background: var(--today); }
+.hs-now { position: absolute; top: calc(var(--s-1) * -1); bottom: calc(var(--s-1) * -1); width: 3px; margin-left: -1.5px; border-radius: var(--r-track); background: var(--ink); box-shadow: 0 0 0 1.5px var(--e1); }
+.hn-next { display: flex; align-items: center; gap: var(--s-2); width: 100%; min-width: 0; min-height: var(--hit); padding: 0 var(--s-4) var(--s-1); text-align: left; font-size: var(--fs-subhead); line-height: var(--lh-subhead); white-space: nowrap; }
+.hn-next .hn-nk { color: var(--ink-2); }
+.hn-next b { font-weight: var(--w-semibold); color: var(--ink); }
+.hn-next em { min-width: 0; font-style: normal; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; }
+.hn-next:active, .hn-strip:active { background: var(--row-press); }
+/* the day's rings: Day · Tasks · Focus, each ring beside its own figure */
+.t-hero .hero-rings { position: relative; display: flex; justify-content: space-between; gap: var(--s-3); padding: var(--s-3) var(--s-4) var(--s-4); }
+.t-hero .hero-rings::before { content: ""; position: absolute; top: 0; left: var(--s-4); right: var(--s-4); height: var(--hair); background: var(--sep); }
+.hr-c { display: flex; align-items: center; gap: var(--s-2); min-width: 0; }
+.hr-t { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.hr-t > small { font-size: var(--fs-caption); line-height: var(--lh-caption); font-weight: var(--w-semibold); color: var(--ink-2); white-space: nowrap; }
+.hr-t .met { font-size: var(--fs-fig-3); white-space: nowrap; }
+.hr-t .met small { font-size: var(--fs-caption); }
+
+/* ── Today's sections sit closer than elsewhere, and a header's action keeps a 44pt target ── */
+.t-sh { padding-top: var(--s-5); }
+.t-sh .sh-act::after { content: ""; position: absolute; inset: -6px -8px; }
+.sh-end { margin-left: auto; display: inline-flex; }
+
+/* ── jobs on Today: each row wears its job's ring. Two buttons side by side: the job, and its Allow or Answer ── */
+.jobs-mini { --ring-bg: var(--e1); }
+.jobs-mini .jrow { min-height: 60px; padding: 0 var(--s-4) 0 0; gap: var(--s-2); --sep-left: 70px; }
+.jobs-mini .jrow:not(:has(.jr-act)) { padding-right: 0; }
+.jr-main { flex: 1; min-width: 0; align-self: stretch; display: flex; align-items: center; gap: var(--s-3); padding: var(--s-2) 0 var(--s-2) var(--s-4); text-align: left; color: var(--ink); }
+.jobs-mini .jrow:not(:has(.jr-act)) .jr-main { padding-right: var(--s-4); }
+.jobs-mini .jrow:has(.jr-main:active) { background: var(--row-press); }
+.jr-act { flex-shrink: 0; }
+.jr-act::after { content: ""; position: absolute; inset: -5px -2px; }
+.jobs-mini .jring .agent { width: 28px; height: 28px; }
+.jobs-mini .jring .agent svg { width: 15px; height: 15px; }
+.jobs-mini .rmeta { gap: var(--s-1); }
+.jr-n { font-size: var(--fs-subhead); }
+.jbadge { position: absolute; z-index: 2; right: -2px; bottom: -2px; width: 14px; height: 14px; border-radius: 50%; border: 2.5px solid var(--ring-bg, var(--e1)); background: var(--needs); }
+.jobs-mini .jfoot { padding: 0; min-height: var(--hit); gap: 0; }
+.jf-btn { flex: 1; height: var(--hit); display: flex; align-items: center; justify-content: center; gap: var(--s-2); font-size: var(--fs-subhead); font-weight: var(--w-semibold); color: var(--ink); }
+.jf-btn svg:not(.chev) { width: 17px; height: 17px; color: var(--ink-2); }
+.jf-btn .chev { width: 12px; height: 12px; }
+.jf-btn + .jf-btn { border-left: var(--hair) solid var(--sep); }
+.jf-btn:active { background: var(--row-press); }
+.jf-n { font-family: var(--round); font-weight: var(--w-fig); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.t-empty { min-height: var(--hit); }
+.more-row { justify-content: center; gap: var(--s-2); min-height: var(--hit); font-size: var(--fs-subhead); font-weight: var(--w-semibold); color: var(--ink); }
+.more-row .chev { width: 12px; height: 12px; }
+
+/* ── brief: one grouped list for the morning brief or the shutdown, the night, and each module's Today card.
+   Neutral glyphs; the one coloured thing is Today's primary action ── */
+.t-brief:not(:has(#nightCard:not(:empty), #brief:not(:empty), #modTodayTop > :not(:empty))) { display: none; }
+.brief-g { --sep-left: 50px; }
+.brief-g > #brief, .brief-g > #nightCard { margin: 0; }
+.brief-g .b-row { min-height: 52px; padding-top: var(--s-2); padding-bottom: var(--s-2); --sep-left: 50px; }
+.brief-g .b-row .rtitle { font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); }
+.bi { width: 22px; display: grid; place-items: center; flex-shrink: 0; color: var(--ink-2); }
+.bi svg { width: 20px; height: 20px; }
+.bi .b-moon { width: 17px; height: 17px; fill: currentColor; }
+.bi .ai-glyph { width: 18px; height: 18px; }
+.b-act, .br-state { flex-shrink: 0; }
+.br-state { color: var(--ink-2); }
+.br-state .spin { width: 14px; height: 14px; --c: var(--ink-2); }
+/* the night's row is two buttons: the words open the sleep sheet, the coloured one moves tonight's sleep */
+.brief-g .b-split { padding: 0 var(--s-4) 0 0; gap: var(--s-2); }
+.b-main { flex: 1; min-width: 0; align-self: stretch; display: flex; align-items: center; gap: var(--s-3); padding: var(--s-2) 0 var(--s-2) var(--s-4); text-align: left; color: var(--ink); }
+.b-split:has(.b-main:active) { background: var(--row-press); }
+/* a hairline between the three slots once two of them have something */
+.brief-g > :not(:empty) ~ :is(#nightCard, #brief):not(:empty) > :first-child::before { content: ""; position: absolute; top: 0; right: 0; left: 50px; height: var(--hair); background: var(--sep); }
+/* the modules' Today cards (app/modules, area (d)) are rows of this list: the card keeps its insides, the list its frame */
+.brief-g .mod-slot > [data-mod-card] { margin-top: 0; }
+.brief-g .mod-slot > [data-mod-card]:not(:empty) { position: relative; }
+.brief-g .mod-slot > [data-mod-card]:not(:empty)::before { content: ""; position: absolute; z-index: 1; top: 0; right: 0; left: var(--s-4); height: var(--hair); background: var(--sep); }
+.brief-g:not(:has(#nightCard:not(:empty), #brief:not(:empty))) .mod-slot > [data-mod-card]:not(:empty):not([data-mod-card]:not(:empty) ~ *)::before { display: none; }
+.brief-g .mod-slot > [data-mod-card] > * { margin: 0; width: 100%; max-width: none; border-radius: 0; background: none; box-shadow: none; }
+.brief-g .mod-slot > [data-mod-card] > :is(button, a):active { background: var(--row-press); }
+
+/* ── the sticky switch: once stuck it floats over the timeline, so it is chrome; the selection is the tab bar's lens.
+   Sticky offsets count from inside the scroller's padding (already the bar's height): -2px tucks its top under the bar ── */
+.today-switch { position: sticky; z-index: 8; top: -2px; margin: var(--gap-sec) 0 0; padding: var(--s-2) var(--gutter); }
+.today-switch .segmented { height: 40px; }
+.today-switch .segmented > button { font-size: var(--fs-subhead); }
+.today-switch .segmented > button .n:empty { display: none; }
+/* the schedule's own row: free time on the left, Today when another day is shown, Day | Week on the right */
+.sched-tools { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-2) var(--gutter) 0; }
+.sched-free { flex: 1; min-width: 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sched-free b { color: var(--ink); font-weight: var(--w-semibold); font-variant-numeric: tabular-nums; }
+/* app.js moves Day | Week's lens by 80px (setView → moveThumb), so the control keeps the 164px it was drawn for */
+.sched-tools .view-seg { width: 164px; height: 32px; }
+
+/* ── schedule: the real timeline (an hour scale you can drag tasks into) in the mockup's language. Calendar blocks on a
+   surface with the area as a rail beside them, the now line in Today's colour as in Calendar, free gaps as outlines you
+   can fill, what has passed folded into one line, sleep as a row at each end of the day ── */
+.timeline { margin-top: var(--s-1); }
+.timeline .hour { padding-right: 14px; font-weight: var(--w-regular); color: var(--ink-3); }
+/* hour lines only while something is held, to show where it will land */
+.timeline .hour-rule { visibility: hidden; }
+.timeline.dragging .hour-rule { visibility: visible; }
+.timeline .block { overflow: visible; padding: var(--s-2) var(--s-3) 0; gap: 2px; box-shadow: var(--e1-box); transition: transform var(--d-press) var(--ease); }
+.timeline .block:active:not(.lifted) { transform: scale(.985); }
+.timeline .block::before { left: -9px; top: var(--s-2); bottom: var(--s-2); width: 3px; background: color-mix(in srgb, var(--c) 55%, transparent); }
+.timeline .block:not([data-col="0"])::before { display: none; }
+.timeline .block.past::before { opacity: .55; }
+/* the block you are in: its rail fills with Today's colour as it goes, and it wears its own ring */
+.timeline .block.current { box-shadow: var(--e1-box); --ring-bg: var(--e1); }
+.timeline .block.current[data-col="0"]::after { content: ""; position: absolute; left: -9px; top: var(--s-2); width: 3px; height: calc((100% - 2 * var(--s-2)) * var(--p, 0)); border-radius: var(--r-track); background: var(--today); pointer-events: none; }
+.timeline .block .b-title { line-height: var(--lh-subhead); }
+.timeline .block .b-meta { align-items: center; gap: var(--s-1); font-size: var(--fs-footnote); line-height: var(--lh-footnote); }
+.timeline .block .b-meta .b-area { display: block; white-space: nowrap; }
+.timeline .block .b-meta .dot { width: 7px; height: 7px; margin-right: var(--s-1); vertical-align: 1px; }
+.timeline .block .b-sep { color: var(--ink-3); }
+.timeline .block .b-now { position: absolute; right: var(--s-3); top: var(--s-2); display: flex; align-items: center; gap: var(--s-2); }
+.np-t { display: flex; flex-direction: column; align-items: flex-start; }
+.np-t b { font-size: var(--fs-fig-3); color: var(--ink); white-space: nowrap; }
+.np-t small { margin-top: 2px; font-size: var(--fs-caption); line-height: var(--lh-caption); font-weight: var(--w-semibold); color: var(--ink-2); }
+.timeline .block.current:not(.compact) .b-left { display: none; }
+.timeline .block.current.compact .b-now { display: none; }
+.timeline .block.current:not(.compact) :is(.b-title, .b-meta) { padding-right: 104px; }
+.timeline .block.task { padding-left: 46px; }
+.timeline .block.task .check { left: 8px; }
+.timeline .block.task.compact { padding-left: 38px; }
+.timeline .block.task.compact .check { left: 4px; }
+/* the now line runs from the time column to the rail, where its dot sits; the time is a pill you can drag */
+.now-line::before { left: 0; right: auto; width: calc(var(--tl-gutter) - 6px); }
+.now-line::after { content: ""; position: absolute; left: calc(var(--tl-gutter) - 11.5px); top: -4px; width: 8px; height: 8px; border-radius: 50%; background: var(--today); }
+/* a free gap: an outline with what it holds, and Add */
+.timeline .gap { justify-content: flex-start; gap: var(--s-2); padding: 0 var(--s-3); font-size: var(--fs-subhead); font-weight: var(--w-regular); color: var(--ink-2); }
+.timeline .gap b { color: var(--ink); font-weight: var(--w-semibold); }
+.timeline .gap svg { width: 14px; height: 14px; flex: none; }
+.timeline .gap .gap-cap { margin-left: auto; font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.timeline .gap.small { font-size: var(--fs-footnote); }
+.timeline .gap.small .gap-cap { display: none; }
+/* a short gap keeps its place on the time scale and reaches a 44pt target past its edges (the blocks either side paint
+   over the reach, so they keep their own taps) */
+.timeline .gap.small::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: var(--hit); translate: 0 -50%; }
+/* the now pill is a drag handle: a 44pt reach around it */
+.now-pill::after { content: ""; position: absolute; inset: -11px -4px; border-radius: var(--r-pill); }
+.timeline .gap::before { content: ""; position: absolute; left: -10px; top: 6px; bottom: 6px; width: 2px; background: repeating-linear-gradient(180deg, var(--ink-4) 0 4px, transparent 4px 8px); }
+.timeline .gap.think { opacity: 1; border-style: solid; border-color: transparent; background: var(--inlay); box-shadow: var(--inlay-box); cursor: default; }
+.timeline .gap.think .spin { width: 16px; height: 16px; --c: var(--ink-2); }
+/* what has passed folds into one line you can open */
+.timeline .earlier { height: var(--hit); gap: var(--s-3); padding: 0 var(--s-4); }
+.timeline .earlier .e-dots { flex: 0 1 auto; }
+.timeline .earlier .e-tail { margin-left: auto; }
+.timeline .earlier .e-label { font-weight: var(--w-regular); }
+.timeline .earlier .e-tail { font-size: var(--fs-footnote); color: var(--ink-3); }
+.timeline .earlier::before { content: ""; position: absolute; left: -10px; top: 6px; bottom: 6px; width: 2px; background: repeating-linear-gradient(180deg, var(--ink-4) 0 4px, transparent 4px 8px); }
+/* sleep at each end of the day: the row opens the sleep sheet, Open night unfolds all 24 hours */
+.timeline .band { height: 56px; padding: 0 var(--s-3) 0 0; gap: var(--s-2); background: var(--e1-bg); box-shadow: var(--e1-box); color: var(--ink); font-size: var(--fs-subhead); line-height: var(--lh-subhead); overflow: hidden; }
+.timeline .band:not(.sleep) { padding-left: var(--s-3); }
+.band-main { flex: 1; min-width: 0; height: 100%; display: flex; align-items: center; gap: var(--s-3); padding-left: var(--s-3); text-align: left; color: var(--ink); }
+.band-main:active { background: var(--row-press); }
+.timeline .band .b-moon { width: 17px; height: 17px; flex: none; fill: var(--ink-2); opacity: 1; }
+.band-t { display: flex; flex-direction: column; min-width: 0; }
+.band-t b { font-weight: var(--w-semibold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.band-t small { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.band-night { flex: none; height: 32px; }
+.band-night::after { content: ""; position: absolute; inset: -6px -2px; }
+.timeline button.band.night-fold { padding-left: var(--s-3); gap: var(--s-3); }
+/* Plan my day: suggested blocks, pencilled in (a dashed outline and rail in their area's colour) until kept */
+.timeline .sugg { left: var(--tl-gutter); padding: var(--s-2) var(--s-3) 0 46px; background: transparent; box-shadow: none; overflow: visible; }
+.timeline .sugg::before { content: ""; position: absolute; left: -10px; top: var(--s-2); bottom: var(--s-2); width: 2px; background: repeating-linear-gradient(180deg, var(--c) 0 4px, transparent 4px 8px); }
+/* inside a calendar block (Deep Work, Personal Hustle) it sits to the right, so the block's name stays readable */
+.timeline .sugg.inside { left: calc(var(--tl-gutter) + (100% - var(--tl-gutter) - 16px) * .42); background: var(--e1-bg); }
+.timeline .sugg.inside::before { display: none; }
+.timeline .sugg .b-meta { gap: var(--s-1); font-size: var(--fs-footnote); line-height: var(--lh-footnote); }
+.timeline .sugg .b-meta > span + span::before { content: "·"; margin-right: var(--s-1); color: var(--ink-3); }
+.timeline .sugg.compact .sg-st, .timeline .sugg.compact .b-meta > .b-time::before { display: none; }
+.timeline .sugg.compact { padding-left: 38px; }
+.timeline .sugg .sg-check { left: 8px; top: 5px; }
+.timeline .sugg.compact .sg-check { left: 4px; top: 50%; }
+.timeline .sugg:not(.compact) .sg-check i { width: 26px; height: 26px; }
+.ghost { padding-left: 46px; }
+
+/* ── week: today's date in a circle of Today's colour, as in Calendar; blocks are load, grey with the area as a dot ── */
+.week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--s-1); }
+.wk-c { display: flex; flex-direction: column; min-width: 0; }
+.week .wk-day { display: flex; flex-direction: column; align-items: center; min-height: var(--hit); padding: 0 0 var(--s-2); }
+.week .wk-free { color: var(--ink-3); }
+.week .wk-day.today .wk-free { color: var(--ink-2); }
+.week .wk-col { border-radius: var(--r-sm); overflow: hidden; }
+.week .wk-col.today { box-shadow: var(--e1-box); }
+.wk-b { position: absolute; border-radius: var(--r-xs); background: var(--fill-3); }
+.wk-b::before { content: ""; position: absolute; top: 5px; left: 5px; width: 6px; height: 6px; border-radius: 50%; background: var(--c); }
+.wk-b.thin::before { display: none; }
+.wk-b.task { background: var(--fill-1); box-shadow: inset 0 0 0 1.5px var(--fill-3); }
+.wk-b.past { opacity: .5; }
+.wk-col.today .wk-b:not(.task) { background: color-mix(in srgb, var(--ink) 22%, transparent); }
+.week .wk-now { left: 0; right: 0; border-radius: 0; }
+.week .wk-now::before { display: none; }
+.wk-hint { padding: var(--s-3) var(--s-1) 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+.week-view { padding: var(--s-2) var(--gutter) calc(var(--sab) + 140px); }
+
+/* ── the Tasks pane: smart lists as tiles, counts first; on Today the selected list is a pick, like every choice ── */
+#paneTasks { padding-top: var(--s-1); }
+.tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--s-1); padding: 0 0 var(--s-3); }
+.tl {
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: var(--s-1); min-width: 0; height: 56px; padding: 0 var(--s-1) 0 var(--s-2);
+  border-radius: var(--r-md); background: var(--e1-bg); box-shadow: var(--e1-box); text-align: left;
+  transition: transform var(--d-press) var(--ease), background-color var(--d-state), filter var(--d-press);
+}
+.tl:active { transform: scale(.95); filter: var(--press-filter); }
+.tl b { font-size: var(--fs-fig-2); }
+.tl span { max-width: 100%; font-size: var(--fs-caption); line-height: var(--lh-caption); font-weight: var(--w-semibold); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tl.on { background: var(--pick); box-shadow: var(--pick-edge); }
+.tl.on b, .tl.on span { color: var(--pick-fg); }
+.tl.late b { color: var(--needs-ink); }
+.task-list .more-row { position: relative; display: flex; align-items: center; width: 100%; }
+.task-list .more-row::before { content: ""; position: absolute; top: 0; right: 0; left: 54px; height: var(--hair); background: var(--sep); }
+.t-actions { display: flex; gap: var(--s-2); padding-top: var(--s-3); }
+.t-actions .btn { flex: 1; }
+.t-actions .btn svg { width: 17px; height: 17px; }
+.t-hint { padding: var(--s-3) var(--s-1) 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+
+/* ── a task row (Today's pane, the Tasks page, To plan, goal, area and project pages): its check, its title on one
+   line, then area · lateness · when · project · length. A row lies on its list's surface; while it is swiped it is
+   opaque, so the green (done) or orange (tomorrow) under it shows only where it has moved aside ── */
+.task-list .row-wrap, #planList .row-wrap, .pk-tasks .row-wrap { margin: 0; border-radius: 0; }
+.row { gap: var(--s-3); min-height: 56px; padding: var(--s-2) var(--s-4); border-radius: 0; background: transparent; }
+.row.swiping { background: var(--row-bg, var(--e1)); }
+:is(.sheet, .peek) .row.swiping { --row-bg: var(--e3); }
+.row-wrap + .row-wrap::before { left: 54px; right: 0; }
+.task-list .swipe-under, #planList .swipe-under { border-radius: 0; }
+.row .check { width: 44px; height: 44px; margin: -9px; }
+.row-title { font-size: var(--fs-body); line-height: var(--lh-body); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-meta { gap: var(--s-1); margin-top: 1px; }
+.row-meta .t-a { display: inline-flex; align-items: center; gap: var(--s-1); min-width: 0; }
+.row-meta .t-a i { width: 7px; height: 7px; }
+.row-meta .t-sep { color: var(--ink-3); }
+.row-meta .late { color: var(--needs-ink); }
+.row-meta .t-p { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.row-grip { margin-right: calc(var(--s-2) * -1); }
+/* the check closes like a ring when you finish something, then fills */
+:where(.timeline, .ghost, .row, .ih-row) .check i { position: relative; width: 26px; height: 26px; }
+:where(.timeline, .ghost, .row, .ih-row) .check svg { width: 13px; height: 13px; }
+:where(.row, .timeline, .ih-row) .check.closing i { animation: t-check-pop .5s var(--ease) both; }
+:where(.row, .timeline, .ih-row) .check.closing i::before {
+  content: ""; position: absolute; inset: -2px; border-radius: 50%; --cp: 0;
+  background: conic-gradient(var(--jobs-a), var(--jobs-b) calc(var(--cp) * 1turn), transparent 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.6px)); mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.6px));
+  animation: t-check-close .28s var(--ease-draw) both;
+}
+@keyframes t-check-close { to { --cp: 1; } }
+@keyframes t-check-pop { 0%, 52% { background: transparent; box-shadow: inset 0 0 0 2px var(--ink-4); transform: none; } 68% { background: var(--done); box-shadow: none; transform: scale(1.12); } 100% { transform: none; } }
+
+/* ── the Tasks page: the title with its counts, search, the tiles (each jumps to its first task), Group by, sections ── */
+.tp-head { padding-bottom: 0; }
+.tp-head .sub { margin-top: 0; }
+.tp-tiles .tiles { padding: var(--s-3) 0 0; }
+#tasksContent .list-tools { margin-top: var(--s-2); }
+.tp-found { padding: var(--s-4) var(--s-1) 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+#tasksContent .sec-label.done { color: var(--ink); }
+/* Sort the inbox: a sparkle, what it does, and its one button */
+.tri-card { display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: 64px; margin: var(--s-4) 0 0; padding: var(--s-3) var(--s-4); border-radius: var(--r-lg); text-align: left; color: var(--ink); }
+.tri-card .tc-text { flex: 1; min-width: 0; }
+.tri-card .tc-text b { font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.tri-card .tc-text small { margin-top: 2px; font-size: var(--fs-footnote); line-height: var(--lh-footnote); }
+.tri-card .spin { width: 18px; height: 18px; --c: var(--ink-2); }
+.tri-card .btn { flex: none; }
+.tag-card { margin: var(--s-1) var(--gutter) var(--s-2); width: auto; }
+.tp-more, .tp-add { margin-top: var(--s-4); color: var(--ink-2); }
+.tp-more .chev { margin-left: auto; }
+.tp-add { margin-top: var(--gap-sec); }
+#tasksContent .sec-label .sec-dot { margin-right: var(--s-1); }
+
+/* ── peek content (the Tasks quick look; Jobs' peek may share .pk) ── */
+.pk { padding: var(--s-5) var(--s-4) var(--s-4); }
+.pk .t1 { margin-top: 2px; }
+.pk .foot { margin-top: 2px; }
+.pk .group { margin: var(--s-3) 0 0; }
+.pk .lrow { min-height: 48px; }
+.pk-tasks .row { min-height: 52px; }
+
+/* ── the accessory: what you are doing now, inside the dock's chrome. Its ring is Today's ── */
+#accDoing .acc-ring { width: 36px; height: 36px; flex-shrink: 0; display: grid; place-items: center; --ring-bg: transparent; }
+.acc-ring .spin { width: 22px; height: 22px; }
+.acc-idle { border-radius: 50%; background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink-2); }
+.acc-ring.acc-idle svg { width: 15px; height: 15px; rotate: none; }
+.plan-bar .acc-ring { margin-left: var(--s-1); }
+.plan-bar .acc-ring + .pb-text { padding-left: var(--s-1); }
+
+/* ── a sheet's head: its words, and a close button; To plan's sections are grouped lists ── */
+.t-shead { display: flex; align-items: flex-start; gap: var(--s-3); padding-right: var(--s-4); }
+.t-shead .sh-text { flex: 1; min-width: 0; }
+.t-shead .sheet-close { margin-top: 2px; }
+/* ── the task sheet: the check and the title (a field that grows with its words), Start a job, the details as rows,
+   then Start · Tomorrow · Drop. The event sheet: where it is from, its time, its area for one block or all of them ── */
+.task-head, .ev-head { display: flex; align-items: flex-start; gap: var(--s-3); }
+.task-head .sh-text, .ev-head .sh-text { flex: 1; min-width: 0; }
+.ih-row.task-head .check { margin: -7px -6px 0 -9px; width: 44px; height: 44px; }
+.task-head .check i { width: 28px; height: 28px; }
+textarea.ih-title { display: block; width: 100%; min-height: var(--lh-title3); padding: 0; border: 0; outline: 0; resize: none; overflow: hidden; background: none; color: var(--ink); font: inherit; font-size: var(--fs-title3); line-height: var(--lh-title3); font-weight: var(--w-bold); overflow-wrap: anywhere; }
+textarea.ih-title:focus-visible { outline: none; box-shadow: 0 1.5px 0 var(--ink-3); }
+.task-head .ih-sub { margin-top: 2px; }
+.ih-sub .late { color: var(--needs-ink); }
+.ev-head .ih-kicker { margin: 0 0 var(--s-1); font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.ev-head .ih-event { margin-top: 0; }
+.item-body .startjob { min-height: 60px; margin: var(--s-1) 0 var(--s-3); padding: var(--s-2) var(--s-4); gap: var(--s-3); }
+.startjob .agent { width: 36px; height: 36px; border-radius: 50%; }
+.startjob .gb-text small { font-size: var(--fs-footnote); line-height: var(--lh-footnote); }
+.item-body .task-jobs { margin-bottom: var(--s-3); padding-top: 0; border-top: 0; }
+/* a detail row: its name, then its choices on one line that scrolls sideways under a soft edge */
+.ts-g { margin-top: 0; }
+.ts-f { gap: var(--s-2); min-height: 52px; padding-top: var(--s-1); padding-bottom: var(--s-1); padding-right: 0; --sep-left: var(--s-4); }
+.ts-l { flex: 0 0 72px; display: flex; flex-direction: column; font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.ts-l small { font-size: var(--fs-caption); line-height: var(--lh-caption); font-weight: var(--w-regular); color: var(--ink-3); white-space: nowrap; }
+.ts-c {
+  flex: 1; min-width: 0; display: flex; gap: var(--s-2); overflow-x: auto; overscroll-behavior-x: contain; padding: 6px var(--s-6) 6px 0;
+  scrollbar-width: none; touch-action: pan-x pan-y;
+}
+.ts-c::-webkit-scrollbar { display: none; }
+.ts-c.fade-r { -webkit-mask: linear-gradient(90deg, #000 calc(100% - var(--s-6)), transparent); mask: linear-gradient(90deg, #000 calc(100% - var(--s-6)), transparent); }
+.ts-c.fade-l { -webkit-mask: linear-gradient(90deg, transparent, #000 var(--s-6)); mask: linear-gradient(90deg, transparent, #000 var(--s-6)); }
+.ts-c.fade-l.fade-r { -webkit-mask: linear-gradient(90deg, transparent, #000 var(--s-6), #000 calc(100% - var(--s-6)), transparent); mask: linear-gradient(90deg, transparent, #000 var(--s-6), #000 calc(100% - var(--s-6)), transparent); }
+.ts-c .chip-btn { flex-shrink: 0; padding: 0 var(--s-3); font-size: var(--fs-footnote); }
+.ts-c .chip-btn::after { content: ""; position: absolute; inset: -5px -2px; }
+.ts-c .chip-btn i { width: 8px; height: 8px; }
+.ts-sw { gap: var(--s-3); cursor: pointer; }
+.ts-sw input { flex: none; width: 51px; height: 31px; margin: 0; accent-color: var(--done); }
+.sheet-acts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-2); padding: var(--s-4) 0 var(--s-1); }
+.sheet-acts .btn { padding: 0 var(--s-3); }
+.sheet-acts .btn svg { width: 16px; height: 16px; }
+.t-drop { color: var(--fail-ink); }
+.item-body .t-hint { padding-left: var(--s-1); }
+/* the sleep sheet: two steppers in 15-minute steps with their quick picks, the total, the scope, Save */
+.sl-g .sl-r { flex-direction: column; align-items: stretch; gap: 0; padding: var(--s-2) 0 var(--s-1) var(--s-4); }
+.sl-top { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); padding-right: var(--s-4); }
+.stepper { display: flex; align-items: center; gap: var(--s-2); }
+.stepper .sl-time { min-width: 84px; font-size: var(--fs-fig-2); text-align: center; }
+.stepper .sl-btn { display: grid; place-items: center; font-size: 0; line-height: 0; }
+.stepper .sl-btn svg { width: 18px; height: 18px; }
+.sl-total { margin: var(--s-4) 0; text-align: center; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.sl-total .met { font-size: var(--fs-fig-3); color: var(--ink); }
+.sl-total.short { color: var(--needs-ink); }
+.sl-scope .segmented { height: 40px; }
+.sleep-body #sleepSave { margin-top: var(--s-4); }
+#planList .sec-label { padding: var(--s-5) var(--gutter) var(--s-2); font-size: var(--fs-title3); line-height: var(--lh-title3); color: var(--ink); }
+#planList .sec-label.overdue { color: var(--needs-ink); }
+#planList .task-list { margin: 0 var(--gutter); }
+
+/* ═══ 2 · OBSIDIAN ═════════════════════════════════════════════════════════ */
+/* the stuck switch is glass on its track */
+:where(:root[data-skin="obsidian"]) .today-switch .segmented { background: var(--e2); -webkit-backdrop-filter: var(--e2-blur); backdrop-filter: var(--e2-blur); box-shadow: var(--e2-box); }
+/* the accessory's ring lights a little less than a ring on stone: it sits in glass */
+:where(:root[data-skin="obsidian"]) .accessory .acc-ring { --glow-rest: .38; }
+
+/* ═══ 3 · MATTE ════════════════════════════════════════════════════════════ */
+/* the hero: the Next label prints in the third ink; the countdown is set a hair tighter */
+:where(:root[data-skin="matte"]) .hn-next .hn-nk { color: var(--ink-3); }
+:where(:root[data-skin="matte"]) .hn-cd .met { letter-spacing: -.01em; }
+/* the day strip, printed: what has passed is faint, the block you are in is inked */
+:where(:root[data-skin="matte"]) .hs-track i.past { background: color-mix(in oklab, var(--ink-3) 55%, var(--paper)); }
+/* Matte's calmer rhythm, a step tighter on Today so every live job still makes the first screen */
+:where(:root[data-skin="matte"]) .t-sh { padding-top: var(--s-6); }
+/* once stuck the switch is float stock; its count takes Today's pigment when selected */
+:where(:root[data-skin="matte"]) .today-switch .segmented { background: var(--e3-bg); box-shadow: var(--float-box); --seg-n: var(--today-ink); }
+:where(:root[data-skin="matte"]) .today-switch .segmented > button[aria-selected="true"] .n { color: var(--today-ink); }
+/* the selected smart list is cream ink like every selection, overdue included */
+:where(:root[data-skin="matte"]) .tl.on b { color: var(--pick-fg); }
+/* the block you are in is a rose-tinted sheet (styles.css), so its ring's track mixes into that */
+:where(:root[data-skin="matte"]) .timeline .block.current { --ring-bg: color-mix(in oklab, var(--today) 13%, var(--paper)); }
+/* Start a job's glyph sits on the next stock up, as every control inside raised stock does */
+:where(:root[data-skin="matte"]) .startjob .agent { background: var(--surface-3); box-shadow: none; color: var(--ink); }
+/* the accessory sits in float stock, so its ring's track mixes into that */
+:where(:root[data-skin="matte"]) .accessory .acc-ring { --ring-bg: var(--float); }
+/* week: blocks are stock-grey load */
+:where(:root[data-skin="matte"]) .wk-b { background: var(--raised); }
+:where(:root[data-skin="matte"]) .wk-col.today .wk-b:not(.task) { background: var(--surface-3); }

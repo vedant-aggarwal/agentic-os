@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en" data-skin="obsidian" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#050506" />
+<!-- the same skin and theme as the app, before anything paints -->
+<script>(function () { try {
+  var d = document.documentElement, q = new URLSearchParams(location.search);
+  var ok = function (s) { return s === 'obsidian' || s === 'matte'; };
+  var s = q.get('skin'); if (!ok(s)) s = localStorage.getItem('aos-skin'); if (!ok(s)) s = 'obsidian';
+  var t = q.get('theme'); if (t !== 'dark' && t !== 'light' && t !== 'auto') t = localStorage.getItem('aos-theme');
+  if (t === 'auto') t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  if (t !== 'dark' && t !== 'light') t = 'dark';
+  d.setAttribute('data-skin', s); d.setAttribute('data-theme', t);
+  var bar = { obsidian: ['#050506', '#e7e7eb'], matte: ['#12100e', '#efe9e0'] }[s][t === 'light' ? 1 : 0];
+  document.querySelector('meta[name="theme-color"]').setAttribute('content', bar);
+  var C = window.Capacitor; // Android: light status bar icons on the dark theme, as skin.js does in the app
+  if (C && C.getPlatform && C.getPlatform() === 'android' && C.Plugins.StatusBar) C.Plugins.StatusBar.setStyle({ style: t === 'light' ? 'LIGHT' : 'DARK' }).catch(function () {});
+} catch (e) {} })();</script>
+<meta name="color-scheme" content="dark light" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Agentic OS" />
+<link rel="apple-touch-icon" href="icons/icon-180.png" />
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+<link rel="manifest" href="manifest.webmanifest" />
+<title>Sign in · Agentic OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="css/system.css" />
+<link rel="stylesheet" href="css/skins/obsidian.css" />
+<link rel="stylesheet" href="css/skins/matte.css" />
+<style>
+/* the sign-in page: the app's ground, one card of fields, the app's controls (css/system.css). Prefix: si- */
+html, body { min-height: 100%; }
+body { margin: 0; background: var(--e0-bg); color: var(--ink); font-family: var(--font); -webkit-font-smoothing: antialiased; }
+.si { min-height: 100dvh; display: grid; place-items: center; padding: calc(env(safe-area-inset-top) + var(--s-6)) var(--gutter) calc(env(safe-area-inset-bottom) + var(--s-6)); }
+.si-main { width: min(100%, 400px); }
+.si-mark { width: 64px; height: 64px; border-radius: 18px; display: grid; place-items: center; margin: 0 0 var(--s-5); background: var(--e1-bg); box-shadow: var(--e1-box); }
+.si-mark svg { width: 40px; height: 40px; }
+.si-main h1 { margin: 0 0 var(--s-1); }
+.si-sub { margin: 0 0 var(--s-6); font-size: var(--fs-body); line-height: var(--lh-body); color: var(--ink-2); }
+.si-fields { margin: 0; }
+.si-f { position: relative; display: flex; align-items: center; min-height: 52px; padding: 0 var(--s-4); }
+.si-f + .si-f::before { content: ""; position: absolute; top: 0; left: var(--s-4); right: 0; height: var(--hair); background: var(--sep); }
+.si-f[hidden] { display: none; }
+.si-f input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font: inherit; font-size: var(--fs-body); color: var(--ink); padding: var(--s-3) 0; }
+.si-f input::placeholder { color: var(--ink-3); }
+.si-f:focus-within { background: var(--fill-1); }
+.si-code input { letter-spacing: .12em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+.si-go { margin-top: var(--s-5); min-height: 52px; font-size: var(--fs-headline); }
+.si-status { min-height: 22px; margin: var(--s-3) var(--s-1) 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--fail-ink); }
+.si-status.ok { color: var(--ink-2); }
+.si-or { display: flex; align-items: center; gap: var(--s-3); color: var(--ink-3); font-size: var(--fs-footnote); margin: var(--s-4) 0; }
+.si-or::before, .si-or::after { content: ""; flex: 1; height: var(--hair); background: var(--sep); }
+#gbtn { display: flex; justify-content: center; min-height: 44px; }
+.si-switch { margin-top: var(--s-6); text-align: center; font-size: var(--fs-subhead); color: var(--ink-2); }
+.si-link { background: none; border: 0; padding: var(--s-3) var(--s-2); min-height: 44px; font: inherit; font-weight: var(--w-semibold); color: var(--ink); cursor: pointer; }
+.si-server { margin-top: var(--s-4); text-align: center; font-size: var(--fs-footnote); color: var(--ink-3); }
+.si-server .si-link { font-size: var(--fs-footnote); color: var(--ink-2); }
+.si-server-f { margin-top: var(--s-3); }
+.si-fine { margin-top: var(--s-6); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); text-align: center; }
+@media (prefers-reduced-motion: no-preference) { .si-main { animation: si-in .5s var(--ease) both; } @keyframes si-in { from { opacity: 0; transform: translateY(10px); } } }
+</style>
+</head>
+<body>
+<div class="si">
+<main class="si-main">
+  <div class="si-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><g fill="none" stroke-width="3.2" stroke-linecap="round"><path d="M16 4.5a11.5 11.5 0 1 1-10 5.8" stroke="var(--today, #fa114f)"/><path d="M16 9a7 7 0 1 1-6.9 8.2" stroke="var(--jobs, #a3f000)"/><path d="M16 13.4a2.6 2.6 0 1 1-1.7 4.6" stroke="var(--life, #a47bff)"/></g></svg></div>
+  <h1 class="lt" id="title">Sign in</h1>
+  <p class="si-sub" id="sub">Your day, tasks and goals, from your PC.</p>
+  <form id="form" novalidate>
+    <div class="group si-fields">
+      <label class="si-f si-code" id="inviteField" hidden><span class="vh">Invite code</span><input name="invite" placeholder="Invite code" autocomplete="off" autocapitalize="characters" spellcheck="false" /></label>
+      <label class="si-f" id="nameField" hidden><span class="vh">Your name</span><input name="name" placeholder="Your name" autocomplete="name" /></label>
+      <label class="si-f"><span class="vh">Email</span><input name="email" type="email" placeholder="Email" autocomplete="username" inputmode="email" autocapitalize="off" spellcheck="false" required /></label>
+      <label class="si-f"><span class="vh">Password</span><input name="password" type="password" placeholder="Password" autocomplete="current-password" required /></label>
+    </div>
+    <button class="btn primary block si-go" id="submit" style="--c:var(--today-fill)">Sign in</button>
+    <p class="si-status" id="status" role="status" aria-live="polite"></p>
+  </form>
+  <div id="googleWrap" hidden>
+    <div class="si-or">or</div>
+    <div id="gbtn"></div>
+  </div>
+  <p class="si-switch"><span id="switchText">Have an invite?</span> <button class="si-link" id="switchBtn" type="button">Create your account</button></p>
+  <div class="si-server" id="server" hidden>
+    <span id="serverName"></span> <button class="si-link" id="serverBtn" type="button">Change</button>
+    <form class="si-server-f" id="serverForm" hidden novalidate>
+      <div class="group si-fields"><label class="si-f"><span class="vh">Server address</span><input name="server" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://your-server.example" /></label></div>
+      <button class="btn block si-go" type="submit">Use this server</button>
+    </form>
+  </div>
+  <p class="si-fine">Invite only for now. Your data stays on the owner’s PC and is reached over an encrypted tunnel.</p>
+</main>
+</div>
+<script type="module">
+import * as API from './js/svc/api.js';
+const $ = (s) => document.querySelector(s);
+const qs = new URLSearchParams(location.search);
+const next = (() => { const n = qs.get('next'); return n && n.startsWith('/') && !n.startsWith('//') && !n.includes('\\') ? n : '/'; })();
+let mode = qs.get('invite') ? 'signup' : 'signin';
+if (qs.get('invite')) $('[name=invite]').value = qs.get('invite');
+const tokenMode = API.usesToken();
+
+function setMode(m) {
+  mode = m;
+  const up = m === 'signup';
+  $('#title').textContent = up ? 'Create account' : 'Sign in';
+  $('#sub').textContent = up ? 'Use the invite code you were sent.' : 'Your day, tasks and goals, from your PC.';
+  $('#inviteField').hidden = !up;
+  $('#nameField').hidden = !up;
+  $('[name=password]').autocomplete = up ? 'new-password' : 'current-password';
+  $('[name=password]').placeholder = up ? 'Password (8+ characters)' : 'Password';
+  $('#submit').textContent = up ? 'Create account' : 'Sign in';
+  $('#switchText').textContent = up ? 'Already have an account?' : 'Have an invite?';
+  $('#switchBtn').textContent = up ? 'Sign in' : 'Create your account';
+  $('#status').textContent = '';
+}
+setMode(mode);
+$('#switchBtn').onclick = () => { setMode(mode === 'signin' ? 'signup' : 'signin'); (mode === 'signup' ? $('[name=invite]') : $('[name=email]')).focus(); };
+
+async function post(path, body) {
+  let r;
+  try {
+    r = await fetch(API.apiUrl(path), { method: 'POST', credentials: tokenMode ? 'omit' : 'same-origin', headers: { 'Content-Type': 'application/json', ...(tokenMode ? { 'X-Client': 'native' } : {}) }, body: JSON.stringify(body) });
+  } catch { throw new Error('Your PC isn’t reachable right now. Check that it is on, then try again.'); }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(j.error ?? 'Could not reach your PC. Try again.'), j);
+  if (tokenMode && j.token) API.setToken(j.token);
+  return j;
+}
+// a fresh sign-in starts from the PC's copy; edits waiting from another account never carry over (sync checks the user)
+const done = () => { API.ls.del(API.KEYS.boot); location.replace(tokenMode ? 'index.html' : next); };
+
+$('#form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const f = Object.fromEntries(new FormData(e.target));
+  const st = $('#status');
+  st.className = 'si-status';
+  if (mode === 'signup' && !f.invite.trim()) return (st.textContent = 'Enter your invite code.');
+  if (!/^\S+@\S+\.\S+$/.test(f.email)) return (st.textContent = 'Enter a valid email.');
+  if (mode === 'signup' && f.password.length < 8) return (st.textContent = 'Use at least 8 characters for the password.');
+  if (!f.password) return (st.textContent = 'Enter your password.');
+  $('#submit').disabled = true;
+  st.textContent = '';
+  try {
+    await post(mode === 'signup' ? '/auth/signup' : '/auth/login', f);
+    done();
+  } catch (err) {
+    st.textContent = err.message;
+    $('#submit').disabled = false;
+  }
+});
+
+// The iPhone app can point at another PC (a test server, a new tunnel) before signing in
+if (API.NATIVE) {
+  const S = API.serverInfo();
+  $('#server').hidden = false;
+  $('#serverName').textContent = `Server: ${S.base.replace(/^https?:\/\//, '')}`;
+  $('#serverBtn').onclick = () => { $('#serverForm').hidden = false; const i = $('[name=server]'); i.value = S.base; i.focus(); };
+  $('#serverForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    try {
+      API.setServer(new FormData(e.target).get('server'));
+      location.reload();
+    } catch (err) { $('#status').textContent = err.message; }
+  });
+}
+
+// Google sign-in appears once a client ID is set on the server (on the web)
+const cfg = API.NATIVE ? {} : await fetch(API.apiUrl('/auth/config')).then((r) => r.json()).catch(() => ({}));
+if (cfg.google) {
+  $('#googleWrap').hidden = false;
+  const s = document.createElement('script');
+  s.src = 'https://accounts.google.com/gsi/client';
+  s.onload = () => {
+    google.accounts.id.initialize({
+      client_id: cfg.google,
+      callback: async ({ credential }) => {
+        try { await post('/auth/google', { credential, invite: $('[name=invite]').value }); done(); }
+        catch (err) {
+          if (err.needInvite) setMode('signup');
+          $('#status').textContent = err.message;
+        }
+      },
+    });
+    const dark = document.documentElement.dataset.theme !== 'light';
+    google.accounts.id.renderButton($('#gbtn'), { theme: dark ? 'filled_black' : 'outline', size: 'large', shape: 'pill', width: Math.min(400, innerWidth - 32), text: 'continue_with' });
+  };
+  document.head.append(s);
+}
+</script>
+</body>
+</html>

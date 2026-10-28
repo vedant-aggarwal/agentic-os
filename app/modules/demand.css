@@ -1,0 +1,64 @@
+/* ═══ MODULE · DEMAND RADAR ═══════════════════════════════════════════════════
+   Clusters of repeated asks, a cluster's own page (asks, price guess, spec, landing draft), the paste box.
+   Owner: area (d). JS: app/modules/demand.js. Frame: app/ui/screens/content.css (.mp-*). Design: mockup more.css (demand).
+   Blocks: 1 · SHARED · 2 · OBSIDIAN · 3 · MATTE. The page's container carries the page margin. */
+
+/* ═══ 1 · SHARED ═══════════════════════════════════════════════════════════ */
+/* a cluster: its rank in a circle, the title, a status word and who asked */
+.dr-row { --sep-left: 58px; align-items: flex-start; }
+.dr-row .rmeta { margin-top: var(--s-1); }
+.dr-row > .chev { align-self: center; }
+.dr-rank {
+  width: 30px; height: 30px; margin-top: 1px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0;
+  background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink);
+  font-family: var(--round); font-size: var(--fs-subhead); font-weight: var(--w-fig); font-variant-numeric: tabular-nums;
+}
+.dr-empty { margin: 0 0 var(--s-3); }
+/* the switch for dropped clusters ends the list */
+.dr-sw { min-height: 52px; cursor: pointer; }
+.dr-sw input { flex: none; width: 51px; height: 31px; margin: 0; accent-color: var(--done); }
+
+/* the paste box: a tall field, two choices side by side, then the one action */
+.dr-form { display: flex; flex-direction: column; gap: var(--s-2); margin-top: 0; }
+.dr-ta { align-items: flex-start; padding: var(--s-1) var(--s-4); border-radius: var(--r-lg); }
+.dr-ta textarea { min-height: 116px; font-size: 16px; line-height: var(--lh-callout); }
+.dr-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s-2); }
+.dr-sel { position: relative; padding: 0 var(--s-3) 0 var(--s-4); }
+.dr-sel select { flex: 1; min-width: 0; height: 46px; padding: 0 var(--s-5) 0 0; border: 0; outline: 0; background: none; color: var(--ink); font: inherit; font-size: 16px; -webkit-appearance: none; appearance: none; cursor: pointer; text-overflow: ellipsis; }
+.dr-sel svg { position: absolute; right: var(--s-3); width: 16px; height: 16px; pointer-events: none; color: var(--ink-3); }
+.dr-sel:focus-within { box-shadow: inset 0 0 0 1.5px var(--field-focus); }
+.dr-form .btn.block { margin-top: var(--s-1); }
+.dr-form .btn .spin, .dr-acts .btn .spin { width: 14px; height: 14px; }
+/* a spinner on the ink-filled button turns with the button's own label colour */
+.dr-form .btn.primary .spin, .dr-acts .btn.primary .spin { --c: var(--on-ink); }
+
+/* a cluster's page */
+.dr-title { font-size: var(--fs-title1); line-height: var(--lh-title1); text-wrap: balance; }
+/* a card straight under its section header sits at the header's own rhythm */
+.dr-page .sh + .mp-card { margin-top: 0; }
+.dr-acts { margin-top: var(--s-2); }
+.btn.dr-drop { color: var(--fail-ink); }
+.dr-back { margin: 0 0 var(--s-2); padding-left: var(--s-2); }
+.dr-back svg { width: 16px; height: 16px; }
+.dr-price .dr-pv { margin: var(--s-1) 0 2px; font-family: var(--round); font-size: var(--fs-fig-2); line-height: var(--lh-title1); font-weight: var(--w-fig); color: var(--ink); overflow-wrap: anywhere; }
+.dr-wait { margin-top: var(--s-4); }
+.dr-md { font-size: var(--fs-subhead); line-height: 21px; color: var(--ink); overflow-wrap: anywhere; }
+.dr-md > :first-child { margin-top: 0; }
+.dr-md > :last-child { margin-bottom: 0; }
+.dr-md h3, .dr-md h4, .dr-md h5 { margin: var(--s-4) 0 var(--s-1); font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+.dr-md h3 { font-size: var(--fs-title3); line-height: var(--lh-title3); }
+.dr-md p { margin: var(--s-2) 0; }
+.dr-md ul { margin: var(--s-2) 0; padding-left: var(--s-5); }
+.dr-md li { margin: var(--s-1) 0; }
+.dr-md li::marker { color: var(--ink-3); }
+.dr-md b { font-weight: var(--w-semibold); }
+.dr-ask { --sep-left: var(--s-4); }
+.dr-ask-t { display: block; font-size: var(--fs-body); line-height: var(--lh-body); color: var(--ink); overflow-wrap: anywhere; }
+.dr-ask .rmeta { margin-top: var(--s-1); }
+
+/* ═══ 2 · OBSIDIAN ═════════════════════════════════════════════════════════ */
+/* nothing to restate: Obsidian's radar is the shared block */
+
+/* ═══ 3 · MATTE ════════════════════════════════════════════════════════════ */
+/* the rank is printed on raised stock with its edge, like the other small figures on a control */
+:where(:root[data-skin="matte"]) .dr-rank { box-shadow: var(--edge-2), var(--shadow-2); }

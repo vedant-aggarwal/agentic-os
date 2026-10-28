@@ -1,0 +1,681 @@
+/* ═══ SCREEN · JOBS ═══════════════════════════════════════════════════════════
+   Owner: area (b) Jobs: the tab (app/work/tab.js), board lanes, job cards and rows (cards.js), job chat, changes,
+   builders, terminals, projects, ideas, the job sheets (app/work/*). Loaded after work/work.css, so a rule here wins
+   over the legacy one it amends at equal weight. Blocks: 1 · SHARED · 2 · OBSIDIAN · 3 · MATTE.
+   Target: j15/mockup/final/css/screens/jobs.css.
+   The Jobs colour is work getting done: a live job with steps wears its ring. Orange is only for what waits on you.
+   Density: paused and finished work sits in 44px rows, live work in cards with 12px of air, and every card has one
+   focal line: the ask (Needs you), the progress figure (Working), the diff (To review), the error (Failed). */
+
+/* ═══ 1 · SHARED ═══════════════════════════════════════════════════════════ */
+
+/* ── the tab's head: the title, the summary line (also the lane index), the segments ── */
+.jobs-head { padding-bottom: 0; }
+.jobs-sum { display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 0; row-gap: var(--s-1); }
+.jobs-sum .live-dot { align-self: center; margin-right: var(--s-2); }
+.jsum-p, .jsum-q { position: relative; display: inline-flex; align-items: baseline; gap: var(--s-1); font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.jsum-p::before, .jsum-q::before { content: "·"; margin-left: var(--s-1); color: var(--ink-3); }
+.jsum-q::before { margin-right: var(--s-1); }
+.jsum-p::after { content: ""; position: absolute; inset: -12px -2px; }
+.jsum-p .met { font-size: var(--fs-headline); color: var(--ink); }
+.jsum-p.amber .met { color: var(--needs-ink); }
+.jsum-p:active { opacity: .6; }
+.jobs-seg { margin-top: var(--s-4); }
+.jobs-seg .segmented { height: 40px; }
+.jobs-seg .segmented > button .n:empty { display: none; }
+.jobs-body { min-height: 300px; }
+.jobs-body.swap { animation: swap var(--d-state) var(--ease) both; }
+.jobs-body > .area-list:first-child, .jobs-body > .inline-add:first-child { margin-top: var(--s-5); }
+
+/* ── board: lanes ──────────────────────────────────────────────────────── */
+.board .lane-h { padding-top: var(--gap-sec); }
+.board > .bd-lane:first-child > .lane-h { padding-top: var(--s-5); }
+.jgroup { --ring-bg: var(--e1); }
+/* what waits on you is a card of its own, so each decision stands apart */
+.jneeds { display: flex; flex-direction: column; gap: var(--s-2); }
+.jgroup.jgap { margin-top: var(--s-2); }
+.jhint { margin: var(--s-4) var(--s-1) 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+.board > .jhint { margin-top: var(--s-5); }
+.bd-empty { padding: var(--s-3) var(--s-4); border-radius: var(--r-lg); border: 1px dashed var(--ink-4); color: var(--ink-2); font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+
+/* ── a job card (cards.js): the title, who and when, one focal line, the latest output ── */
+.jcard { position: relative; align-items: flex-start; padding-top: var(--s-3); padding-bottom: var(--s-3); --sep-left: 76px; cursor: pointer; }
+.jcard > .jc-lead > .agent { margin: calc((48px - 32px) / 2); }
+.jc-lead { flex: none; display: grid; }
+/* the whole card opens the job: one button stretched over it; its own buttons sit above that */
+.jt-open { position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
+.jt-open:focus-visible { outline: 2px solid var(--focus, var(--ink)); outline-offset: -3px; }
+.jcard:has(> .jt-open:active) { background: var(--row-press); }
+.jcard .jask-b { position: relative; z-index: 2; }
+.jcard.needs { flex-direction: column; align-items: stretch; gap: 0; padding: var(--s-3); --sep-left: var(--s-3); }
+.jc-top { display: flex; align-items: center; gap: var(--s-3); }
+.jc-top > .rbody { flex: 1; min-width: 0; }
+.jt { display: flex; align-items: flex-start; gap: var(--s-2); min-width: 0; }
+.jt .rtitle { flex: 1; min-width: 0; font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); white-space: normal; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+.jt > .jstar, .jt > .jbr { height: var(--lh-headline); align-items: center; }
+.jtime { flex-shrink: 0; line-height: var(--lh-headline); font-size: var(--fs-footnote); color: var(--ink-3); }
+.jstar, .jbr { display: grid; flex-shrink: 0; }
+.jstar { color: var(--ink); }
+.jbr { color: var(--ink-3); }
+.jstar svg, .jbr svg { width: 15px; height: 15px; }
+.jc-spin { flex: none; margin-top: 2px; }
+/* a job that asks you: an orange dot on its ring, cut out of the surface under it */
+:is(.board, .job-page, .jpk, .project-page, .task-jobs) .jbadge { position: absolute; z-index: 2; right: -2px; bottom: -2px; width: 15px; height: 15px; border-radius: 50%; border: 2.5px solid var(--ring-bg, var(--e1)); background: var(--needs); }
+.jmeta { display: block; margin-top: var(--s-0); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.jmeta > span + span::before { content: "·"; margin: 0 var(--s-1); color: var(--ink-3); font-weight: var(--w-regular); }
+.jst-needs { color: var(--needs-ink); font-weight: var(--w-semibold); }
+.jst-working { color: var(--jobs-ink); font-weight: var(--w-semibold); }
+.jst-wait { color: var(--ink); font-weight: var(--w-semibold); }
+.jst-fail { color: var(--fail-ink); font-weight: var(--w-semibold); }
+.jst-q { color: var(--ink-3); }
+.jcache svg { width: 12px; height: 12px; margin-right: 3px; vertical-align: -1px; color: var(--needs-ink); }
+.jcache.soon { color: var(--needs-ink); }
+/* ship: a static dot and the word, coloured by where it got to */
+.jship-st { display: inline-flex; align-items: center; gap: var(--s-1); color: var(--c); font-weight: var(--w-semibold); white-space: nowrap; }
+.jmeta > .jship-st { display: inline; }
+.jmeta > .jship-st .dot { margin-right: var(--s-1); vertical-align: 1px; }
+.jship-st .dot { width: 7px; height: 7px; background: var(--c); }
+/* Working: the progress figure leads its line */
+.jprog { display: flex; align-items: baseline; gap: var(--s-2); min-width: 0; margin-top: var(--s-2); }
+.jprog .met { font-size: var(--fs-fig-2); }
+.jprog .met small { font-size: var(--fs-subhead); }
+.jp-step { min-width: 0; font-size: var(--fs-subhead); font-weight: var(--w-semibold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jprog .cap { margin-left: auto; flex-shrink: 0; }
+/* the latest output: one line on the board (two for a reply waiting on you); hold the card to read more */
+.jlast { margin: var(--s-1) 0 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jlast.two { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.jlast.err { color: var(--fail-ink); white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+/* To review: the diff leads its line */
+.jrev { display: flex; align-items: baseline; gap: var(--s-2); margin-top: var(--s-1); font-size: var(--fs-footnote); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.jrev .jdiffstat { font-family: var(--round); font-size: var(--fs-subhead); }
+.jrev > span:not(.jdiffstat) + span::before { content: "·"; margin: 0 var(--s-1) 0 calc(var(--s-1) * -1); color: var(--ink-3); }
+.jdiffstat { display: inline-flex; align-items: center; gap: var(--s-1); min-height: 24px; font-size: var(--fs-footnote); color: var(--ink-2); }
+.jdiffstat .d-add { color: var(--jobs-ink); font-weight: var(--w-bold); }
+.jdiffstat .d-del { color: var(--fail-ink); font-weight: var(--w-bold); }
+/* the ask: an inlay across the card, concentric with it. Its glyph and its first button's word are orange; nothing is filled */
+.jask { margin-top: var(--s-3); padding: var(--s-3); border-radius: calc(var(--r-lg) - var(--s-3)); background: var(--inlay); box-shadow: var(--inlay-box); }
+.jask p { display: flex; gap: var(--s-2); margin: 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); overflow-wrap: anywhere; }
+.jask p > span { min-width: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.jask p svg { width: 17px; height: 17px; flex-shrink: 0; margin-top: 1px; color: var(--needs-ink); }
+.jask .mono, .jpk .pk-ask .mono { font-size: var(--fs-footnote); }
+.jask-b { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: var(--s-2); margin-top: var(--s-3); }
+.jask-b .btn { min-width: 0; height: 36px; padding: 0 var(--s-2); font-size: var(--fs-subhead); }
+.jask-b .btn.tint { font-weight: var(--w-bold); }
+.jask-b .btn:disabled { opacity: var(--off); }
+/* paused and finished work: 44px rows */
+.jsmall { min-height: var(--hit); padding-top: var(--s-2); padding-bottom: var(--s-2); --sep-left: 54px; }
+.jsmall .rtitle { font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.jsmall .rtitle .jstar { display: inline; margin-right: var(--s-1); }
+.jsmall .rtitle .jstar svg { width: 12px; height: 12px; vertical-align: -1px; }
+.jsmall .jship-st, .jsmall .jst-fail, .jsmall .jst-q, .jsmall .jst-needs, .jsmall .jst-working, .jsmall .jst-wait { flex-shrink: 0; font-size: var(--fs-footnote); }
+.jsm-t { min-width: 22px; text-align: right; }
+.jmore { min-height: var(--hit); padding-top: var(--s-2); padding-bottom: var(--s-2); font-size: var(--fs-subhead); font-weight: var(--w-semibold); color: var(--ink-2); }
+.jmore svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--ink-3); }
+/* the archive: one row at the foot of the board that opens in place */
+.jarch { margin-top: var(--gap-sec); }
+.jarch-h .rend { font-size: var(--fs-subhead); color: var(--ink-3); }
+.jarch-h .chev { transition: transform var(--d-state) var(--ease); }
+.jarch-h[aria-expanded="true"] .chev { transform: rotate(90deg); }
+.jempty .tile { color: var(--done); }
+.jempty .rmeta { white-space: normal; }
+.jadd .rtitle { color: var(--ink-2); }
+.jadd .tile { color: var(--ink-2); }
+/* Builders and terminals: rows with a glyph tile; a working one carries the one spinner */
+.jbuild .rmeta .mono, .jterm .rmeta .mono, .jb-now .rmeta .mono, .jship .rmeta .mono { font-size: var(--fs-caption); }
+.jterm .rtitle .jbr { display: inline-grid; margin-right: var(--s-1); vertical-align: -2px; }
+.jterm .rtitle .jbr svg { width: 13px; height: 13px; }
+.jterm .jlast { margin-top: 2px; }
+.lrow .rend .jst-needs { font-size: var(--fs-footnote); }
+
+/* ── swipes (board.js): the row slides over what the swipe will do ─────── */
+.board .job-row { background: transparent; }
+.board .job-row.swiping { z-index: 2; background: var(--e1-bg); }
+.bd-under { position: absolute; left: 0; right: 0; z-index: 0; display: flex; align-items: center; padding: 0 var(--s-5); font-size: var(--fs-subhead); font-weight: var(--w-semibold); background: var(--fill-3); color: var(--ink); }
+.bd-under.fwd { justify-content: flex-start; }
+.bd-under.back { justify-content: flex-end; }
+.bd-under.u-done { background: var(--done); color: var(--on-color); }
+.bd-under.u-fail { background: var(--fail); color: var(--on-deep); }
+.bd-under.u-needs { background: var(--needs); color: var(--on-color); }
+.bd-under.u-ink { background: var(--ink); color: var(--on-ink); }
+.bd-under span { opacity: .7; transition: transform var(--d-state) var(--spring), opacity var(--d-state); }
+.bd-under.armed span { opacity: 1; transform: scale(1.08); }
+.bd-fine .job-row[draggable="true"] { cursor: grab; }
+.bd-dragging [data-drop] { border-radius: var(--r-lg); transition: background-color var(--d-press); }
+.bd-dragging [data-drop].bd-over { background: var(--fill-1); }
+.job-row.dragging { opacity: .5; }
+
+/* ── the job peek (its frame is the system's .peek; .pk is shared with Today) ── */
+.jpk { --ring-bg: var(--e3); }
+.jpk .t1 { margin-top: var(--s-0); overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.jpk .kicker { font-size: var(--fs-footnote); line-height: var(--lh-footnote); }
+.jpk .pk-st { margin-top: var(--s-2); }
+.jpk .pk-prog { display: flex; align-items: center; gap: var(--s-4); margin-top: var(--s-4); }
+.jpk .pk-prog > span:not(.rg) { display: flex; flex-direction: column; gap: var(--s-1); min-width: 0; }
+.jpk .pk-prog .met { font-size: var(--fs-fig-2); }
+.jpk .pk-prog .met small { font-size: var(--fs-subhead); }
+.jpk .pk-prog .agent { width: 40px; height: 40px; border-radius: 50%; }
+.jpk .pk-ask { display: flex; gap: var(--s-2); margin: var(--s-4) 0 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); overflow-wrap: anywhere; }
+.jpk .pk-ask svg { width: 17px; height: 17px; flex-shrink: 0; margin-top: 1px; color: var(--needs-ink); }
+.jpk .pk-out { margin: var(--s-3) 0 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+.jpk .pk-out.err { color: var(--fail-ink); }
+#peek:has(.jpk) .peek-menu button.danger { color: var(--fail-ink); }
+
+/* ── this area's sheets: a head with its close, groups of rows, a value row's native picker ── */
+.jsh-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-3); }
+.jsh-head > div { min-width: 0; }
+.jsh-head h2 { overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.jsh-head .sheet-close { margin-top: var(--s-1); }
+/* a work sheet's content sits on the 16px gutter; its section headers and hints line up with the groups */
+.work-sheet .sheet-body { padding: 0 var(--s-4) 60px; }
+.work-sheet .sheet-head { padding-left: var(--s-5); padding-right: var(--s-4); }
+.work-sheet .chips.scroll { margin: 0 calc(var(--s-4) * -1); padding: 0 var(--s-4) 2px; }
+.work-sheet .sheet-body > .sh { padding-left: var(--s-1); padding-right: var(--s-1); }
+.work-sheet .sheet-body > .jhint { margin-left: var(--s-1); margin-right: var(--s-1); }
+.work-sheet .sheet-body > .group + .group { margin-top: var(--s-4); }
+.job-menu .sheet-body > .group:first-child, .jset-sheet .sheet-body > .group:first-child { margin-top: var(--s-1); }
+.job-menu .jm-danger .rtitle, .job-menu .jm-danger .tile { color: var(--fail-ink); }
+.job-menu .jm-arch { margin-top: var(--gap-sec) !important; }
+.job-menu .jm-move { padding-bottom: var(--s-1); }
+/* a row with a value: the native select lies over the whole row, so a tap opens the phone's own picker */
+.jpick-row { position: relative; min-height: 52px; }
+.jpick-row .rend { font-size: var(--fs-subhead); color: var(--ink-2); }
+.jpick-row select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; font-size: 16px; -webkit-appearance: none; appearance: none; cursor: pointer; }
+.jpick-row:has(select:focus-visible) { box-shadow: inset 0 0 0 2px var(--focus, var(--ink)); }
+.jpick-row:active { background: var(--row-press); }
+.jsw-row { min-height: 52px; }
+.jsw-row input { flex: none; width: 51px; height: 31px; margin: 0; accent-color: var(--done); }
+.jsw-row .rmeta.wrap, .jpick-row .rmeta.wrap { white-space: normal; }
+.jset-sheet .jset-b { margin-top: var(--gap-sec) !important; }
+
+/* ── the job sheet (sheets.js): what to do, the engine, where, model, effort, then the switches and Start ── */
+.jsheet .js-items { margin-bottom: var(--s-3); }
+.jsheet .js-it { min-height: var(--hit); padding-top: var(--s-2); padding-bottom: var(--s-2); }
+.jsheet .js-it .rtitle { font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.jsheet .js-it .dot { flex: none; }
+.jsheet .js-ask textarea { min-height: 60px; border-radius: var(--r-xl); font-size: var(--fs-callout); line-height: var(--lh-callout); }
+.jsheet .js-lbl, .jsheet .field > .f-label { display: block; margin: 0; padding: var(--s-4) var(--s-1) var(--s-2); font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); color: var(--ink-2); }
+.jsheet .field { padding: 0; border-top: 0; }
+/* the engines: two cards; the chosen one is selected the way every choice is, and a tick lands on its glyph */
+.jsheet .js-eng { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-2); }
+.jsheet .eng-card { position: relative; display: flex; align-items: center; gap: var(--s-3); min-width: 0; min-height: 64px; padding: var(--s-3); border-radius: var(--r-lg); background: var(--inlay); box-shadow: var(--inlay-box); text-align: left; color: var(--ink); transition: box-shadow .3s var(--ease), background-color .3s var(--ease), transform var(--d-press) var(--ease); }
+.jsheet .eng-card:active { transform: var(--press); }
+.jsheet .eng-ic { position: relative; flex-shrink: 0; }
+.jsheet .eng-card .agent { width: 40px; height: 40px; border-radius: 50%; }
+.jsheet .eng-card .agent svg { width: 21px; height: 21px; }
+.jsheet .eng-txt { flex: 1; min-width: 0; }
+.jsheet .eng-txt b { display: block; font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+.jsheet .eng-txt small { display: block; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jsheet .eng-tick { position: absolute; right: -4px; bottom: -4px; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: var(--e1); box-shadow: 0 0 0 2px var(--e3); opacity: 0; transform: scale(.4); transition: opacity .2s var(--ease), transform .3s var(--spring); }
+.jsheet .eng-tick svg { width: 11px; height: 11px; }
+.jsheet .eng-card.on { background: var(--sel); box-shadow: var(--sel-edge); }
+.jsheet .eng-card.on .eng-tick { opacity: 1; transform: none; }
+.jsheet .js-path { margin: var(--s-2) var(--s-1) 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); overflow-wrap: anywhere; }
+.jsheet .js-path.mono { font-size: var(--fs-caption); color: var(--ink-3); }
+.jsheet .js-path .text-btn { font-size: inherit; }
+.jsheet .chips .chip-btn svg { width: 15px; height: 15px; }
+.jsheet .js-sets { margin-top: var(--s-5); }
+/* the tasks a new session works on: rows you tick; the tick sits on the right */
+.code-new .cn-task { min-height: var(--hit); padding-top: var(--s-2); padding-bottom: var(--s-2); }
+.code-new .cn-task .rtitle { font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.code-new .cn-check { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; box-shadow: inset 0 0 0 2px var(--ink-4); color: transparent; transition: background-color var(--d-state), box-shadow var(--d-state), color var(--d-state); }
+.code-new .cn-check svg { width: 12px; height: 12px; }
+.code-new .cn-task.on .cn-check { background: var(--ink); box-shadow: none; color: var(--on-ink); }
+.jsheet .js-copy.off .rtitle { color: var(--ink-3); }
+.jsw-row input:disabled { opacity: var(--off); }
+.jsheet .js-hint { margin-top: var(--s-3) !important; }
+.jsheet .js-go { margin-top: var(--s-4); }
+.jsheet .js-go svg { width: 19px; height: 19px; }
+
+/* ── changes (jobdiff.js, diff.js): the sum, the turns, the files by kind, then the picked file line by line ── */
+.jc-sum { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--s-1) var(--s-2); }
+.jc-sum .jdiffstat { font-family: var(--round); font-size: var(--fs-headline); min-height: 0; }
+.jd-turns { margin-top: var(--s-1); }
+.jfiles { margin-top: var(--s-3); }
+.jfile { min-height: 56px; padding-top: var(--s-2); padding-bottom: var(--s-2); --sep-left: 54px; }
+.jfile.on { background: var(--fill-2); }
+.jfile .rtitle.mono { font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.jfile .jf-path { font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); }
+.jf-n { flex-shrink: 0; display: inline-flex; gap: var(--s-1); font-size: var(--fs-footnote); }
+.jf-n .d-add, .jdv-h .d-add { color: var(--jobs-ink); font-weight: var(--w-bold); }
+.jf-n .d-del, .jdv-h .d-del { color: var(--fail-ink); font-weight: var(--w-bold); }
+/* the kind of change colours its letter */
+.jfk { width: 26px; height: 26px; border-radius: var(--r-xs); display: grid; place-items: center; flex-shrink: 0; background: var(--fill-2); font-family: var(--font); font-size: var(--fs-footnote); font-weight: var(--w-bold); }
+.jfk-A { color: var(--jobs-ink); }
+.jfk-M { color: var(--ink); }
+.jfk-D { color: var(--fail-ink); }
+.jfk-R { color: var(--life-ink); }
+.jdv { margin-top: var(--s-4); border-radius: var(--r-lg); overflow: hidden; background: var(--e1-bg); box-shadow: var(--e1-box); scroll-margin-top: 110px; }
+.jdv-h { display: flex; align-items: center; gap: var(--s-3); min-height: 48px; padding: var(--s-2) var(--s-4) var(--s-2) var(--s-3); border-bottom: var(--hair) solid var(--sep); }
+.jdv-p { flex: 1; min-width: 0; font-size: var(--fs-footnote); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; direction: rtl; text-align: left; }
+.jdv-hunk { padding: var(--s-2) var(--s-4); font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); background: var(--fill-1); overflow-wrap: anywhere; }
+/* a long line wraps under its own code, never under the line numbers */
+.jdv-code { padding: var(--s-1) 0 var(--s-2); font-size: var(--fs-caption); line-height: var(--lh-footnote); }
+.jdl { display: grid; grid-template-columns: 38px 16px minmax(0, 1fr); padding-right: var(--s-3); }
+.jdl-n, .jdl-k { font-style: normal; color: var(--ink-3); -webkit-user-select: none; user-select: none; font-variant-numeric: tabular-nums; }
+.jdl-n { text-align: right; padding-right: var(--s-1); }
+.jdl-k { text-align: center; }
+.jdl-c { white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); }
+.jdl.a { background: color-mix(in srgb, var(--jobs) 12%, transparent); }
+.jdl.d { background: color-mix(in srgb, var(--fail) 14%, transparent); }
+.jdl.a .jdl-k { color: var(--jobs-ink); }
+.jdl.d .jdl-k { color: var(--fail-ink); }
+.jdl.n .jdl-c { color: var(--ink-3); font-style: italic; }
+.jdv-note { margin: 0; padding: var(--s-3) var(--s-4) var(--s-4); font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.jdv-note .mono { font-size: var(--fs-footnote); color: var(--ink); }
+.jundo-w { margin-top: var(--s-6); }
+.jundo-w:empty { display: none; }
+.jundo { color: var(--fail-ink); }
+.jundo svg { width: 18px; height: 18px; }
+.jundo-w .foot { margin-top: var(--s-2); text-align: center; }
+.jobdiff-page .empty-line, .cp-view .empty-line { margin-top: var(--s-3); }
+
+/* ── a job's own copy and a compare (code.js): where it came from, its sessions, merge back, open a PR, discard ── */
+.jcp-t { margin-top: var(--s-0); overflow-wrap: anywhere; }
+.jcp-br { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s-1) var(--s-2); margin-top: var(--s-1); }
+.jcp-br .mono { display: inline-flex; align-items: center; gap: var(--s-1); font-size: var(--fs-footnote); color: var(--ink); }
+.jcp-br svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.5; color: var(--ink-3); }
+.cp-view > .jc-sum { margin-top: var(--s-1); }
+.cp-view .cp-bar { display: block; margin: var(--s-3) 0 0; }
+.jcp-sess { margin-bottom: var(--s-3); }
+.jcp-acts { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr); gap: var(--s-2); }
+.jcp-acts .btn { min-width: 0; padding: 0 var(--s-3); font-size: var(--fs-subhead); height: 46px; }
+.jcp-confirm { padding: var(--s-3) var(--s-4) var(--s-4); border-radius: var(--r-lg); background: var(--e1-bg); box-shadow: var(--e1-box); }
+.jcp-confirm p { margin: 0 0 var(--s-3); font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.jcp-confirm .mono { font-size: var(--fs-footnote); }
+.jcp-confirm .ifield { margin-bottom: var(--s-3); }
+.jcp-confirm .cp-msg { font-size: 16px; }
+.jcp-b { display: flex; gap: var(--s-2); }
+.jcp-b .btn { padding: 0 var(--s-4); }
+.jcp-result .rmeta { display: block; color: var(--ink); text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; white-space: normal; }
+.jcp-result .tile { color: var(--done); }
+.jcmp-runs { display: flex; gap: var(--s-2); overflow-x: auto; margin: 0 calc(var(--gutter) * -1) var(--s-3); padding: 0 var(--gutter) 2px; scrollbar-width: none; }
+.jcmp-runs::-webkit-scrollbar { display: none; }
+.jcmp-run { flex: none; display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-0); min-width: 140px; min-height: var(--hit); padding: var(--s-3) var(--s-4); border-radius: var(--r-lg); background: var(--e1-bg); box-shadow: var(--e1-box); text-align: left; color: var(--ink); font-size: var(--fs-footnote); line-height: var(--lh-footnote); }
+.jcmp-run b { font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+.jcmp-run small { font-size: var(--fs-footnote); color: var(--ink-2); }
+.jcmp-run .jdiffstat { min-height: 0; }
+.jcmp-run .d-add { color: var(--jobs-ink); font-weight: var(--w-bold); }
+.jcmp-run .d-del { color: var(--fail-ink); font-weight: var(--w-bold); }
+.jcmp-run.on { background: var(--sel); box-shadow: var(--sel-edge); }
+
+/* ── the terminal (code.js): the output reads top to bottom; the keys and the field sit at the thumb ── */
+.term-page .jterm-t { overflow-wrap: anywhere; }
+.jt-sub { display: flex; align-items: baseline; flex-wrap: wrap; row-gap: var(--s-1); }
+.jt-sub > span + span::before { content: "·"; margin: 0 var(--s-2); color: var(--ink-3); }
+.jt-sub .mono { font-size: var(--fs-footnote); color: var(--ink); }
+.jt-detail { margin-top: var(--s-2); }
+.term-page .jh-meta { margin-top: var(--s-2); }
+.jh-copy .chev { width: 12px; height: 12px; }
+.jterm-out { padding: var(--s-3) var(--s-4); border-radius: var(--r-lg); background: var(--e1-bg); box-shadow: var(--e1-box); }
+.term-page .tm-screen { margin: 0; padding: 0; min-height: 200px; max-height: none; overflow: visible; border-radius: 0; background: none; color: var(--ink); font: 400 var(--fs-caption)/var(--lh-footnote) var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.term-page .tm-acts { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-3); }
+.term-page .tm-acts .btn svg { width: 15px; height: 15px; }
+.tm-composer .tm-keys { display: flex; gap: var(--s-2); overflow-x: auto; scrollbar-width: none; margin: 0 calc(var(--s-2) * -1) var(--s-2); padding: 0 var(--s-2);
+  -webkit-mask: linear-gradient(90deg, transparent, #000 var(--s-2), #000 calc(100% - var(--s-6)), transparent); mask: linear-gradient(90deg, transparent, #000 var(--s-2), #000 calc(100% - var(--s-6)), transparent); }
+.tm-composer .tm-keys[hidden] { display: none; }
+.tm-composer .tm-keys::-webkit-scrollbar { display: none; }
+.tm-composer .tm-key { flex-shrink: 0; height: var(--hit); min-width: var(--hit); padding: 0 var(--s-3); border-radius: var(--r-sm); background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); font: 600 var(--fs-subhead)/1 var(--mono); transition: transform var(--d-press) var(--ease), filter var(--d-press); }
+.tm-composer .tm-key:active { background: var(--ctl-press); color: var(--ink); filter: var(--press-filter); transform: scale(.94); }
+.tm-composer .jc-row[hidden] { display: none; }
+.jterm-lock { display: flex; align-items: center; gap: var(--s-3); min-height: 52px; padding: 0 var(--s-1) 0 var(--s-2); }
+.jterm-lock[hidden] { display: none; }
+.jterm-lock > .rbody { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.jterm-lock b { font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); }
+.jterm-lock .rbody > span { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+
+/* ── projects (projects.js): a grid of marks; a project's colour rides along as a dot ── */
+.jpgrid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); padding-top: var(--s-4); }
+.jpcard { display: flex; flex-direction: column; justify-content: space-between; gap: var(--s-3); min-width: 0; min-height: 112px; padding: var(--s-3) var(--s-4) var(--s-4); border-radius: var(--r-lg); text-align: left; overflow: hidden; background: var(--e1-bg); box-shadow: var(--e1-box); color: var(--ink); transition: transform var(--d-press) var(--ease), filter var(--d-press); }
+.jpcard:active { transform: var(--press); filter: var(--press-filter); }
+.jp-top { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2); min-width: 0; }
+.jp-ic { width: 36px; height: 36px; border-radius: var(--r-sm); display: grid; place-items: center; flex-shrink: 0; font-size: var(--fs-title3); line-height: 1; background: var(--fill-2); color: var(--ink); }
+.jp-ic b { font-family: var(--ff-mono-g); font-size: var(--fs-headline); font-weight: var(--w-mono-g); font-variation-settings: var(--fv-mono-g); }
+.jp-ic svg { width: 20px; height: 20px; }
+.jp-live { display: inline-flex; align-items: center; gap: var(--s-1); min-width: 0; font-size: var(--fs-footnote); font-weight: var(--w-semibold); color: var(--jobs-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; --c: var(--done); }
+.jp-live.needs { color: var(--needs-ink); --c: var(--needs); }
+.jp-live .dot { width: 7px; height: 7px; }
+.jp-b { display: flex; flex-direction: column; gap: var(--s-0); min-width: 0; }
+.jp-n { display: flex; align-items: center; gap: var(--s-2); min-width: 0; font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+.jp-n > span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jp-n .dot { width: 8px; height: 8px; }
+.jp-m { display: flex; gap: var(--s-3); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); white-space: nowrap; }
+.jp-m .met { font-size: var(--fs-subhead); color: var(--ink); }
+.jp-ic.sm { width: 26px; height: 26px; border-radius: var(--r-xs); font-size: var(--fs-subhead); }
+.jp-ic.sm b { font-size: var(--fs-footnote); }
+.jpcard.new { background: transparent; box-shadow: inset 0 0 0 1.5px var(--fill-2); }
+.jpcard.new .jp-ic, .jpcard.new .jp-n { color: var(--ink-2); }
+.jpdone { margin-top: var(--s-4); }
+.jpsmall { min-height: var(--hit); padding-top: var(--s-2); padding-bottom: var(--s-2); --sep-left: 54px; }
+.jpsmall .rtitle { font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+/* a project page: its mark beside its name, what it is, where it lives, then its one action */
+.jp-hero { padding-top: var(--s-1); }
+.jph-top { display: flex; align-items: center; gap: var(--s-4); }
+.jp-ic.big { width: 64px; height: 64px; border-radius: var(--r-md); font-size: var(--fs-title1); }
+.jp-ic.big b { font-size: var(--fs-title1); }
+.jph-t { min-width: 0; }
+.jph-t .title1 { overflow-wrap: anywhere; }
+.jp-area { display: flex; align-items: center; gap: var(--s-2); margin-top: var(--s-0); }
+.jph-desc { margin-top: var(--s-4); }
+.jp-folder { display: flex; align-items: center; gap: var(--s-2); margin: var(--s-2) 0 0; font-size: var(--fs-caption); color: var(--ink-3); }
+.jp-folder span { min-width: 0; overflow-wrap: anywhere; }
+.jp-folder svg { width: 14px; height: 14px; flex-shrink: 0; }
+.jp-nofolder { position: relative; display: block; margin-top: var(--s-3); font-size: var(--fs-subhead); color: var(--ink-2); min-height: 32px; }
+.jp-nofolder::after { content: ""; position: absolute; inset: -6px -2px; }
+.jp-go { margin-top: var(--s-4); }
+.jp-go svg { width: 18px; height: 18px; }
+.project-page .jempty-s { min-height: var(--hit); }
+.jp-tasks .task-list { border-radius: 0; background: none; box-shadow: none; overflow: visible; }
+.jp-tasks .jadd { min-height: var(--hit); }
+.jp-tasks .task-list + .jadd::before { content: ""; position: absolute; top: 0; right: 0; left: var(--s-4); height: var(--hair); background: var(--sep); }
+.project-page .jp-sel .cn-task { min-height: var(--hit); padding-top: var(--s-2); padding-bottom: var(--s-2); }
+.project-page .jp-sel .cn-task .rtitle { font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.project-page .jp-sel .cn-check { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; box-shadow: inset 0 0 0 2px var(--ink-4); color: transparent; transition: background-color var(--d-state), box-shadow var(--d-state), color var(--d-state); }
+.project-page .jp-sel .cn-check svg { width: 12px; height: 12px; }
+.project-page .jp-sel .cn-task.on .cn-check { background: var(--ink); box-shadow: none; color: var(--on-ink); }
+.jsess .rmeta > span[aria-hidden] { color: var(--ink-3); }
+
+/* ── ideas: each one is a sentence, its age, and two ways out ── */
+.jidea-f { margin-top: var(--s-4); }
+.project-page .jidea-f { margin-top: 0; }
+.jidea-f .ifield { position: relative; padding-right: var(--s-1); }
+.jidea-f .ifield > svg { width: 20px; height: 20px; flex: none; color: var(--ink-3); }
+.jidea-f .ifield input { align-self: stretch; font-size: var(--fs-callout); }
+.jidea-f .mic-btn { position: static; translate: none; flex: none; width: var(--hit); height: var(--hit); margin: 1px 0; background: transparent; color: var(--ink-2); }
+.jidea-f + .rec-slot { margin-top: var(--s-2); }
+.jidea-h h2 { display: flex; align-items: center; gap: var(--s-2); }
+.jidea-pj { position: relative; display: inline-flex; align-items: center; gap: var(--s-2); font: inherit; color: inherit; min-height: 32px; }
+.jidea-pj::after { content: ""; position: absolute; inset: -6px -4px; }
+.jidea-pj .dot { width: 8px; height: 8px; }
+.jideas-g { margin-top: 0; }
+.jidea-f + .rec-slot + .sec-body > .jideas-g, .jidea-f ~ .sec-body .jideas-g { margin-top: var(--s-3); }
+.jidea { position: relative; align-items: flex-start; padding-top: var(--s-3); padding-bottom: var(--s-3); }
+.jidea-open { position: absolute; inset: 0; z-index: 1; }
+.jidea-open:active { background: var(--row-press); }
+.jidea .rtitle { font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.jidea-m { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); margin-top: var(--s-2); }
+.jidea-m .rmeta { margin-top: 0; min-width: 0; }
+.jidea-m .rmeta > span[aria-hidden] { color: var(--ink-3); }
+.jidea-acts { position: relative; z-index: 2; display: flex; gap: var(--s-2); flex-shrink: 0; }
+.jidea-acts .btn { height: 34px; padding: 0 var(--s-4); }
+.jidea-acts .btn:disabled { opacity: var(--off); }
+.jideas-empty { margin-top: var(--s-4); }
+
+/* ── the Builder: what it is doing, how it ships, its settings, what it shipped ── */
+.builders-page .phead .kicker { display: block; margin-bottom: var(--s-0); }
+.jb-now { margin-top: var(--s-1); }
+.bl-notes-w { display: block; }
+.builders-page .bl-notes { display: block; width: 100%; min-height: 104px; padding: var(--s-3) var(--s-4); border: 0; border-radius: var(--r-lg); background: var(--e1-bg); box-shadow: var(--e1-box); color: var(--ink); font-family: var(--mono); font-size: 16px; line-height: 1.45; resize: vertical; }
+.builders-page .bl-notes::placeholder { color: var(--ink-3); font-family: var(--font); }
+.builders-page .bl-notes:focus { outline: none; box-shadow: var(--e1-box), inset 0 0 0 1.5px var(--field-focus); }
+.jship { align-items: flex-start; }
+.jship .jship-st { margin-top: 2px; font-size: var(--fs-footnote); }
+
+/* the tab's own bar (its gear and New) stays inside the tab's root, so it never paints over a pushed page, even when
+   a page is pushed while the previous one is still sliding away (popDetail clears the root's transform when it ends) */
+#pageJobs > .root { isolation: isolate; }
+.job-page .je-changes .jdiffstat { min-height: 0; }
+
+/* ── job chat: the bar. Its title fades in once the hero scrolls away; the text stays "Chat" for the next page's back ── */
+.page.detail[data-kind="job"] .navbar .nav-title { visibility: visible; max-width: 180px; font-size: 0; line-height: 0; display: flex; flex-direction: column; align-items: center; }
+.page.detail[data-kind="job"] .navbar .nav-title::before, .page.detail[data-kind="job"] .navbar .nav-title::after { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.page.detail[data-kind="job"] .navbar .nav-title::before { content: attr(data-t); font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+.page.detail[data-kind="job"] .navbar .nav-title::after { content: attr(data-s); font-size: var(--fs-caption); line-height: var(--lh-caption); font-weight: var(--w-regular); color: var(--ink-2); }
+.nav-icon.jstop { color: var(--fail); }
+.nav-icon.jstop svg { width: 18px; height: 18px; }
+
+/* ── job chat: the hero. Its ring and where it stands, the title, the settings for the next turn, where it writes ── */
+.jhero { padding-top: var(--s-1); }
+.jh-top { display: flex; align-items: center; gap: var(--s-4); margin-bottom: var(--s-3); }
+.jh-top.ring { --ring-bg: var(--e0); }
+.jh-stat { display: flex; flex-direction: column; gap: var(--s-0); min-width: 0; }
+.jh-stat .met { font-size: var(--fs-fig-1); font-weight: var(--w-fig-l); }
+.jh-stat .met small { font-size: var(--fs-callout); }
+.jh-stat .jmeta { margin-top: 0; }
+.jh-step { font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jhero .agent.big { width: 46px; height: 46px; border-radius: var(--r-md); }
+.jhero .rg .agent.big { width: 52px; height: 52px; border-radius: 50%; }
+.jhero .agent.big svg { width: 26px; height: 26px; }
+.jhero .jh-title { margin: 0; font-family: var(--font-display); overflow-wrap: anywhere; text-wrap: pretty; }
+.jh-pills { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-3); }
+.jh-pills .jh-pick { height: 32px; padding: 0 var(--s-3); gap: var(--s-1); border-radius: var(--r-pill); background: var(--fill-2); color: var(--ink); font-size: var(--fs-footnote); line-height: 32px; font-weight: var(--w-semibold); }
+.jh-pick svg { width: 12px; height: 12px; flex: none; }
+.jh-pick > svg:first-child:not(:only-of-type) { width: 14px; height: 14px; }
+.jh-pick select { inset: -6px -2px; width: calc(100% + 4px); }
+.jh-pick:active { background: var(--fill-3); }
+button.jh-pick::after { content: ""; position: absolute; inset: -6px -2px; }
+.jh-plan.on { background: var(--pick); color: var(--pick-fg); box-shadow: var(--pick-edge); }
+.jh-modenote { margin-top: var(--s-2); }
+.jh-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-1) var(--s-3); margin-top: var(--s-3); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.jh-meta > span, .jh-meta > button { position: relative; display: inline-flex; align-items: center; gap: var(--s-1); min-width: 0; }
+.jh-meta svg { width: 13px; height: 13px; flex-shrink: 0; color: var(--ink-3); }
+.jh-meta .mono { font-size: var(--fs-caption); color: var(--ink-3); }
+.jh-meta > button::after { content: ""; position: absolute; inset: -13px -4px; }
+.jh-proj { color: var(--ink-2); }
+.jh-chg { color: var(--ink-2); }
+.jh-chg .chev { width: 12px; height: 12px; }
+.jh-use { display: block; margin-top: var(--s-2); }
+.jh-ship { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s-1) var(--s-2); margin-top: var(--s-2); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.jh-ship .mono { font-size: var(--fs-caption); color: var(--ink-3); }
+.jh-ship .text-btn { font-size: var(--fs-footnote); }
+.jh-why { margin-top: var(--s-2); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--needs-ink); }
+.jhero .ws-card { margin-top: var(--s-3); }
+.jhero .ws-head .text-btn { position: relative; }
+.jhero .ws-head .text-btn::after { content: ""; position: absolute; inset: -13px -6px; }
+.jhero .jh-items { margin-top: var(--s-3); }
+.jhero .jh-summary, .jhero .jh-finish { margin-top: var(--s-3); }
+
+/* ── job chat: the conversation. A turn opens with your message and a little more air above it ── */
+.job-events { gap: var(--s-3); margin-top: var(--s-5); }
+.jturn { gap: var(--s-3); }
+.jturn + .jturn { margin-top: var(--s-3); }
+.job-page .je { font-size: var(--fs-callout); line-height: var(--lh-body); }
+.job-page .je-text { padding: 0 var(--s-1); }
+.job-page .je-user .bubble { max-width: 84%; padding: var(--s-2) var(--s-3); border-radius: var(--r-lg); border-bottom-right-radius: var(--r-xs); background: var(--fill-3); color: var(--ink); font-size: var(--fs-callout); line-height: var(--lh-callout); }
+.job-page .je-user .bubble code { background: var(--fill-2); }
+/* the Working group: a summary, then the steps as a quiet timeline */
+.job-page .jw { border-radius: var(--r-lg); background: var(--e1-bg); box-shadow: var(--e1-box); overflow: hidden; }
+.job-page .jw-head { gap: var(--s-3); min-height: var(--hit); padding: var(--s-2) var(--s-4) var(--s-2) var(--s-3); font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink); }
+.job-page .jw-head:active { opacity: 1; background: var(--row-press); }
+.job-page .jw-label { font-weight: var(--w-semibold); white-space: nowrap; color: var(--ink); }
+.jw-head .cap { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jw-head .jw-cnt { flex: 1; }
+.job-page .jw-chev { width: 15px; height: 15px; color: var(--ink-3); stroke: var(--ink-3); }
+.job-page .jw-ico.spin { width: 20px; height: 20px; }
+.job-page .jw-ico.needs { width: 12px; height: 12px; margin: 4px; border-radius: 50%; background: var(--needs); }
+.jw .jw-now { display: none; }
+.jw:not([open]) .jw-now { display: block; }
+.jw:not([open]) .jw-n { display: none; }
+.job-page .jw-now .mono { font-size: var(--fs-footnote); color: var(--ink); }
+.job-page .w-ic { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; background: var(--done); color: var(--on-color); }
+.job-page .w-ic svg { width: 11px; height: 11px; }
+.job-page .jw-body { gap: 0; padding: var(--s-1) 0 var(--s-2); border-top: var(--hair) solid var(--sep); }
+.job-page .jw-body > .je-tool, .job-page .jw-body > .je-thought { border-radius: 0; background: none; box-shadow: none; }
+.job-page .je-tool > summary, .job-page .je-thought > summary { position: relative; gap: var(--s-3); min-height: 36px; padding: 0 var(--s-4) 0 var(--s-3); font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.job-page .jw-body > .je-tool + .je-tool > summary::before { content: ""; position: absolute; left: calc(var(--s-3) + 10px); top: calc(var(--s-2) * -1); width: 1px; height: var(--s-4); margin-left: -.5px; background: var(--ink-4); }
+.job-page .jt-ico { width: 20px; height: 20px; border-radius: 0; background: none; box-shadow: none; color: var(--ink-3); }
+.job-page .jt-ico svg { width: 16px; height: 16px; }
+.job-page .jt-title { color: var(--ink-2); }
+.job-page .jt-title .mono { font-size: var(--fs-footnote); color: var(--ink); }
+.job-page .je-tool.s-in_progress .jt-ico { color: var(--jobs-ink); box-shadow: none; }
+.job-page .je-tool.s-in_progress .jt-title { color: var(--ink); }
+.job-page .jt-state { font-size: var(--fs-caption); font-weight: var(--w-semibold); color: var(--jobs-ink); }
+.job-page .je-tool.s-pending .jt-state { color: var(--ink-3); }
+.job-page .je-tool.s-failed .jt-state { color: var(--fail-ink); }
+.job-page .je-tool .jt-locs, .job-page .je-tool .jt-out, .job-page .je-tool > .quiet { margin-left: 44px; margin-right: var(--s-3); }
+.job-page .je-thought-body { padding: 0 var(--s-4) var(--s-2) 44px; font-size: var(--fs-footnote); line-height: var(--lh-footnote); }
+.job-page .je-status { align-self: center; padding: 0 var(--s-2); background: none; font-size: var(--fs-caption); line-height: var(--lh-caption); font-weight: var(--w-semibold); color: var(--ink-3); text-align: center; }
+.job-page .jw-body > .je-status { align-self: stretch; padding: var(--s-1) var(--s-4) var(--s-1) 44px; text-align: left; }
+.job-page .je-decided { display: flex; align-items: center; gap: var(--s-2); align-self: stretch; justify-content: flex-start; padding: var(--s-1) var(--s-1); text-align: left; font-weight: var(--w-regular); color: var(--ink-2); }
+.job-page .je-decided svg { width: 14px; height: 14px; flex: none; color: var(--ink-3); }
+.job-page .je-decided span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.job-page .je-decided b { flex: none; margin-left: auto; color: var(--ink-2); }
+.job-page .jw-body > .je-decided { padding-left: var(--s-3); padding-right: var(--s-4); }
+/* the agent's checklist inside the group: its steps, ticked as they finish; the one in hand is half inked */
+.job-page .je-plan { padding: var(--s-1) var(--s-4) var(--s-1) var(--s-3); border-radius: 0; background: none; box-shadow: none; }
+.job-page .je-plan li { align-items: center; gap: var(--s-3); min-height: 30px; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.job-page .je-plan li + li { margin-top: 0; }
+.job-page .je-plan li i { width: 20px; height: 20px; margin: 0; border-radius: 50%; border: 2px solid var(--ink-4); box-shadow: none; display: grid; place-items: center; }
+.job-page .je-plan li i svg { width: 11px; height: 11px; stroke-width: 3; }
+.job-page .je-plan li.s-completed { color: var(--ink-3); }
+.job-page .je-plan li.s-completed i { background: var(--done); border-color: var(--done); color: var(--on-color); }
+.job-page .je-plan li.s-completed span { color: inherit; text-decoration: none; }
+.job-page .je-plan li.s-in_progress { color: var(--ink); font-weight: var(--w-semibold); }
+.job-page .je-plan li.s-in_progress i { border-color: var(--jobs) var(--jobs) color-mix(in srgb, var(--jobs) 25%, transparent) color-mix(in srgb, var(--jobs) 25%, transparent); box-shadow: none; transform: rotate(-45deg); }
+/* the written plan, the OK and the question are cards in the conversation */
+.job-page .je-plantext, .job-page .je-perm { padding: var(--s-3) var(--s-4) var(--s-4); border-radius: var(--r-lg); background: var(--e1-bg); box-shadow: var(--e1-box); }
+.job-page .je-perm.open { background: var(--e1-bg); box-shadow: var(--e1-box); }
+.job-page .pc-h { display: flex; align-items: center; gap: var(--s-2); min-height: 28px; font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.job-page .pc-h b { font-weight: var(--w-bold); }
+.job-page .pc-h svg { width: 17px; height: 17px; flex-shrink: 0; color: var(--ink-2); }
+.job-page .pc-h .cap { margin-left: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.job-page .je-perm.open .pc-h b, .job-page .je-perm.open .pc-h svg { color: var(--needs-ink); }
+.job-page .jp-title { margin: var(--s-1) 0 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-regular); }
+.job-page .jp-title code, .jp-title .mono { padding: 0; background: none; font-family: var(--mono); font-size: var(--fs-footnote); }
+.job-page .jp-opts { gap: var(--s-2); margin-top: var(--s-4); }
+.job-page .jp-opts .btn { padding: 0 var(--s-4); }
+.job-page .jp-opts .btn:disabled { opacity: var(--off); }
+.job-page .je-plantext .pc-h { margin-bottom: var(--s-1); }
+.job-page .je-plantext .pc-h svg { color: var(--needs-ink); }
+/* the question: its line in the headline size, its answers as rows with the mark on the right */
+.job-page .je-form > .pc-h { margin-bottom: var(--s-1); }
+.job-page .je-form .jq-q { margin: var(--s-1) 0 var(--s-3); font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+.job-page .jq-head { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+.job-page .jq-opts { gap: var(--s-2); }
+.job-page .jq-opt { align-items: center; justify-content: space-between; gap: var(--s-3); min-height: var(--hit); padding: var(--s-2) var(--s-3) var(--s-2) var(--s-4); border-radius: var(--r-md); background: var(--ctl); box-shadow: var(--ctl-box); transition: background-color var(--d-state), box-shadow var(--d-state); }
+.job-page .jq-opt:active { transform: none; background: var(--ctl-press); }
+.job-page .jq-opt.on { background: var(--sel); box-shadow: var(--sel-edge); }
+.job-page .jq-body b { font-size: var(--fs-callout); line-height: var(--lh-callout); font-weight: var(--w-regular); }
+.job-page .jq-body small { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.job-page .jq-mark { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--ink-4); box-shadow: none; background: transparent; transition: border-width var(--d-state) var(--spring), border-color var(--d-state); }
+.job-page .jq-mark svg { display: none; }
+.job-page .jq-opt.on .jq-mark { border: 7px solid var(--needs); background: transparent; }
+.job-page .jq.multi .jq-mark { border-radius: var(--r-xs); display: grid; place-items: center; }
+.job-page .jq.multi .jq-mark svg { display: block; opacity: 0; stroke: var(--on-color); }
+.job-page .jq.multi .jq-opt.on .jq-mark { border: 0; background: var(--needs); }
+.job-page .jq.multi .jq-opt.on .jq-mark svg { opacity: 1; }
+.job-page .jq-other { min-height: var(--hit); height: auto; padding: 0 var(--s-4); border-radius: var(--r-md); font-size: var(--fs-callout); }
+.job-page .jq-other.on, .job-page .jq-other:focus { box-shadow: inset 0 0 0 1.5px var(--field-focus); }
+.job-page .je-form .jp-opts { margin-top: var(--s-4); }
+.job-page .jq-done .jq-q { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); font-weight: var(--w-regular); margin: var(--s-2) 0 var(--s-1); }
+/* the files a turn changed: one card that opens its changes */
+.job-page .je-changes { display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: 0; padding: var(--s-3) var(--s-3) var(--s-3) var(--s-4); border: 0; border-radius: var(--r-lg); text-align: left; background: var(--e1-bg); box-shadow: var(--e1-box); color: var(--ink); }
+.job-page .je-changes:active { background: var(--e1-bg); filter: var(--press-filter); }
+.job-page .je-changes .rbody { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.job-page .je-changes .rbody > b { font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); }
+.job-page .je-changes .rbody > .num { font-size: var(--fs-footnote); line-height: var(--lh-footnote); }
+.job-page .je-changes .jc-names { font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.job-page .je-changes .btn { pointer-events: none; }
+.job-page .je-live { display: flex; align-items: center; gap: var(--s-2); margin-top: var(--s-3); font-size: var(--fs-subhead); color: var(--ink-2); }
+
+/* ── job chat: the composer, chrome floating over the chat. Two rows: where the job stands, then the field ── */
+.job-composer { left: var(--s-2); right: var(--s-2); padding: var(--s-2); border-radius: var(--r-xl); }
+.job-composer .jcm-top { display: flex; align-items: center; gap: var(--s-2); min-height: var(--hit); padding: 0 0 var(--s-1) var(--s-1); }
+.job-composer .jcm-top[hidden] { display: none; }
+.job-composer .jp-strip { flex: 1; min-width: 0; flex-direction: row; align-items: center; gap: var(--s-2); min-height: var(--hit); padding: 0; --ring-bg: transparent; }
+.job-composer .jp-strip[hidden] { display: none; }
+.job-composer .jp-strip .met { font-size: var(--fs-headline); }
+.job-composer .jp-strip .met small { font-size: var(--fs-caption); }
+.job-composer .jp-strip .cap { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: var(--fs-footnote); color: var(--ink-2); }
+.job-composer .jp-strip .chev { width: 12px; height: 12px; margin-right: var(--s-1); }
+.job-composer .jc-where { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--s-2); padding-left: var(--s-1); font-size: var(--fs-footnote); color: var(--ink-2); }
+.job-composer .jc-where[hidden] { display: none; }
+.job-composer .jc-where svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--ink-3); }
+.job-composer .jc-where .mono { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-footnote); }
+.job-composer .jc-meta { display: flex; margin-left: auto; flex-shrink: 0; padding: 0; }
+.job-composer .jc-warm { position: relative; height: 30px; font-size: var(--fs-footnote); transition: background-color var(--d-state), color var(--d-state); }
+.job-composer .jc-warm::after { content: ""; position: absolute; inset: -7px -2px; }
+.job-composer .jc-warm svg { width: 13px; height: 13px; }
+.job-composer .jc-warm.on { background: var(--pick); color: var(--pick-fg); box-shadow: var(--pick-edge); }
+.job-composer .jc-queue { gap: 0; padding: 0 0 var(--s-1) var(--s-1); }
+.job-composer .jcq-item { gap: var(--s-2); min-height: var(--hit); padding: 0; border-radius: 0; background: none; }
+.job-composer .jcq-open { min-height: var(--hit); }
+.job-composer .jcq-k { flex: none; height: 26px; color: var(--needs-ink); }
+.job-composer .jcq-text { font-size: var(--fs-footnote); color: var(--ink-2); }
+.job-composer .jcq-x { display: grid; place-items: center; color: var(--ink-3); }
+.job-composer .jcq-x svg { width: 12px; height: 12px; }
+.job-composer .jc-row textarea { min-height: 46px; padding: 12px 48px 12px 16px; border-radius: 23px; font-size: var(--fs-callout); line-height: var(--lh-callout); }
+.job-composer .jc-row .mic-btn { bottom: 1px; }
+.job-composer .jc-send { width: 46px; height: 46px; background: var(--ink); color: var(--on-ink); transition: transform var(--d-press) var(--ease), background-color var(--d-state), color var(--d-state); }
+.job-composer .jc-send:active { transform: scale(.88); }
+.job-composer .jc-send.stop { background: var(--fill-3); color: var(--ink); }
+.job-composer .jc-send.stop::before { width: 14px; height: 14px; border-radius: 4px; }
+
+/* ── the plan sheet: the plan card with every stage and step ── */
+.prog-sheet .jplan { padding: var(--s-3) var(--s-4) var(--s-4); border-radius: var(--r-lg); background: var(--inlay); box-shadow: var(--inlay-box); }
+.prog-sheet .pl { margin: 0; padding: 0; list-style: none; }
+.prog-sheet .pl-s + .pl-s { margin-top: var(--s-3); }
+.prog-sheet .pl-n { display: flex; justify-content: space-between; margin-bottom: var(--s-0); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-3); }
+.prog-sheet .pl-r { display: flex; align-items: center; gap: var(--s-3); min-height: 36px; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.prog-sheet .pl-t { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.prog-sheet .pl-c { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--ink-4); display: grid; place-items: center; flex-shrink: 0; }
+.prog-sheet .pl-c svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.prog-sheet .pl-r.s-done { color: var(--ink-3); }
+.prog-sheet .pl-r.s-done .pl-c { background: var(--done); border-color: var(--done); color: var(--on-color); }
+.prog-sheet .pl-r.s-active { color: var(--ink); font-weight: var(--w-semibold); }
+.prog-sheet .pl-r.s-active .pl-c { border-color: var(--jobs) var(--jobs) color-mix(in srgb, var(--jobs) 25%, transparent) color-mix(in srgb, var(--jobs) 25%, transparent); transform: rotate(-45deg); }
+.prog-sheet .pl-r.s-error { color: var(--fail-ink); }
+.prog-sheet .pl-r.s-error .pl-c { background: var(--fail); border-color: var(--fail); color: var(--on-deep); }
+.prog-sheet .pl-r.s-skipped .pl-t { color: var(--ink-3); text-decoration: line-through; text-decoration-color: var(--ink-4); }
+.prog-sheet .pl-r.s-skipped .pl-c { color: var(--ink-3); }
+.prog-sheet .pl-r time { flex: none; }
+.prog-sheet .pl-sub.s-needs_input { color: var(--needs-ink); }
+.prog-sheet .pl-sub.s-error { color: var(--fail-ink); }
+.prog-sheet .pl-note { margin: 0 0 var(--s-3); }
+/* the chat's holds: a peek with the message */
+.jpk .pk-msg { margin-top: var(--s-2); color: var(--ink); overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+.jpk .pk-note { margin-top: var(--s-3); }
+
+/* ═══ 2 · OBSIDIAN ═════════════════════════════════════════════════════════ */
+/* the peek's ring sits in glass, so its light rests a little lower than on stone; so does the composer's */
+:where(:root[data-skin="obsidian"]) .jpk, :where(:root[data-skin="obsidian"]) .job-composer .jp-strip { --glow-rest: .4; }
+
+/* ═══ 3 · MATTE ════════════════════════════════════════════════════════════ */
+/* the board keeps Matte's calmer rhythm between lanes; the selected segment's count takes the Jobs pigment */
+:where(:root[data-skin="matte"]) .board .lane-h { padding-top: var(--s-6); }
+:where(:root[data-skin="matte"]) .jobs-seg .segmented { --seg-n: var(--jobs-ink); }
+:where(:root[data-skin="matte"]) .jobs-seg .segmented > button[aria-selected="true"] .n { color: var(--jobs-ink); }
+/* an ask is printed on an orange-tinted sheet; Always, Deny and Open are tinted stock beside the inked Allow */
+:where(:root[data-skin="matte"]) .jask { background: var(--grain), color-mix(in oklab, var(--needs) 10%, var(--paper)); box-shadow: none; }
+:where(:root[data-skin="matte"]) .jask-b .btn:not(.primary):not(.tint) { background: color-mix(in oklab, var(--needs) 8%, var(--raised)); box-shadow: none; }
+:where(:root[data-skin="matte"]) .jpk { --ring-bg: var(--float); }
+/* projects: paper cards; a project's own colour only as a 16% fill behind its mark, so no dot beside the name */
+:where(:root[data-skin="matte"]) .jp-ic { background: color-mix(in oklab, var(--c, var(--ink)) 16%, var(--paper)); }
+:where(:root[data-skin="matte"]) .jp-ic b { color: color-mix(in oklab, var(--c, var(--ink)) 70%, var(--ink)); }
+:where(:root[data-skin="matte"]) .jp-n .dot { display: none; }
+:where(:root[data-skin="matte"]) .jp-live { color: var(--ink-2); }
+:where(:root[data-skin="matte"]) .jp-live.needs { color: var(--needs-ink); }
+:where(:root[data-skin="matte"]) .jpcard.new { box-shadow: none; border: 1.5px dashed var(--ink-4); }
+:where(:root[data-skin="matte"]) .jpcard.new .jp-ic { background: var(--fill-2); }
+/* changes: the kind of change is printed as a tint behind its letter */
+:where(:root[data-skin="matte"]) .jfk { border-radius: 8px; }
+:where(:root[data-skin="matte"]) .jfk-A { background: color-mix(in oklab, var(--jobs) 18%, transparent); }
+:where(:root[data-skin="matte"]) .jfk-D { background: color-mix(in oklab, var(--fail) 18%, transparent); }
+:where(:root[data-skin="matte"]) .jfk-R { background: color-mix(in oklab, var(--life) 18%, transparent); }
+:where(:root[data-skin="matte"]) .jdl.a { background: color-mix(in oklab, var(--jobs) 11%, transparent); }
+:where(:root[data-skin="matte"]) .jdl.d { background: color-mix(in oklab, var(--fail) 12%, transparent); }
+:where(:root[data-skin="matte"]) .jdl.a .jdl-c { color: color-mix(in oklab, var(--jobs) 45%, var(--ink)); }
+:where(:root[data-skin="matte"]) .jdl.d .jdl-c { color: color-mix(in oklab, var(--fail) 40%, var(--ink)); }
+:where(:root[data-skin="matte"][data-theme="light"]) .jdl.a .jdl-c { color: #2d5208; }
+:where(:root[data-skin="matte"][data-theme="light"]) .jdl.d .jdl-c { color: #8a1f10; }
+/* terminal: the output is inked faintly in the Jobs pigment; keys are raised stock with a contact line */
+:where(:root[data-skin="matte"]) .term-page .tm-screen { color: color-mix(in oklab, var(--jobs) 30%, var(--ink)); }
+:where(:root[data-skin="matte"]) .tm-composer .tm-key { box-shadow: var(--edge-2), var(--shadow-2); }
+/* the job sheet: the engines' glyphs sit on a darker stock; the chosen card is inked round its edge */
+:where(:root[data-skin="matte"]) .jsheet .eng-card .agent { background: var(--surface-3); box-shadow: none; }
+:where(:root[data-skin="matte"]) .jsheet .eng-card.on { background: var(--inlay); box-shadow: inset 0 0 0 2px var(--ink); }
+:where(:root[data-skin="matte"]) .jsheet .eng-tick { box-shadow: 0 0 0 2px var(--float); }
+/* job chat: the job's title is a page title, set in the serif */
+:where(:root[data-skin="matte"]) .jhero .jh-title { font-family: var(--ff-title); font-size: var(--fs-title1); line-height: var(--lh-title1); font-weight: var(--w-title); font-variation-settings: var(--fv-title); }
+/* your messages are a raised slip of stock */
+:where(:root[data-skin="matte"]) .job-page .je-user .bubble { background: var(--grain), var(--raised); box-shadow: var(--edge-2); border-bottom-right-radius: var(--r-xs); }
+/* what needs your OK is printed on orange-tinted paper */
+:where(:root[data-skin="matte"]) .job-page .je-perm.open { background: var(--grain), color-mix(in oklab, var(--needs) 9%, var(--paper)); box-shadow: var(--e1-edge); }
+:where(:root[data-skin="matte"]) .job-page .jq-mark { border-color: var(--ink-3); }
+:where(:root[data-skin="matte"]) .job-page .jq-opt.on { background: color-mix(in oklab, var(--needs) 14%, var(--raised)); box-shadow: var(--edge-2); }
+/* a plan inside a sheet is raised stock, like every group in a sheet */
+:where(:root[data-skin="matte"]) .prog-sheet .jplan { background: var(--grain), var(--raised); box-shadow: var(--edge-2); }
+/* the composer is a float-stock card; the ring is knocked out of that stock */
+:where(:root[data-skin="matte"]) .job-composer { padding: 10px; border-radius: 30px; }
+:where(:root[data-skin="matte"]) .job-composer .jp-strip { --ring-bg: var(--float); }
+:where(:root[data-skin="matte"]) .job-composer .jc-send.stop { background: var(--grain), var(--raised); box-shadow: var(--edge-2); }
+:where(:root[data-skin="matte"]) .bd-under.u-done { color: var(--on-color); }

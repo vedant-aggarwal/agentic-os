@@ -1,0 +1,23 @@
+# Server and CLI tests on every push and pull request.
+name: CI
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install
+        run: bun install
+      - name: Server tests
+        run: bun test server
+      - name: CLI tests
+        working-directory: cli
+        run: bun test src

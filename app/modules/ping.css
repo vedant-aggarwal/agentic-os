@@ -1,0 +1,24 @@
+/* ═══ MODULE · PING ═══════════════════════════════════════════════════════════
+   The reference module: proves the path from this phone to a module on the PC. Owner: area (d). JS: app/modules/ping.js.
+   Design: j15/mockup/final more.js PAGES.ping + more.css (ping). The page frame (.mp-*) is ui/screens/content.css.
+   Blocks: 1 · SHARED · 2 · OBSIDIAN · 3 · MATTE. */
+
+/* ═══ 1 · SHARED ═══════════════════════════════════════════════════════════ */
+.ping-page .mp-add { margin-top: var(--s-4); }
+.ping-page .mp-add .btn svg { width: 17px; height: 17px; }
+.ping-line { display: flex; align-items: center; gap: var(--s-3); min-height: 28px; margin: 0; }
+.ping-line .mono, .ping-row .mono { font-size: var(--fs-footnote); color: var(--ink-2); overflow-wrap: anywhere; }
+.ping-json { margin: var(--s-3) 0 0; padding: var(--s-3); border-radius: var(--r-sm); background: var(--inlay); box-shadow: var(--inlay-box); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink); white-space: pre-wrap; word-break: break-word; }
+
+.ping-row { min-height: 48px; }
+.ping-row .rtitle.mono { font-size: var(--fs-footnote); color: var(--ink-2); }
+.ping-row .rend { font-size: var(--fs-footnote); color: var(--ink-3); }
+.ping-opts { margin-top: var(--s-4); }
+.ping-sw { cursor: pointer; }
+.ping-sw input { flex: none; width: 51px; height: 31px; margin: 0; accent-color: var(--done); }
+
+/* ═══ 2 · OBSIDIAN ═════════════════════════════════════════════════════════ */
+/* nothing to restate */
+
+/* ═══ 3 · MATTE ════════════════════════════════════════════════════════════ */
+/* nothing to restate */

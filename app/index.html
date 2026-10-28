@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-skin="obsidian">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="theme-color" content="#050506" />
+<!-- skin and theme before anything paints: ?skin= (remembered) > the last one chosen > Obsidian;
+     ?theme= (this visit) > the choice in More (aos-theme: dark | light | auto, which follows the phone) > dark -->
+<script>(function () { try {
+  var d = document.documentElement, q = new URLSearchParams(location.search);
+  var ok = function (s) { return s === 'obsidian' || s === 'matte'; };
+  var s = q.get('skin'); if (ok(s)) localStorage.setItem('aos-skin', s); else s = localStorage.getItem('aos-skin');
+  if (!ok(s)) s = 'obsidian';
+  var t = q.get('theme'); if (t !== 'dark' && t !== 'light' && t !== 'auto') t = localStorage.getItem('aos-theme');
+  if (t === 'auto') t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  if (t !== 'dark' && t !== 'light') t = 'dark';
+  d.setAttribute('data-skin', s); d.setAttribute('data-theme', t);
+  var bar = { obsidian: ['#050506', '#e7e7eb'], matte: ['#12100e', '#efe9e0'] }[s][t === 'light' ? 1 : 0];
+  var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', bar);
+} catch (e) {} })();</script>
+<!-- the iPhone app without a session goes to sign-in before anything loads -->
+<script>try { if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() && !localStorage.getItem('agentos-app:token')) location.replace('login.html'); } catch (e) {}</script>
+<meta name="color-scheme" content="dark light" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Agentic OS" />
+<link rel="apple-touch-icon" href="icons/icon-180.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<title>Agentic OS</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23000'/%3E%3Cg fill='none' stroke-width='3.2' stroke-linecap='round'%3E%3Cpath d='M16 4.5a11.5 11.5 0 1 1-10 5.8' stroke='%23fa114f'/%3E%3Cpath d='M16 9a7 7 0 1 1-6.9 8.2' stroke='%23a3f000'/%3E%3Cpath d='M16 13.4a2.6 2.6 0 1 1-1.7 4.6' stroke='%23a47bff'/%3E%3C/g%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<!-- order matters: shared system, then each skin, then the screens (each screen file holds its shared rules, then one block per skin) -->
+<link rel="stylesheet" href="css/system.css" />
+<link rel="stylesheet" href="css/skins/obsidian.css" />
+<link rel="stylesheet" href="css/skins/matte.css" />
+<link rel="stylesheet" href="css/screens/today.css" />
+<link rel="stylesheet" href="css/screens/jobs.css" />
+<link rel="stylesheet" href="css/screens/clients.css" />
+<link rel="stylesheet" href="css/screens/content.css" />
+<link rel="stylesheet" href="css/screens/life.css" />
+<link rel="stylesheet" href="css/screens/more.css" />
+<link rel="stylesheet" href="css/screens/brain.css" />
+<link rel="stylesheet" href="css/screens/capture.css" />
+<link rel="stylesheet" href="css/screens/agent.css" />
+<!-- the nine aspect apps: the shared frame, then one file per app -->
+<link rel="stylesheet" href="css/aspects.css" />
+<link rel="stylesheet" href="css/aspects/body.css" />
+<link rel="stylesheet" href="css/aspects/mind.css" />
+<link rel="stylesheet" href="css/aspects/soul.css" />
+<link rel="stylesheet" href="css/aspects/mission.css" />
+<link rel="stylesheet" href="css/aspects/money.css" />
+<link rel="stylesheet" href="css/aspects/growth.css" />
+<link rel="stylesheet" href="css/aspects/family.css" />
+<link rel="stylesheet" href="css/aspects/romance.css" />
+<link rel="stylesheet" href="css/aspects/friends.css" />
+<!-- the engine's own chrome (sync pill, the old pages' layer and frame); the old pages' stylesheets load scoped at runtime (js/svc/legacy.js) -->
+<link rel="stylesheet" href="css/engine.css" />
+<!-- MOTION: the kit's springs and effects, the animated agent marks, the living orb (js/motion.js, marks.js, orb.js, graph.js) -->
+<link rel="stylesheet" href="css/motion.css" />
+<link rel="stylesheet" href="css/marks.css" />
+<link rel="stylesheet" href="css/orb.css" />
+</head>
+<body>
+<div class="stage">
+  <div class="phone" id="phone">
+    <div class="desk-status" aria-hidden="true"><span class="num">17:40</span><span class="ds-icons">
+      <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 2.6c2.3 0 4.4.9 6 2.4l1.1-1.2A10.2 10.2 0 0 0 8 1C5.3 1 2.8 2 .9 3.8L2 5c1.6-1.5 3.7-2.4 6-2.4Zm0 3.3c1.4 0 2.7.5 3.7 1.4l1.1-1.2A7.1 7.1 0 0 0 8 4.3c-1.8 0-3.5.7-4.8 1.8l1.1 1.2c1-.9 2.3-1.4 3.7-1.4Zm0 3.2c-.6 0-1.1.2-1.5.6L8 11.3l1.5-1.6c-.4-.4-.9-.6-1.5-.6Z"/></svg>
+      <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.8" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="16" height="9" rx="2.5"/></svg>
+    </span></div>
+
+    <div class="pages" id="pages">
+      <section class="page" data-tab="today"></section>
+      <section class="page" data-tab="life" hidden></section>
+      <section class="page" data-tab="jobs" hidden></section>
+      <section class="page" data-tab="content" hidden></section>
+      <section class="page" data-tab="agent" hidden></section>
+      <!-- no tab of their own: reached from Work (clients) and from your avatar (more) -->
+      <section class="page" data-tab="clients" hidden></section>
+      <section class="page" data-tab="more" hidden></section>
+    </div>
+    <div class="stack" id="stack"></div>
+
+    <div class="dock" id="dock">
+      <div class="accessory chrome" id="accessory"></div>
+      <div class="tabrow">
+        <nav class="tabbar chrome" aria-label="Sections">
+          <span class="tab-lens" aria-hidden="true"></span>
+          <button class="tab on" data-act="tab" data-tab="today" id="tabToday"></button>
+          <button class="tab" data-act="tab" data-tab="life" id="tabLife"></button>
+          <button class="tab" data-act="tab" data-tab="jobs" id="tabJobs"></button>
+          <button class="tab" data-act="tab" data-tab="content" id="tabContent"></button>
+          <button class="tab" data-act="tab" data-tab="agent" id="tabAgent"></button>
+        </nav>
+        <button class="capture chrome" data-act="capture" aria-label="Scan or capture anything" id="captureBtn"></button>
+      </div>
+    </div>
+
+    <div class="scrim" id="scrim" data-act="close-sheet"></div>
+    <!-- the shipping app's sheets (app/work, app/modules) open on this layer; js/svc/legacy.js -->
+    <div id="screen" class="aos-legacy lg-layer"></div>
+    <div class="peek-wrap" id="peek" data-act="close-peek"></div>
+    <div class="toast overlay" id="toast" role="status"></div>
+    <button class="sync-pill chrome" id="syncPill" type="button" hidden aria-live="polite"></button>
+  </div>
+</div>
+<script type="module" src="js/main.js"></script>
+<script>if (!window.Capacitor && 'serviceWorker' in navigator) addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); });</script>
+</body>
+</html>

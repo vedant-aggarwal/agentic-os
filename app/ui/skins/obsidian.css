@@ -1,0 +1,204 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   SKIN · OBSIDIAN (default)
+
+   Depth and light. An obsidian ground. Smoked, polished stone for everything you read.
+   Real glass only for the chrome that floats above it. The rings are the only light sources:
+   each ring lights the stone directly beneath it in its own colour, and nothing else glows.
+
+   Signature: as a tab or page opens, its rings draw in on a critically damped spring and their
+   light blooms onto the stone (swells to 96%, holds, settles to 50% over 1.7 s). Once per open.
+
+   Everything here is scoped to :root[data-skin="obsidian"]. Tokens fill the contract in ui/system.css;
+   rules use :where() so they weigh what the shared rule they amend weighs. Keyframes start with obs-.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ═══ 1 · TOKENS (dark). .stay-dark re-declares them, so a surface that must stay dark does in light ═══ */
+:root[data-skin="obsidian"], :where(:root[data-skin="obsidian"]) .stay-dark {
+  /* ink */
+  --ink: #f5f5f7;                    /* primary text */
+  --ink-2: #a8a8b0;                  /* secondary text, 7:1 on stone */
+  --ink-3: #93939b;                  /* tertiary text and placeholders, 4.6:1 on a control */
+  --ink-4: rgba(235, 235, 245, .16); /* strokes and tracks, never text */
+  --on-color: #060607;               /* text on a vivid fill */
+  --on-ink: #060607;                 /* text on a control filled with --ink */
+  --on-deep: #ffffff;                /* text on a deep fill: the now pill, today's date, a destructive button */
+  --island: #000000;
+
+  /* domains. -a and -b are the two ends of the ring's gradient, -ink the text-safe tint, -fill the primary action */
+  --today: #fa114f;   --today-a: #e0004b;   --today-b: #ff5a96;   --today-ink: #ff5a96;   --today-fill: var(--today);
+  --jobs: #a3f000;    --jobs-a: #4fd000;    --jobs-b: #cfff40;    --jobs-ink: #a3f000;    --jobs-fill: var(--jobs);
+  --clients: #5b74ff; --clients-a: #2b40ff; --clients-b: #8ea2ff; --clients-ink: #93a6ff; --clients-fill: var(--clients);
+  --content: #00d2ff; --content-a: #0097ff; --content-b: #3cf6e4; --content-ink: #2fd8ff; --content-fill: var(--content);
+  --life: #a47bff;    --life-a: #7046ff;    --life-b: #cd96ff;    --life-ink: #b996ff;    --life-fill: var(--life);
+  --content-2: var(--content-b);
+
+  /* semantics. Orange is the only colour that asks for you */
+  --needs: #ff9f0a; --needs-ink: var(--needs);
+  --done: var(--jobs);
+  --warn: #ffd60a;
+  --fail: #ff453a;
+  --fail-ink: #ff6961;
+
+  /* elevation: four levels, each exactly one surface + one edge + one shadow */
+  --e0: #050506;
+  --e0-veil: rgba(5, 5, 6, .84);
+  --e1: #101013;
+  --e1-edge: inset 0 1px 0 rgba(255, 255, 255, .07);
+  --e1-shadow: 0 1px 2px rgba(0, 0, 0, .62);
+  --e2: rgba(40, 40, 46, .42);
+  --e2-edge: inset 0 1px 1px rgba(255, 255, 255, .14), inset 0 -1px 1px rgba(255, 255, 255, .05);
+  --e2-shadow: 0 10px 28px rgba(0, 0, 0, .5);
+  --e3: rgba(23, 23, 27, .84);
+  --e3-edge: inset 0 1px 0 rgba(255, 255, 255, .1);
+  --e3-shadow: 0 24px 64px rgba(0, 0, 0, .64);
+  --e2-blur: blur(24px) saturate(185%) brightness(1.06);
+  --e3-blur: blur(44px) saturate(150%);
+  --e2-rim: linear-gradient(155deg, rgba(255, 255, 255, .62) 0%, rgba(255, 255, 255, .16) 16%, rgba(255, 255, 255, .05) 44%, rgba(255, 255, 255, .08) 70%, rgba(255, 255, 255, .36) 100%);
+  --e2-lens: radial-gradient(120% 80% at 50% -28%, rgba(255, 255, 255, .15), rgba(255, 255, 255, 0) 58%), radial-gradient(90% 55% at 50% 128%, rgba(255, 255, 255, .06), rgba(255, 255, 255, 0) 70%);
+  --e3-rim: linear-gradient(180deg, rgba(255, 255, 255, .3), rgba(255, 255, 255, .07) 26%, rgba(255, 255, 255, .03));
+
+  /* texture: SVG grain tiles laid as backgrounds on surfaces, never as an overlay on scrolling content */
+  --tex-ground: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1.7 0 0 0 -.35 1.7 0 0 0 -.35 1.7 0 0 0 -.35 0 0 0 0 .032'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");
+  --tex-stone: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='s' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.05' numOctaves='3' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1.8 0 0 0 -.4 1.8 0 0 0 -.4 1.8 0 0 0 -.4 0 0 0 0 .07'/%3E%3C/filter%3E%3Crect width='128' height='128' filter='url(%23s)'/%3E%3C/svg%3E");
+  --tex-frost: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='f' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.3' numOctaves='2' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1.6 0 0 0 -.3 1.6 0 0 0 -.3 1.6 0 0 0 -.3 0 0 0 0 .05'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23f)'/%3E%3C/svg%3E");
+  --e1-sheen: linear-gradient(180deg, rgba(255, 255, 255, .028), rgba(255, 255, 255, 0) 88px);
+  --e0-bg: var(--tex-ground) 0 0 / 180px 180px, var(--e0);
+  --e1-bg: var(--tex-stone) 0 0 / 128px 128px, var(--e1-sheen), var(--e1);
+  --e1-box: var(--e1-edge), var(--e1-shadow);
+  --e2-box: var(--e2-edge), var(--e2-shadow);
+  --e3-bg: var(--tex-frost) 0 0 / 140px 140px, var(--e3);
+  --e3-box: var(--e3-edge), var(--e3-shadow);
+
+  /* fills and states: controls sit on surfaces as fills, not as new elevations */
+  --fill-1: rgba(255, 255, 255, .04);
+  --fill-2: rgba(255, 255, 255, .075);
+  --fill-3: rgba(255, 255, 255, .12);
+  --ctl: var(--fill-2); --ctl-box: 0 0 0 0 transparent; --ctl-press: var(--fill-3); --row-press: var(--fill-1);
+  --inlay: var(--fill-1); --inlay-box: 0 0 0 0 transparent;
+  --sel: rgba(255, 255, 255, .17);
+  --sel-edge: inset 0 1px 0 rgba(255, 255, 255, .2), inset 0 0 0 .5px rgba(255, 255, 255, .08);
+  --pick: var(--sel); --pick-fg: var(--ink); --pick-edge: var(--sel-edge);
+  --sep: rgba(255, 255, 255, .08);
+  --scrim: rgba(0, 0, 0, .56);
+  --peek-veil: var(--scrim); --peek-blur: blur(16px);
+  --veil-blur: blur(12px); --veil-mask: linear-gradient(180deg, #000 55%, transparent);
+  --focus: var(--ink);
+  --field-focus: var(--fill-3);
+  --press: scale(.97); --press-filter: none;
+  --knob: #ffffff;
+  --knob-shadow: 0 2px 6px rgba(0, 0, 0, .3), 0 0 0 .5px rgba(0, 0, 0, .08);
+  --off: .38;
+
+  /* the stack */
+  --page-shadow: var(--e3-shadow); --push-dim: .7;
+
+  /* light: what a ring casts on the surface beneath it */
+  --glow-blur: .78;
+  --glow-drop: .2;
+  --glow-rest: .5;
+  --glow-peak: .96;
+  --track-mix: 16%;
+
+  /* motion: a critically damped spring, half the arc in the first fifth, then a soft landing */
+  --ease-light: cubic-bezier(.45, 0, .25, 1);
+  --ease-draw: linear(0 0%, .0089 .5%, .0287 1.5%, .0586 2.8%, .0988 4.4%, .1487 6.4%, .2073 8.5%, .2727 10.9%, .3427 13.5%, .4149 16.3%, .487 19.3%, .5569 22.4%, .6228 25.8%, .6835 29.3%, .7382 33%, .7864 36.8%, .828 40.8%, .8633 45%, .8928 49.3%, .9169 53.8%, .9364 58.4%, .9519 63.1%, .964 68%, .9734 73%, .9806 78.1%, .9859 83.4%, .9899 88.8%, .9929 94.3%, 1 100%);
+  --draw: .78s; --d-bloom: 1.7s; --count-ease: spring;
+
+  color-scheme: dark;
+}
+
+/* light: white stone. Same structure, same names */
+:root[data-skin="obsidian"][data-theme="light"] {
+  --ink: #111114; --ink-2: #56565d; --ink-3: #64646b; --ink-4: rgba(60, 60, 67, .2);
+  --on-color: #060607;
+  --on-ink: #ffffff;
+  --today: #e5004b;   --today-a: #d4003f;   --today-b: #ff3d84;   --today-ink: #c80046;
+  --jobs: #2fa800;    --jobs-a: #1f9600;    --jobs-b: #6ad400;    --jobs-ink: #237f00;
+  --clients: #4a63f0; --clients-a: #2438d9; --clients-b: #7389ff; --clients-ink: #2f47d6;
+  --content: #0094d6; --content-a: #0070e0; --content-b: #00c2c2; --content-ink: #00769e;
+  --life: #9a66ff;    --life-a: #5a26f0;    --life-b: #a865ff;    --life-ink: #6a2fe0;
+  --needs: #a65100; --warn: #c79a00; --fail: #d70015; --fail-ink: #c4000f;
+  --e0: #e7e7eb; --e0-veil: rgba(231, 231, 235, .86);
+  --e1: #fdfdfe; --e1-edge: inset 0 1px 0 #ffffff; --e1-shadow: 0 1px 2px rgba(0, 0, 0, .1);
+  --e2: rgba(255, 255, 255, .62); --e2-edge: inset 0 1px 1px rgba(255, 255, 255, .9), inset 0 -1px 1px rgba(0, 0, 0, .03); --e2-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+  --e3: rgba(250, 250, 252, .9); --e3-edge: inset 0 1px 0 #ffffff; --e3-shadow: 0 20px 56px rgba(0, 0, 0, .18);
+  --e2-rim: linear-gradient(155deg, rgba(255, 255, 255, 1), rgba(255, 255, 255, .5) 30%, rgba(0, 0, 0, .05) 70%, rgba(255, 255, 255, .7));
+  --e2-lens: radial-gradient(120% 80% at 50% -28%, rgba(255, 255, 255, .7), rgba(255, 255, 255, 0) 58%);
+  --e3-rim: linear-gradient(180deg, rgba(255, 255, 255, 1), rgba(0, 0, 0, .04));
+  --e1-sheen: linear-gradient(180deg, rgba(255, 255, 255, .6), rgba(255, 255, 255, 0) 88px);
+  --fill-1: rgba(0, 0, 0, .035); --fill-2: rgba(0, 0, 0, .06); --fill-3: rgba(0, 0, 0, .1);
+  --sel: #ffffff; --sel-edge: 0 1px 3px rgba(0, 0, 0, .14), inset 0 0 0 .5px rgba(0, 0, 0, .06);
+  --sep: rgba(0, 0, 0, .09); --scrim: rgba(0, 0, 0, .28);
+  --page-shadow: -12px 0 32px rgba(0, 0, 0, .12); --push-dim: .86;
+  --glow-rest: .3; --glow-peak: .62; --track-mix: 16%;
+  color-scheme: light;
+}
+
+/* reduced transparency: every glass turns to a solid version of itself; the rim stays, so the layers still read */
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-skin="obsidian"], :where(:root[data-skin="obsidian"]) .stay-dark { --e2: #1b1b1f; --e3: #19191d; --scrim: rgba(0, 0, 0, .78); --e2-blur: none; --e3-blur: none; --peek-blur: none; --veil-blur: none; }
+  :root[data-skin="obsidian"][data-theme="light"] { --e2: #f4f4f6; --e3: #fafafb; }
+  :where(:root[data-skin="obsidian"]) :is(.chrome, .glass, .gbtn, .nav-back, .nav-pill, .nav-icon)::after { display: none; }
+  :where(:root[data-skin="obsidian"]) .navbar::before { background: linear-gradient(180deg, var(--e0) 64%, transparent); }
+}
+/* more contrast: no grain, firmer edges, and the light stays on the ring itself */
+@media (prefers-contrast: more) {
+  :root[data-skin="obsidian"], :where(:root[data-skin="obsidian"]) .stay-dark { --e1-bg: var(--e1); --e3-bg: var(--e3); --e0-bg: var(--e0); --e1-edge: inset 0 0 0 1px rgba(255, 255, 255, .22); --sep: rgba(255, 255, 255, .22); --ink-2: #c6c6cc; --ink-3: #b4b4bb; }
+  :where(:root[data-skin="obsidian"]) .rg-l { display: none; }
+}
+
+/* ═══ 2 · MATERIALS: glass ═════════════════════════════════════════════════
+   E2 glass: a specular rim (brightest top-left, a second catch-light bottom-right) bending into a soft inner
+   highlight. E3 sheet glass: thicker, frosted, a top rim. Stone (E1) is all tokens. */
+:where(:root[data-skin="obsidian"]) :is(.chrome, .glass, .gbtn, .nav-back, .nav-pill, .nav-icon)::before,
+:where(:root[data-skin="obsidian"]) :is(.overlay, .sheet, .toast)::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; z-index: 2;
+  background: var(--e2-rim);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+}
+:where(:root[data-skin="obsidian"]) :is(.chrome, .glass, .gbtn, .nav-back, .nav-pill, .nav-icon)::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1; background: var(--e2-lens); }
+:where(:root[data-skin="obsidian"]) :is(.overlay, .sheet, .toast)::before { background: var(--e3-rim); }
+
+/* ═══ 3 · COMPONENT DETAILS ═══════════════════════════════════════════════ */
+/* prominent glass: the coloured capsule lets a little of what is behind it through, and has no rim or lens */
+:where(:root[data-skin="obsidian"]) :is(.gbtn.accent, .nav-pill.strong) { background: color-mix(in srgb, var(--c, var(--ink)) 90%, transparent); }
+:where(:root[data-skin="obsidian"]) :is(.gbtn.accent, .nav-pill.strong)::before, :where(:root[data-skin="obsidian"]) :is(.gbtn.accent, .nav-pill.strong)::after { display: none; }
+/* in light, the two deepest domain fills take white words; the rest keep dark ones. Both pass 4.5:1 */
+:where(:root[data-skin="obsidian"][data-theme="light"]) :is(.btn, .act, .ai-btn).primary[style*="--clients"],
+:where(:root[data-skin="obsidian"][data-theme="light"]) :is(.btn, .act, .ai-btn).primary[style*="--today"],
+:where(:root[data-skin="obsidian"][data-theme="light"]) .gbtn.accent[style*="--clients"] { color: var(--on-deep); }
+:where(:root[data-skin="obsidian"][data-theme="light"]) .tab .tab-badge { color: var(--on-deep); }
+
+/* ═══ 4 · RINGS: gradient arcs, and the only light ═══════════════════════
+   The groove is the deep end at 16%; the arc runs deep end to bright head; past 100% the head casts a short
+   shadow onto the lap below. The light is a blurred copy of the lit arc laid under the ring, a little below it,
+   so the stone beneath picks up the ring's own colour where, and only where, the arc is lit. */
+:where(:root[data-skin="obsidian"]) .rg-s, :where(:root[data-skin="obsidian"]) .rg-l > i {
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--w) - .7px), #000 calc(100% - var(--w) + .3px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - var(--w) - .7px), #000 calc(100% - var(--w) + .3px));
+}
+:where(:root[data-skin="obsidian"]) .rg-l { display: block; filter: blur(calc(var(--w) * var(--glow-blur) + 1px)); opacity: var(--glow-rest); translate: 0 calc(var(--w) * var(--glow-drop)); }
+:where(:root[data-skin="obsidian"]) .rg-l > i { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(var(--ra) 0turn, var(--rb) calc(min(var(--rp), 1) * 1turn), transparent 0); }
+/* the signature: as a tab opens the light swells with the arc, then settles to its resting level */
+:where(:root[data-skin="obsidian"]) .rg.bloom .rg-l { animation: obs-bloom var(--d-bloom) var(--ease-light) both; }
+@keyframes obs-bloom { 0% { opacity: 0; transform: scale(.96); } 36% { opacity: var(--glow-peak); transform: scale(1.1); } 56% { opacity: var(--glow-peak); transform: scale(1.06); } 100% { opacity: var(--glow-rest); transform: none; } }
+:where(:root[data-skin="obsidian"]) .rg-t { background: color-mix(in srgb, var(--ra) var(--track-mix), transparent); }
+:where(:root[data-skin="obsidian"]) .rg-a { background: conic-gradient(var(--ra) 0turn, var(--rb) calc(min(var(--rp), 1) * 1turn), transparent 0); }
+:where(:root[data-skin="obsidian"]) .rg-o { background: conic-gradient(var(--rb) 0turn, color-mix(in srgb, var(--rb) 82%, var(--on-deep)) calc(max(var(--rp) - 1, 0) * 1turn), transparent 0); }
+:where(:root[data-skin="obsidian"]) .rg-0::after { background: var(--ra); }
+:where(:root[data-skin="obsidian"]) .rg-h::after { background: var(--rb); }
+:where(:root[data-skin="obsidian"]) .rg-s::after { box-shadow: calc(var(--w) * .32) 0 calc(var(--w) * .55) rgba(0, 0, 0, .62); }
+
+@media (prefers-reduced-motion: reduce) {
+  :where(:root[data-skin="obsidian"]) .rg.bloom .rg-l { animation: none !important; }
+}
+
+/* ═══ 5 · THE SWATCH (unscoped: it reads the same in every skin) ═════════
+   Obsidian in miniature: a lit pink arc over smoked stone. */
+.skin-sw[data-sw="obsidian"] { background: linear-gradient(180deg, #1c1c21, #050506); box-shadow: inset 0 0 0 .5px rgba(255, 255, 255, .18), inset 0 1px 0 rgba(255, 255, 255, .14); }
+.skin-sw[data-sw="obsidian"]::before {
+  background: conic-gradient(#e0004b 0turn, #ff5a96 .66turn, rgba(224, 0, 75, .22) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3.2px), #000 calc(100% - 2.8px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3.2px), #000 calc(100% - 2.8px));
+}

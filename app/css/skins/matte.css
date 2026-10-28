@@ -1,0 +1,239 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   SKIN · MATTE
+
+   Pulse printed. The day is still a set of rings to close, but every surface is matte stock and every
+   colour a pigment ink: warm off-black card, sheets laid on it, cream ink for text, rings drawn as inked
+   strokes on a paper track. Nothing is see-through: depth is a tone step, a hairline cut edge and one
+   soft shadow per level, never blur or glow.
+
+   Signature, ink-in: as a page opens its rings are drawn once like a pen stroke, and as each stroke stops
+   a little ink spreads into the paper at its cap, then dries. Fresh heads bleed again when a ring moves.
+
+   Everything here is scoped to :root[data-skin="matte"]. Tokens fill the contract in css/system.css;
+   rules use :where() so they weigh what the shared rule they amend weighs. Keyframes start with mat-.
+   Literata (display optical size) sets page titles and monograms only.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400..600&display=swap');
+
+/* ═══ 1 · TOKENS (dark). .stay-dark re-declares them, so the teleprompter and the call screen stay dark in light ═══ */
+:root[data-skin="matte"], :where(:root[data-skin="matte"]) .stay-dark {
+  /* titles: the masthead of each page is a refined serif over rounded numerals */
+  --serif: "Literata", "Iowan Old Style", "Palatino", Georgia, serif;
+  --ff-title: var(--serif); --w-display: 500; --w-title: 600; --fv-display: 'opsz' 60; --fv-title: 'opsz' 36; --ls-display: -.005em;
+  --ff-mono-g: var(--serif); --w-mono-g: 500; --fv-mono-g: 'opsz' 24;
+  --fs-display: 38px; --lh-display: 44px;
+  --w-fig-l: 700;                    /* one matte weight for every numeral */
+  /* generous margins, calm rhythm */
+  --gutter: 20px; --gap-sec: 32px;
+  --r-lg: 18px; --r-sheet: 34px; --r-track: 3px; --hair: 1px;
+
+  /* stock and cream ink */
+  --bg: #12100e;          /* ground: black uncoated card */
+  --paper: #1c1916;       /* level 1 sheet */
+  --raised: rgba(240, 222, 200, .075);  /* level 2: one step of lighter stock over whatever it sits on */
+  --float: #23201c;       /* level 3 chrome and overlays */
+  --surface-3: rgba(240, 222, 200, .13);  /* a control inside raised stock */
+  --ink: #eee8df;         /* 14.4:1 on paper */
+  --ink-2: #b5aea5;       /*  8.0:1 */
+  --ink-3: #9a938a;       /*  5.8:1, 4.9:1 on raised */
+  --ink-4: rgba(238, 232, 223, .18);   /* strong rules, empty marks */
+  --on-color: #12100e;    /* text on a cream or pigment fill */
+  --on-ink: #12100e;      /* text on a control filled with --ink */
+  --on-deep: #f6f1e9;
+  --island: #000000;
+
+  /* domains: one pigment each. -ink is the text-safe tint (>= 4.5:1) and what a primary action is inked with */
+  --today: #d55e72;   --today-ink: #e7889a;   --today-a: var(--today);   --today-b: var(--today-ink);   --today-fill: var(--today-ink);   /* rose madder */
+  --jobs: #add45a;    --jobs-ink: #add45a;    --jobs-a: var(--jobs);     --jobs-b: var(--jobs);         --jobs-fill: var(--jobs);         /* chartreuse lake */
+  --clients: #4f73c4; --clients-ink: #8fa9e8; --clients-a: var(--clients); --clients-b: var(--clients-ink); --clients-fill: var(--clients-ink); /* cobalt */
+  --content: #66c1dc; --content-ink: #66c1dc; --content-a: var(--content); --content-b: var(--content-2); --content-fill: var(--content); /* cerulean */
+  --content-2: #a6d9ea;                       /* its second step, for the second channel */
+  --life: #9a80dc;    --life-ink: #b3a0ea;    --life-a: var(--life);     --life-b: var(--life-ink);     --life-fill: var(--life);         /* dioxazine violet */
+  /* the nine aspects (reimagine): ends, tint and fill derive in system.css 1.8 */
+  --body: #d97a52; --mind: #6a9fd8; --soul: #5fb8a4; --mission: #7f86d9; --money: #6fb27a; --growth: #a68ae0; --family: #d9a54e; --romance: #d6648f; --friends: #c9c25e;
+
+  /* semantics */
+  --needs: #e0832f;   --needs-ink: #eb9850;   /* cadmium orange: waiting on you */
+  --done: var(--jobs);                        /* done, live, on track */
+  --warn: #ddbe55;                            /* needs attention (client health) */
+  --fail: #e0573f;    --fail-ink: #ec7c68;    /* failed, at risk, destructive */
+
+  /* texture: static SVG noise tiles painted as the background of a surface, never over text.
+     grain: fine paper fibre · grain-heavy: the floating stock · ink-mask: unprinted specks in a stroke ·
+     fibre-mask: the fibrous edge of an ink bleed */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' seed='7' stitchTiles='stitch' result='n'/%3E%3CfeColorMatrix in='n' type='matrix' values='0 0 0 0 1 0 0 0 0 .97 0 0 0 0 .92 1.7 0 0 0 -.9' result='w'/%3E%3CfeColorMatrix in='n' type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1.7 0 0 .78' result='k'/%3E%3CfeMerge%3E%3CfeMergeNode in='k'/%3E%3CfeMergeNode in='w'/%3E%3C/feMerge%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='.14'/%3E%3C/svg%3E");
+  --grain-heavy: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' seed='11' stitchTiles='stitch' result='n'/%3E%3CfeColorMatrix in='n' type='matrix' values='0 0 0 0 1 0 0 0 0 .97 0 0 0 0 .92 1.7 0 0 0 -.9' result='w'/%3E%3CfeColorMatrix in='n' type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1.7 0 0 .78' result='k'/%3E%3CfeMerge%3E%3CfeMergeNode in='k'/%3E%3CfeMergeNode in='w'/%3E%3C/feMerge%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='.19'/%3E%3C/svg%3E");
+  --ink-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='m' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.2 0 0 0 2.42'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)'/%3E%3C/svg%3E");
+  --fibre-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Cfilter id='f' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9 .22' numOctaves='2' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 3 0 0 0 -1.15'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+
+  /* elevation: each level is one surface + one edge + one shadow. Nothing is see-through */
+  /* level 0 ground */
+  --e0: var(--bg); --e0-bg: var(--bg); --e0-veil: var(--bg);
+  /* level 1 paper: everything you read. It lies flat */
+  --e1: var(--paper);
+  --e1-edge: inset 0 0 0 1px rgba(255, 240, 222, .045);   /* the cut edge of the stock */
+  --e1-bg: var(--grain), var(--paper);
+  --e1-box: var(--e1-edge);
+  /* level 2 raised: controls on a surface, groups in a sheet. One step lighter than what it sits on */
+  --edge-2: inset 0 0 0 1px rgba(255, 240, 222, .055);
+  --shadow-2: 0 1px 0 0 rgba(0, 0, 0, .3);                 /* contact line under a thicker card */
+  --ctl: var(--grain), var(--raised); --ctl-box: var(--edge-2); --ctl-press: var(--grain), var(--raised); --row-press: var(--fill-2);
+  --inlay: var(--grain), var(--raised); --inlay-box: var(--edge-2);
+  /* level 3 float: chrome and overlays alike, a heavier opaque card with a soft shadow */
+  --float-box: inset 0 0 0 1px rgba(255, 240, 222, .07), 0 18px 38px -14px rgba(0, 0, 0, .78);
+  --e2: var(--grain-heavy), var(--float); --e2-box: var(--float-box); --e2-blur: none;
+  --e3: var(--float); --e3-bg: var(--grain-heavy), var(--float); --e3-box: var(--float-box); --e3-blur: none;
+
+  /* fills and states, identical on every control: pressed scales to 97% and darkens 12%,
+     selected is cream ink, disabled is 40%, focus is a 2px cream ring */
+  --fill-1: rgba(222, 206, 186, .06);
+  --fill-2: rgba(222, 206, 186, .1);
+  --fill-3: rgba(222, 206, 186, .17);
+  --sel: #3a352f;          /* selected stock: segmented thumb, the tab lens */
+  --sel-edge: inset 0 0 0 1px rgba(255, 240, 222, .07), 0 2px 6px rgba(0, 0, 0, .3);
+  --pick: var(--ink); --pick-fg: var(--on-color); --pick-edge: none;
+  --sep: rgba(238, 226, 210, .09);
+  --scrim: rgba(8, 6, 5, .62);
+  --peek-veil: rgba(8, 6, 5, .74); --peek-blur: none;
+  --veil-blur: none; --veil-mask: none;
+  --focus: var(--ink);
+  --field-focus: var(--ink-4);
+  --press: scale(.97); --press-filter: brightness(.88);
+  --knob: #f6f1e9; --knob-shadow: 0 2px 5px rgba(0, 0, 0, .3);
+  --off: .4;
+
+  /* the frame and the stack */
+  --stage-bg: #0a0908; --frame-1: #0d0c0b; --frame-2: #2c2824;
+  --page-shadow: -18px 0 40px rgba(0, 0, 0, .45); --push-dim: .62;
+
+  /* motion: the ink curve is a pen stroke, quick then a soft stop */
+  --ease-draw: cubic-bezier(.3, .72, .18, 1);
+  --draw: .64s; --bleed: .95s; --count-ease: ink;
+
+  color-scheme: dark;
+}
+
+/* light: the same stock printed on warm paper. Pigments deepen to hold contrast on white */
+:root[data-skin="matte"][data-theme="light"] {
+  --bg: #efe9e0; --paper: #f8f4ee; --raised: rgba(70, 50, 30, .065); --float: #fbf8f3; --sel: #ffffff;
+  --surface-3: rgba(70, 50, 30, .11);
+  --ink: #1e1a16; --ink-2: #5c554d; --ink-3: #6b645b; --ink-4: rgba(30, 26, 22, .2);
+  --sep: rgba(30, 26, 22, .1);
+  --fill-1: rgba(60, 46, 30, .05); --fill-2: rgba(60, 46, 30, .08); --fill-3: rgba(60, 46, 30, .14);
+  --on-color: #fbf8f3;
+  --on-ink: #fbf8f3;
+  --today: #b8384f;   --today-ink: #b8384f;
+  --jobs: #62901d;    --jobs-ink: #3e6a0c;
+  --clients: #26479a; --clients-ink: #26479a;
+  --content: #1b7697; --content-ink: #1b7697; --content-2: #0f566e;
+  --life: #7a60d0;    --life-ink: #5a3fb0;
+  /* the nine aspects (reimagine): ends, tint and fill derive in system.css 1.8 */
+  --body: #b5532e; --mind: #3a72b0; --soul: #2f8a76; --mission: #5258b8; --money: #2f7a3e; --growth: #7556c4; --family: #a8751f; --romance: #b23a68; --friends: #8a8420;
+  --soul-on: #12100e; --family-on: #12100e; --friends-on: #12100e;   /* dark ink reads better on the three lighter pigments (4.5, 4.7, 4.9:1) */
+  --needs: #9b4708;   --needs-ink: #9b4708;
+  --warn: #8a6d0e;
+  --fail: #b3311d;    --fail-ink: #b3311d;
+  --e1-edge: inset 0 0 0 1px rgba(60, 40, 20, .06);
+  --edge-2: inset 0 0 0 1px rgba(60, 40, 20, .07);
+  --shadow-2: 0 1px 0 0 rgba(255, 255, 255, .7);
+  --float-box: inset 0 0 0 1px rgba(60, 40, 20, .08), 0 16px 34px -16px rgba(60, 40, 20, .38);
+  --sel-edge: 0 1px 4px rgba(60, 40, 20, .16), 0 0 0 .5px rgba(60, 40, 20, .08);
+  --scrim: rgba(40, 28, 16, .3); --peek-veil: rgba(40, 28, 16, .34);
+  --knob: #ffffff;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 .24 0 0 0 0 .18 0 0 0 0 .12 0 -1.8 0 0 .86'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='.12'/%3E%3C/svg%3E");
+  --grain-heavy: var(--grain);
+  color-scheme: light;
+}
+
+/* ═══ 2 · MATERIALS AND SHARED COMPONENTS ══════════════════════════════════
+   Most of Matte is its tokens. These are the places where printed stock behaves differently. */
+/* the scroll edge is the ground colour fading out, no blur */
+:where(:root[data-skin="matte"]) .topbar::before { background: linear-gradient(180deg, var(--bg) 62%, color-mix(in srgb, var(--bg) 0%, transparent)); }
+:where(:root[data-skin="matte"]) .kicker { font-weight: var(--w-regular); }
+:where(:root[data-skin="matte"]) .serif { font-family: var(--serif); font-variation-settings: 'opsz' 48; }
+/* the account V and the top-bar avatar are monograms: a title in miniature */
+:where(:root[data-skin="matte"]) .gbtn.avatar { font-size: 19px; }
+/* a control inside raised stock steps up once more */
+:where(:root[data-skin="matte"]) .sheet .group .tile, :where(:root[data-skin="matte"]) .peek .group .tile,
+:where(:root[data-skin="matte"]) .sheet .group .agent, :where(:root[data-skin="matte"]) .peek .group .agent { background: var(--surface-3); box-shadow: none; }
+/* pill: a status label. Tinted only when the status is semantic; otherwise plain */
+:where(:root[data-skin="matte"]) .pill { background: color-mix(in oklab, var(--c, var(--ink)) 15%, transparent); }
+:where(:root[data-skin="matte"]) .pill.plain { background: var(--fill-2); color: var(--ink-2); }
+/* chip: a choice. Raised when off, cream ink when chosen, the same everywhere */
+:where(:root[data-skin="matte"]) .chip { color: var(--ink); }
+/* buttons: secondary is raised stock with a contact line; primary is the one inked action on a screen */
+:where(:root[data-skin="matte"]) .btn { box-shadow: var(--edge-2), var(--shadow-2); }
+:where(:root[data-skin="matte"]) .btn.primary { box-shadow: none; font-weight: 650; }
+:where(:root[data-skin="matte"]) .btn.tint { background: color-mix(in oklab, var(--c, var(--ink)) 16%, var(--paper)); box-shadow: none; }
+/* segmented: counts in the selected segment take the domain pigment (they are numbers); the thumb stays stock */
+:where(:root[data-skin="matte"]) .seg.dom button[aria-selected="true"] .n { color: var(--seg-n, var(--ink-2)); }
+/* a meter's track is its own pigment, thinned */
+:where(:root[data-skin="matte"]) .bar { background: color-mix(in oklab, var(--c, var(--ink)) 18%, transparent); }
+/* the tab bar: a stock lens, and the active tab's glyph wears its domain pigment, the one place chrome carries colour */
+:where(:root[data-skin="matte"]) .tab-lens { box-shadow: inset 0 0 0 1px rgba(255, 240, 222, .06); }
+:where(:root[data-skin="matte"][data-theme="light"]) .tab-lens { background: var(--raised); box-shadow: none; }
+:where(:root[data-skin="matte"]) .tab.on[data-tab="today"] svg { color: var(--today-ink); }
+:where(:root[data-skin="matte"]) .tab.on[data-tab="jobs"] svg { color: var(--jobs-ink); }
+:where(:root[data-skin="matte"]) .tab.on[data-tab="clients"] svg { color: var(--clients-ink); }
+:where(:root[data-skin="matte"]) .tab.on[data-tab="content"] svg { color: var(--content-ink); }
+:where(:root[data-skin="matte"]) .tab .tbadge { box-shadow: 0 0 0 2px var(--float); }
+:where(:root[data-skin="matte"][data-theme="light"]) .switch::after { background: #fff; }
+/* the marks Matte drew for itself (js/icons.js): the storefront for Clients, its pin and its workflow */
+:where(:root[data-skin="matte"]) svg .ig-obsidian { display: none; }
+:where(:root[data-skin="matte"]) svg .ig-matte { display: inline; }
+
+/* ═══ 3 · RINGS: inked strokes on a paper track ══════════════════════════
+   Track: 17% pigment mixed into the surface beneath, with the paper grain. Ink: flat pigment; strokes of 9px
+   and up carry a few unprinted specks. Past 100% the ring laps itself in a denser second pass, and a hairline
+   knockout in the paper colour traps the head against the stroke below: print, not a lit shadow. */
+:where(:root[data-skin="matte"]) .rg { --rd: color-mix(in oklab, var(--rc) 78%, #000); --rt: color-mix(in oklab, var(--rc) 17%, var(--ring-bg, var(--paper))); }
+:where(:root[data-skin="matte"][data-theme="light"]) .rg { --rd: color-mix(in oklab, var(--rc) 80%, #000); --rt: color-mix(in oklab, var(--rc) 13%, var(--ring-bg, var(--paper))); }
+:where(:root[data-skin="matte"]) .rg-t { background: var(--grain), var(--rt); }
+:where(:root[data-skin="matte"]) .rg.ink-tex .rg-a {
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--w) - .7px), #000 calc(100% - var(--w) + .3px)), var(--ink-mask);
+  -webkit-mask-composite: source-in;
+  mask: radial-gradient(farthest-side, transparent calc(100% - var(--w) - .7px), #000 calc(100% - var(--w) + .3px)), var(--ink-mask);
+  mask-composite: intersect;
+}
+:where(:root[data-skin="matte"]) .rg-o { background: conic-gradient(var(--rd) calc(max(var(--rp) - 1, 0) * 1turn), transparent 0); }
+/* the head pools a little ink where the stroke stops: 6% fuller than the line */
+:where(:root[data-skin="matte"]) .rg-h::after {
+  width: calc(var(--w) * 1.06); height: calc(var(--w) * 1.06); margin-left: calc(var(--w) * -.53); top: calc(var(--w) * -.03);
+  background: color-mix(in oklab, var(--rd) calc(clamp(0, (var(--rp) - 1) * 400, 1) * 100%), var(--rc));
+}
+:where(:root[data-skin="matte"]) .rg-s::after { box-shadow: calc(var(--w) * .3) 0 0 calc(var(--w) * .04) var(--ring-bg, var(--paper)); }
+
+/* SIGNATURE · ink-in. As each stroke stops, ink spreads into the paper fibres at its cap and dries.
+   The bleed is the pigment itself, masked by stretched fibre noise: ink, not light. */
+:where(:root[data-skin="matte"]) .rg.ink .rg-h::before {
+  content: ""; position: absolute; left: 50%; top: calc(var(--w) * -.7); width: calc(var(--w) * 2.4); height: calc(var(--w) * 2.4);
+  margin-left: calc(var(--w) * -1.2); border-radius: 50%; background: var(--rc); opacity: 0;
+  -webkit-mask: radial-gradient(closest-side, #000 34%, transparent 100%), var(--fibre-mask);
+  -webkit-mask-composite: source-in;
+  mask: radial-gradient(closest-side, #000 34%, transparent 100%), var(--fibre-mask);
+  mask-composite: intersect; mask-size: 100% 100%, 40px 40px;
+  -webkit-mask-size: 100% 100%, 40px 40px;
+  animation: mat-ink-bleed var(--bleed) var(--ease) both;
+  animation-delay: calc(var(--draw) + var(--d, 0ms) - 100ms);
+}
+:where(:root[data-skin="matte"]) .rg.ink .rg-h::after { animation: mat-ink-cap .5s var(--ease) both; animation-delay: calc(var(--draw) + var(--d, 0ms) - 120ms); }
+@keyframes mat-ink-bleed { 0% { opacity: 0; transform: scale(.5); } 16% { opacity: .72; } 55% { opacity: .34; } 100% { opacity: 0; transform: scale(1.3); } }
+@keyframes mat-ink-cap { 0% { transform: scale(1); } 30% { transform: scale(1.16); } 100% { transform: scale(1); } }
+/* a running job: its head beats, the only ring that moves on its own (after the ink rules, so it wins) */
+:where(:root[data-skin="matte"]) .rg.running .rg-h::after { animation: mat-beat 1.8s var(--ease) infinite; }
+@keyframes mat-beat { 0%, 50%, 100% { transform: scale(1); } 14% { transform: scale(1.32); } 28% { transform: scale(1.02); } 38% { transform: scale(1.2); } }
+
+@media (prefers-reduced-motion: reduce) {
+  :where(:root[data-skin="matte"]) .rg.ink .rg-h::before, :where(:root[data-skin="matte"]) .rg.ink .rg-h::after,
+  :where(:root[data-skin="matte"]) .rg.running .rg-h::after { animation: none !important; }
+}
+
+/* ═══ 4 · THE SWATCH (unscoped: it reads the same in every skin) ═════════
+   Matte in miniature: a rose ink stroke on warm paper. */
+.skin-sw[data-sw="matte"] { background: #2b2622; box-shadow: inset 0 0 0 1px rgba(255, 240, 222, .14); }
+.skin-sw[data-sw="matte"]::before {
+  background: conic-gradient(#d55e72 0 .66turn, #4a3532 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3.2px), #000 calc(100% - 2.8px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3.2px), #000 calc(100% - 2.8px));
+}

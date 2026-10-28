@@ -1,0 +1,43 @@
+/* ═══ MODULE · FROM YOUR THUMBS ═══════════════════════════════════════════════
+   What you used this month, and the month's three proposals; a proposal's mockup opens in a sheet with a sandboxed
+   frame. Owner: area (d). JS: app/modules/thumbs.js. Design: j15/mockup/final more.js PAGES.thumbs + more.css.
+   The page frame (.mp-*) is ui/screens/content.css. Blocks: 1 · SHARED · 2 · OBSIDIAN · 3 · MATTE. */
+
+/* ═══ 1 · SHARED ═══════════════════════════════════════════════════════════ */
+/* a card right under a section header sits on the header's own spacing */
+.th-page .sh + .mp-card { margin-top: 0; }
+.th-first { margin-top: var(--s-4); }
+
+/* usage: each screen's name and taps, its bar in its domain's colour, how long you waited before the first tap */
+.th-uses { display: flex; flex-direction: column; gap: var(--s-3); margin-top: var(--s-3); }
+.th-use { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.th-use-t { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3); min-width: 0; }
+.th-use-n { min-width: 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.th-use-t .met { flex-shrink: 0; font-size: var(--fs-headline); }
+.th-bar { height: 8px; }
+.th-use-m { font-size: var(--fs-footnote); font-weight: var(--w-regular); color: var(--ink-2); }
+.th-rest { margin-top: var(--s-3); border-top: var(--hair) solid var(--sep); }
+.th-sum { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); min-height: var(--hit); padding-top: var(--s-1); font-size: var(--fs-subhead); font-weight: var(--w-semibold); color: var(--ink-2); }
+.th-note { margin-top: var(--s-3); }
+
+/* proposals: status and month, the change, why, the numbers it rests on, then its actions */
+.th-month { margin-left: var(--s-1); font-weight: var(--w-regular); }
+.th-prop .t2 { margin-top: var(--s-1); }
+.th-prop .mp-text { margin-top: var(--s-1); }
+.th-prop.done .t2 { color: var(--ink-2); }
+.th-nums { display: flex; flex-wrap: wrap; gap: 6px; margin: var(--s-3) 0 0; }
+.th-nums .chip { height: 26px; font-weight: var(--w-regular); color: var(--ink-2); }
+
+/* the mockup sheet: a title, a line, close; the frame fills the rest */
+.th-sheet .sheet-head { padding-bottom: var(--s-2); }
+.th-shead { display: flex; align-items: flex-start; gap: var(--s-3); }
+.th-shead-t { flex: 1; min-width: 0; }
+.th-sheet-body { display: flex; flex-direction: column; padding: 0 var(--s-4) var(--s-6); }
+.th-frame { flex: 1; width: 100%; min-height: 560px; border: 0; border-radius: var(--r-lg); background: var(--e0); box-shadow: inset 0 0 0 var(--hair) var(--sep); }
+
+/* ═══ 2 · OBSIDIAN ═════════════════════════════════════════════════════════ */
+/* nothing to restate */
+
+/* ═══ 3 · MATTE ════════════════════════════════════════════════════════════ */
+/* the usage bars sit on a quiet neutral track rather than their own pigment */
+:where(:root[data-skin="matte"]) .th-bar { border-radius: 4px; background: var(--fill-1); }

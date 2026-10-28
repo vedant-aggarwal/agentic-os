@@ -1,0 +1,69 @@
+/* ═══ MODULE · CLIENT PAGES (the Client window module) ════════════════════════
+   The links you send clients, the questions waiting on them, their answers, the two forms, and the preview sheet.
+   Owner: area (d). JS: app/modules/clients.js. Frame: app/ui/screens/content.css (.mp-*). Design: mockup more.js (clients).
+   Blocks: 1 · SHARED · 2 · OBSIDIAN · 3 · MATTE. The page's container carries the page margin. */
+
+/* ═══ 1 · SHARED ═══════════════════════════════════════════════════════════ */
+/* a client: the link in mono, when they last opened it, the actions under the words, copy at the end */
+.cw-client { padding-right: var(--s-3); }
+.cw-client .rtitle { font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+/* the link opens their page: a mono line that answers to a 44px touch */
+.cw-link { position: relative; display: block; max-width: 100%; margin-top: 2px; font-family: var(--mono); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-decoration: underline; text-decoration-color: var(--ink-4); text-underline-offset: 3px; }
+.cw-link::after { content: ""; position: absolute; inset: -13px 0; }
+.cw-link:active { color: var(--ink); }
+.cw-link:focus-visible { outline-offset: 0; }
+.cw-client .mp-why { margin-top: var(--s-1); }
+.cw-client .mp-racts a.btn { text-decoration: none; }
+.btn.cw-revoke { color: var(--fail-ink); }
+.btn.cw-copy { flex-shrink: 0; width: var(--hit); height: var(--hit); padding: 0; border-radius: 50%; }
+.btn.cw-copy svg { width: 18px; height: 18px; }
+.cw-off .rtitle, .cw-off .tile { opacity: .6; }
+.cw-client .mp-racts .btn .spin { width: 14px; height: 14px; }
+
+/* a question waiting on a client, or the answer that came back */
+.cw-dec { --sep-left: var(--s-4); }
+.cw-q { display: block; font-size: var(--fs-body); line-height: var(--lh-body); color: var(--ink); overflow-wrap: anywhere; }
+.cw-dec .mp-why { margin-top: var(--s-1); }
+.cw-ans { color: var(--ink); font-weight: var(--w-semibold); }
+.cw-dec .mp-racts .btn svg { width: 15px; height: 15px; }
+
+/* the two forms: one field a line, a choice, the projects as chips */
+.cw-form { display: flex; flex-direction: column; gap: var(--s-2); margin-top: 0; }
+.cw-form .ifield input { font-size: 16px; }
+.cw-form .btn.block { margin-top: var(--s-1); }
+.cw-form .btn .spin { width: 14px; height: 14px; }
+.cw-sel { position: relative; padding: 0 var(--s-3) 0 var(--s-4); }
+.cw-sel select { flex: 1; min-width: 0; height: 46px; padding: 0 var(--s-5) 0 0; border: 0; outline: 0; background: none; color: var(--ink); font: inherit; font-size: 16px; -webkit-appearance: none; appearance: none; cursor: pointer; text-overflow: ellipsis; }
+.cw-sel svg { position: absolute; right: var(--s-3); width: 16px; height: 16px; pointer-events: none; color: var(--ink-3); }
+.cw-sel:focus-within { box-shadow: inset 0 0 0 1.5px var(--field-focus); }
+.cw-pk { margin: var(--s-1) var(--s-1) 0; }
+.mp-card p.cw-opt { margin: 0 var(--s-1); color: var(--ink-3); }
+.cw-projects { gap: var(--s-2); }
+
+/* the preview sheet: the client's page as they see it */
+.cw-sheet .sheet-head { padding-bottom: var(--s-2); }
+.cw-shead { display: flex; align-items: flex-start; gap: var(--s-3); }
+.cw-shead-t { flex: 1; min-width: 0; }
+.cw-sheet-body { padding: 0 var(--s-5) 60px; }
+.cw-prev-head { padding: var(--s-1) var(--s-1) 0; }
+.cw-prev-head h3 { margin: 2px 0 0; font-family: var(--ff-title); font-size: var(--fs-title2); line-height: var(--lh-title2); font-weight: var(--w-title); font-variation-settings: var(--fv-title); }
+.cw-prev-head .foot { margin-top: 2px; }
+.cw-gl { margin: var(--s-5) var(--s-1) var(--s-2); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.cw-prow { --sep-left: 48px; }
+.cw-pt { display: block; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink); overflow-wrap: anywhere; }
+.cw-prow .mp-why a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--ink-4); text-underline-offset: 3px; }
+.cw-mark { flex: none; width: 20px; height: 20px; margin-top: 1px; border-radius: 50%; display: grid; place-items: center; font-size: var(--fs-caption); font-weight: var(--w-bold); line-height: 1; }
+.cw-m-done { background: var(--done); color: var(--on-color); }
+.cw-m-done svg { width: 12px; height: 12px; }
+.cw-m-next { box-shadow: inset 0 0 0 1.5px var(--ink-3); }
+.cw-m-ask { background: var(--ink); color: var(--on-ink); }
+.cw-opts { display: flex; flex-wrap: wrap; gap: var(--s-1); margin-top: 2px; }
+.cw-prev-foot { display: flex; flex-direction: column; gap: var(--s-2); margin-top: var(--s-5); }
+.cw-prev-foot a.btn { text-decoration: none; }
+
+/* ═══ 2 · OBSIDIAN ═════════════════════════════════════════════════════════ */
+/* nothing to restate: Obsidian's client pages are the shared block */
+
+/* ═══ 3 · MATTE ════════════════════════════════════════════════════════════ */
+/* the copy button is a control on raised stock, with its edge */
+:where(:root[data-skin="matte"]) .btn.cw-copy { box-shadow: var(--edge-2), var(--shadow-2); }

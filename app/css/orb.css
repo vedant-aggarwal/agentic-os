@@ -1,0 +1,87 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE LIVING ORB (js/orb.js). Owner: MOTION. Prefix: lv-.
+   The element you mount it in is the orb's box (--lv-s across); the canvas spills past it for her glow and the breath.
+   His mood is app-wide: orb.js setMood() writes --lv-c0…3 on <html>. They are registered colours, so anything that
+   uses them (the small orb marks in css/marks.css) can transition them on its own element, not the whole page.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@property --lv-c0 { syntax: '<color>'; inherits: true; initial-value: rgb(106 60 255); }
+@property --lv-c1 { syntax: '<color>'; inherits: true; initial-value: rgb(63 123 255); }
+@property --lv-c2 { syntax: '<color>'; inherits: true; initial-value: rgb(51 214 255); }
+@property --lv-c3 { syntax: '<color>'; inherits: true; initial-value: rgb(196 155 255); }
+
+/* ═══ 1 · THE ORB ═══ */
+.lv {
+  position: relative; display: inline-block; flex-shrink: 0; width: var(--lv-s, 200px); height: var(--lv-s, 200px); border-radius: 50%;
+  -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; cursor: pointer;
+}
+.lv:focus-visible { outline: 2px solid var(--focus, var(--ink)); outline-offset: 6px; }
+.lv-cv { position: absolute; left: 50%; top: 50%; translate: -50% -50%; pointer-events: none; transition: opacity .25s var(--ease); }
+/* the still orb: no canvas at all (or renderer 'css'): the mood's colours as light in glass, like the small mark */
+.lv-css {
+  background:
+    radial-gradient(circle at 70% 76%, color-mix(in srgb, var(--lv-o2, var(--lv-c2)) 88%, transparent), transparent 54%),
+    radial-gradient(circle at 24% 70%, color-mix(in srgb, var(--lv-o3, var(--lv-c3)) 85%, transparent), transparent 58%),
+    radial-gradient(circle at 62% 26%, var(--lv-o1, var(--lv-c1)), var(--lv-o0, var(--lv-c0)) 76%);
+  box-shadow: inset 0 calc(var(--lv-s) * -.08) calc(var(--lv-s) * .2) rgba(10, 0, 30, .45);
+}
+
+/* the ring round her: it fills while you hold (the deliberate part is linear), then counts each held breath.
+   Close to her while you hold; out past her full breath while you breathe */
+.lv-ring {
+  position: absolute; left: 50%; top: 50%; width: calc(var(--lv-s) * 1.48); height: calc(var(--lv-s) * 1.48); overflow: visible; pointer-events: none;
+  translate: -50% -50%; opacity: 0; transform: scale(.8);   /* orb.js keeps the scale hugging her edge each frame */
+  transition: opacity .3s var(--ease);
+}
+.lv-ringing .lv-ring { opacity: 1; }
+.lv-rt { fill: none; stroke: color-mix(in srgb, var(--ink) 13%, transparent); stroke-width: 1.3; }
+.lv-ra { fill: none; stroke: var(--ink); stroke-width: 1.7; stroke-linecap: round; stroke-dasharray: 1 1; stroke-dashoffset: 1; transform: rotate(-90deg); transform-origin: 50px 50px; }
+.lv-breathing .lv-rt { stroke: color-mix(in srgb, var(--ink) 9%, transparent); }
+
+/* the words: over her, in white, one per phase, with the seconds left beneath */
+.lv-cap {
+  position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 2px; text-align: center; pointer-events: none;
+  color: #fff; text-shadow: 0 1px 14px rgba(0, 0, 0, .34), 0 0 2px rgba(0, 0, 0, .18); opacity: 0; transition: opacity .3s var(--ease);
+}
+.lv-breathing .lv-cap, .lv-summary .lv-cap { opacity: 1; }
+.lv-w { font-size: max(17px, calc(var(--lv-s) * .095)); line-height: 1.15; font-weight: var(--w-bold, 700); letter-spacing: -.01em; white-space: nowrap; }
+.lv-n { font-family: var(--round); font-weight: var(--w-fig, 700); font-variant-numeric: tabular-nums; font-size: max(15px, calc(var(--lv-s) * .072)); line-height: 1.1; opacity: .82; }
+.lv-summary .lv-n { font-family: var(--font); font-weight: var(--w-semibold, 600); font-size: max(13px, calc(var(--lv-s) * .062)); opacity: .9; }
+/* a small orb never shows words: it breathes in the overlay */
+.lv-small .lv-cap { display: none; }
+/* the small orb whose big twin is out in the overlay */
+.lv-lent .lv-cv { opacity: 0; }
+
+/* ═══ 2 · BREATHING, FULL SCREEN (a small orb's session): the orb flies out of where it sat ═══ */
+.lv-over { position: absolute; inset: 0; z-index: 86; display: grid; place-items: center; color: var(--ink); }
+.lv-over-veil {
+  position: absolute; inset: 0; background: color-mix(in srgb, var(--e0) 86%, transparent);
+  -webkit-backdrop-filter: blur(34px) saturate(1.15); backdrop-filter: blur(34px) saturate(1.15);
+  opacity: 0; transition: opacity .45s var(--ease);
+}
+.lv-over-in .lv-over-veil { opacity: 1; }
+.lv-over-stage { position: relative; display: grid; place-items: center; width: 320px; height: 320px; }
+.lv-over-orb { --lv-s: 220px; }
+.lv-over-hint { position: absolute; left: 0; right: 0; bottom: calc(var(--safe-bottom, 26px) + var(--s-8, 32px)); margin: 0; text-align: center; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); opacity: 0; transition: opacity .4s var(--ease) .9s; }
+.lv-over-in .lv-over-hint { opacity: 1; }
+
+/* ═══ 3 · SKINS ═══ */
+/* Matte: nothing is see-through. The overlay is the black card itself; the ring is cream ink */
+:where(:root[data-skin="matte"]) .lv-over-veil { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--bg); }
+:where(:root[data-skin="matte"]) .lv-css {
+  background:
+    radial-gradient(circle at 30% 30%, var(--lv-o3, var(--lv-c3)) 0 16%, transparent 50%),
+    radial-gradient(circle at 74% 36%, var(--lv-o2, var(--lv-c2)) 0 13%, transparent 46%),
+    radial-gradient(circle at 62% 78%, var(--lv-o1, var(--lv-c1)) 0 11%, transparent 44%),
+    var(--lv-o0, var(--lv-c0));
+  box-shadow: inset 0 calc(var(--lv-s) * -.07) calc(var(--lv-s) * .16) rgba(14, 10, 24, .42);
+}
+:where(:root[data-skin="matte"]) .lv-cap { text-shadow: 0 1px 10px rgba(10, 8, 6, .4); }
+@media (prefers-reduced-transparency: reduce) {
+  .lv-over-veil { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--e0); }
+}
+
+/* ═══ 4 · REDUCED MOTION: she holds still; the ring and the words still guide the breath, the light rises and falls ═══ */
+@media (prefers-reduced-motion: reduce) {
+  .lv-ring { transition: opacity .2s ease !important; }
+}
+:root[data-motion="reduced"] .lv-ring { transition: opacity .2s ease !important; }

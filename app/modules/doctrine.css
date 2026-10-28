@@ -1,0 +1,43 @@
+/* ═══ MODULE · DOCTRINE ══════════════════════════════════════════════════════
+   The page (this week's observation and its rows, the rules the planner obeys, past observations) and the card on
+   the Life page. Owner: area (d) (app/ui/STRUCTURE.md). JS: app/modules/doctrine.js. Shared: app/ui/screens/content.css.
+   Design: j15/mockup/final/js/more.js PAGES.doctrine. Blocks: 1 · SHARED · 2 · OBSIDIAN · 3 · MATTE.
+   The observation is the headline; each row of evidence is a day, a task and what happened. */
+
+/* ═══ 1 · SHARED ═══════════════════════════════════════════════════════════ */
+.dc-text { margin: var(--s-2) 0 var(--s-3) !important; font-size: var(--fs-title3); line-height: var(--lh-title3); font-weight: var(--w-semibold); text-wrap: pretty; }
+/* evidence: day · task (and what was measured) · what happened */
+.dc-evs { display: flex; flex-direction: column; border-top: var(--hair) solid var(--sep); }
+.dc-ev { display: flex; align-items: center; gap: var(--s-3); min-height: var(--hit); padding: var(--s-2) 0; border-bottom: var(--hair) solid var(--sep); }
+.dc-ev-d { width: 52px; flex-shrink: 0; }
+.dc-ev-t { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink); }
+.dc-ev-t > span { overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.dc-ev-t small { display: flex; align-items: center; gap: 6px; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.dc-ev .pill { flex-shrink: 0; }
+.dc-more { margin-top: var(--s-2) !important; }
+/* the rule it proposes, set into the card */
+.dc-rule { display: flex; flex-direction: column; gap: 2px; margin-top: var(--s-3); padding: var(--s-2) var(--s-3); border-radius: var(--r-sm); background: var(--inlay); box-shadow: var(--inlay-box); font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink); }
+.dc-rule-k { font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-3); }
+/* rules: the text, since when and from what, Retire at the end */
+.dc-rule-t { display: block; font-size: var(--fs-body); line-height: var(--lh-body); color: var(--ink); text-wrap: pretty; }
+.dc-rulerow > .btn { align-self: center; }
+/* on the Life page: the kicker, and the way to the page with every row of evidence */
+.dc-lhead { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); }
+.dc-lhead .mp-k { flex: 1; min-width: 0; }
+.dc-open { position: relative; flex-shrink: 0; display: inline-flex; align-items: center; gap: 2px; min-height: 32px; font-size: var(--fs-subhead); font-weight: var(--w-semibold); color: var(--ink-2); }
+.dc-open::after { content: ""; position: absolute; inset: -6px -8px; }
+.dc-open .chev { width: 12px; height: 12px; }
+/* past observations open in place to their rows and rule */
+.dc-past { position: relative; }
+.dc-past + .dc-past::before { content: ""; position: absolute; z-index: 1; top: 0; right: 0; left: var(--s-4); height: var(--hair); background: var(--sep); }
+.dc-past > summary .mp-caret { margin-top: 2px; }
+.dc-past-b { padding: 0 var(--s-4) var(--s-4); }
+.dc-past-b .dc-rule { margin-top: var(--s-3); }
+/* on the Life page the card is the observation and its answer; the rows live on the page */
+#modLife .dc-obs .dc-text { margin-bottom: 0 !important; }
+
+/* ═══ 2 · OBSIDIAN ═════════════════════════════════════════════════════════ */
+/* nothing to restate: Obsidian's Doctrine is the shared block */
+
+/* ═══ 3 · MATTE ════════════════════════════════════════════════════════════ */
+/* nothing to restate: pills tint themselves on stock (ui/skins/matte.css), the rule sits in Matte's inlay */

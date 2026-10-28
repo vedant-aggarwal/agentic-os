@@ -1,0 +1,332 @@
+/* ═══ SCREEN · LIFE ═══════════════════════════════════════════════════════════
+   The Life tab: the wheel round the Brain, the map of what feeds what, the aspect peek, the score sheet, and the Life
+   card on More. Owner: the Life hub + Brain + Capture agent. JS: js/life.js. Blocks: 1 shared · 2 OBSIDIAN · 3 MATTE.
+   The wheel is a hub (the Brain) and nine spokes; a spoke's length is its score, the rim is 10. Each spoke is painted
+   like a ring arc in its aspect's colour (track, arc, head), so each skin's own light or ink arrives with it. On this
+   shared screen the aspect colours appear only as those thin spokes, dots, tiles and small rings. */
+
+/* ═══ 1 · SHARED ═══════════════════════════════════════════════════════════ */
+.lf-head { padding-bottom: var(--s-3); }
+.lf-needs { color: var(--ink-2); text-wrap: pretty; }
+.lf-needs b { color: var(--ink); font-weight: var(--w-semibold); }
+.lf-segwrap { margin: 0 0 var(--s-1); }
+.lf-view.lf-swap { animation: lf-swap .3s var(--ease) both; }
+@keyframes lf-swap { from { opacity: 0; transform: translateY(8px); } }
+.lf-sh { padding-top: var(--gap-sec); }
+
+/* ── the wheel. Geometry in cqw (1% of its width): hub 8.4, spokes 10.6 → 31.6, labels outside ── */
+.lf-hero { padding: 0 var(--s-2); }
+.lf-w { position: relative; width: 100%; max-width: 420px; aspect-ratio: 1; margin: 0 auto; container-type: inline-size; --w: 8px; --r0: 10.6cqw; --len: 21cqw; }
+.lf-w-grid, .lf-w-hit { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.lf-w-five { fill: none; stroke: var(--sep); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.lf-w-rim { fill: none; stroke: var(--ink-4); stroke-width: 1.5; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.lf-w-hit { z-index: 1; }
+.lf-w-hit path { fill: transparent; pointer-events: all; cursor: pointer; outline: none; }
+
+.lf-w-arm { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform: rotate(var(--a)); pointer-events: none; transition: opacity var(--d-state) var(--ease); }
+.lf-w-arm > i { position: absolute; top: calc(var(--w) / -2); left: var(--r0); height: var(--w); border-radius: calc(var(--w) / 2); }
+/* the groove runs the full 10; the arc runs to the score, and is at least its own width (a dot) once the score is above 0 */
+.lf-w-groove { width: var(--len); background: color-mix(in srgb, var(--rc) 16%, transparent); }
+.lf-w-bar, .lf-w-light { width: max(calc(var(--rp) * var(--len)), calc(var(--w) * min(1, var(--rp) * 1000))); background: var(--rc); }
+.lf-w-light { display: none; }
+.lf-w.go .lf-w-arm { transition: --rp var(--draw) var(--ease-draw) var(--d, 0ms), opacity var(--d-state) var(--ease); }
+/* a past scoring: a hollow ring on the spoke where the score stood then, haloed in the ground so it reads on any arc */
+.lf-w-arm > .lf-w-tick {
+  left: calc(var(--r0) + var(--o) * (var(--len) - var(--w)) + var(--w) / 2 - 5.5px); top: -5.5px; width: 11px; height: 11px; border-radius: 50%;
+  background: transparent; box-shadow: inset 0 0 0 2px var(--ink), 0 0 0 1.5px var(--e0); animation: lf-tick-in .32s var(--spring) both;
+}
+@keyframes lf-tick-in { from { opacity: 0; transform: scale(.4); } }
+
+.lf-w-hub {
+  position: absolute; z-index: 2; left: 50%; top: 50%; width: 16.8cqw; height: 16.8cqw; min-width: 52px; min-height: 52px; translate: -50% -50%;
+  border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  background: var(--e1-bg); box-shadow: var(--e1-box), inset 0 0 0 1px var(--sep); color: var(--ink);
+  transition: transform var(--d-press) var(--ease);
+}
+.lf-w-hub svg { width: 22px; height: 22px; }
+.lf-w-hub span { font-size: var(--fs-caption); line-height: 1; font-weight: var(--w-semibold); color: var(--ink-2); }
+.lf-w-hub:active { transform: scale(.93); }
+
+/* labels sit off the end of each spoke, a name over its score; their text, not their box, lines up with the rim */
+.lf-w-lab {
+  position: absolute; z-index: 3; min-width: 44px; min-height: 44px; padding: 6px; border-radius: var(--r-sm);
+  display: inline-flex; flex-direction: column; align-items: center; gap: 1px; white-space: nowrap;
+  transform: translate(calc(var(--tx) + var(--px, 0px)), calc(var(--ty) + var(--py, 0px)));
+  transition: opacity var(--d-state) var(--ease);
+}
+.lf-w-lab.l { align-items: flex-start; }
+.lf-w-lab.r { align-items: flex-end; }
+.lf-w-n { display: inline-flex; align-items: center; gap: 5px; font-size: var(--fs-footnote); line-height: 16px; font-weight: var(--w-semibold); color: var(--ink-2); }
+.lf-w-s { font-size: var(--fs-fig-2); line-height: 26px; color: var(--ink); }
+.lf-w-need { width: 7px; height: 7px; border-radius: 50%; background: var(--needs); flex-shrink: 0; }
+.lf-w-lab:active { opacity: .55; }
+/* a family brought forward: the other spokes step back */
+.lf-w[data-focus="health"] :is(.lf-w-arm, .lf-w-lab):not([data-f="health"]),
+.lf-w[data-focus="work"] :is(.lf-w-arm, .lf-w-lab):not([data-f="work"]),
+.lf-w[data-focus="people"] :is(.lf-w-arm, .lf-w-lab):not([data-f="people"]) { opacity: .24; }
+
+/* the families under the wheel: three dots, a name, an average */
+.lf-fams { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-2); margin: 0 var(--gutter); }
+.lf-fam {
+  min-height: 60px; padding: var(--s-2) var(--s-3); border-radius: var(--r-md); text-align: left;
+  display: flex; flex-direction: column; justify-content: center; gap: 4px;
+  background: var(--ctl); box-shadow: var(--ctl-box);
+  transition: background-color var(--d-state), box-shadow var(--d-state), transform var(--d-press) var(--ease);
+}
+.lf-fam:active { transform: var(--press); }
+.lf-fam-top { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2); }
+.lf-fam-dots { display: flex; gap: 3px; }
+.lf-fam-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+.lf-fam-n { font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lf-fam .met { font-size: var(--fs-fig-3); }
+.lf-fam.on { background: var(--sel); box-shadow: var(--sel-edge); }
+.lf-fam.on .lf-fam-n { color: var(--ink); }
+
+.lf-cmp { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-2) var(--s-3); margin: var(--s-4) var(--gutter) 0; }
+.lf-cmp-l { display: inline-flex; align-items: center; gap: var(--s-2); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.lf-cmp-chips { gap: var(--s-2); }
+.lf-tick { display: inline-block; width: 3px; height: 13px; border-radius: 2px; flex-shrink: 0; background: var(--ink); }
+.lf-scorecta { margin: var(--s-4) var(--gutter) 0; }
+.lf-scored { margin-top: var(--s-2); text-align: center; text-wrap: balance; }
+
+/* today in each app: the app's tile, its line, its ring for today */
+.lf-app { min-height: 64px; --ring-bg: var(--e1); }
+.lf-app .rbody { display: flex; flex-direction: column; gap: 2px; }
+.lf-app-l { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.lf-need { display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: var(--needs); vertical-align: 1px; }
+.lf-count { font-size: var(--fs-fig-4); color: var(--ink-2); }
+.lf-brain-t svg { width: 19px; height: 19px; }
+
+/* ── the map: one living constellation (graph.js on a canvas) in a stage that fills the screen, glass over it ── */
+.lf-view[data-view="map"] { padding-top: var(--s-1); }
+.lf-stage {
+  position: relative; isolation: isolate; height: 560px; margin: 0 var(--s-2); border-radius: var(--r-xl); overflow: hidden;
+  background: var(--e1-bg); box-shadow: var(--e1-box), inset 0 0 0 var(--hair) var(--sep); --ring-bg: var(--e3);
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
+/* the ground: a soft well of light at the centre (you) and a scatter of faint stars */
+.lf-sky { position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--ink) 7%, transparent) 0, transparent 42%),
+    radial-gradient(1.2px 1.2px at 12% 18%, color-mix(in srgb, var(--ink) 34%, transparent), transparent 100%),
+    radial-gradient(1px 1px at 78% 12%, color-mix(in srgb, var(--ink) 26%, transparent), transparent 100%),
+    radial-gradient(1.2px 1.2px at 88% 64%, color-mix(in srgb, var(--ink) 28%, transparent), transparent 100%),
+    radial-gradient(1px 1px at 22% 82%, color-mix(in srgb, var(--ink) 24%, transparent), transparent 100%),
+    radial-gradient(1px 1px at 54% 93%, color-mix(in srgb, var(--ink) 22%, transparent), transparent 100%),
+    radial-gradient(1px 1px at 6% 52%, color-mix(in srgb, var(--ink) 20%, transparent), transparent 100%),
+    radial-gradient(1px 1px at 40% 6%, color-mix(in srgb, var(--ink) 22%, transparent), transparent 100%),
+    radial-gradient(1px 1px at 95% 34%, color-mix(in srgb, var(--ink) 20%, transparent), transparent 100%);
+  animation: lf-sky-in 1.2s var(--ease) both;
+}
+@keyframes lf-sky-in { from { opacity: 0; transform: scale(1.08); } }
+.lf-g { position: absolute; inset: 0; z-index: 1; }
+/* graph.js's list for screen readers (hidden like motion.css's .mx-vh, in case that sheet isn't linked) */
+.lf-g .fg-a11y { position: absolute; width: 1px; height: 1px; margin: 0; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.lf-g .fg-a11y :is(li, button) { display: block; width: 1px; height: 1px; padding: 0; margin: 0; overflow: hidden; }
+.lf-g canvas:focus-visible { outline: 2px solid var(--ink); outline-offset: -4px; border-radius: var(--r-xl); }
+
+/* glass over the map: filters on top, fit on the right, what you tapped (or what the map says) at the foot */
+.lf-st-top { position: absolute; z-index: 3; top: var(--s-2); left: 0; right: 0; pointer-events: none; }
+.lf-st-top .lf-map-f { pointer-events: auto; margin: 0; padding: 2px var(--s-2); }
+.lf-map-f { display: flex; flex-wrap: nowrap; gap: var(--s-2); overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; }
+.lf-map-f::-webkit-scrollbar { display: none; }
+.lf-map-f .chip { flex-shrink: 0; }
+.lf-map-f .chip:not(.on) { background: var(--e3-bg); box-shadow: var(--e3-box); -webkit-backdrop-filter: var(--e3-blur); backdrop-filter: var(--e3-blur); }
+.lf-map-f .n { font-family: var(--round); font-weight: var(--w-fig); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.lf-map-f .chip.on .n { color: inherit; opacity: .7; }
+.lf-st-tools { position: absolute; z-index: 3; right: var(--s-2); top: 58px; display: flex; flex-direction: column; gap: var(--s-2); }
+.lf-st-btn {
+  width: var(--hit); height: var(--hit); border-radius: 50%; display: grid; place-items: center; color: var(--ink);
+  background: var(--e3-bg); box-shadow: var(--e3-box); -webkit-backdrop-filter: var(--e3-blur); backdrop-filter: var(--e3-blur);
+  transition: transform var(--d-press) var(--ease);
+}
+.lf-st-btn svg { width: 18px; height: 18px; }
+.lf-st-btn:active { transform: scale(.9); }
+.lf-st-btn.on { background: var(--sel); box-shadow: var(--sel-edge); }
+/* enough below the stage that the page can scroll the header away and give the map the whole screen */
+.lf-map-after { min-height: 420px; }
+/* while you carry an area: where it will land */
+.lf-st-drop {
+  position: absolute; z-index: 4; top: 58px; left: 50%; display: inline-flex; align-items: center; gap: var(--s-2); max-width: calc(100% - 128px);
+  padding: var(--s-2) var(--s-4); border-radius: var(--r-pill); white-space: nowrap; overflow: hidden; pointer-events: none;
+  font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink);
+  background: var(--e3-bg); box-shadow: var(--e3-box), inset 0 0 0 1.5px var(--c, transparent); -webkit-backdrop-filter: var(--e3-blur); backdrop-filter: var(--e3-blur);
+  opacity: 0; transform: translate(-50%, -8px) scale(.96); transition: opacity .18s var(--ease), transform .32s var(--spring), box-shadow .2s var(--ease);
+}
+.lf-st-drop.on { opacity: 1; transform: translate(-50%, 0) scale(1); }
+.lf-st-drop svg { width: 15px; height: 15px; flex-shrink: 0; color: var(--c, var(--ink-2)); }
+.lf-st-drop span { overflow: hidden; text-overflow: ellipsis; }
+.lf-st-card { position: absolute; z-index: 3; left: var(--s-2); right: var(--s-2); bottom: var(--s-2); }
+.lf-mc-hint { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--s-2); }
+.lf-pill {
+  display: inline-flex; align-items: center; gap: 6px; min-height: var(--hit); padding: 0 var(--s-3); border-radius: var(--r-pill); max-width: 100%;
+  font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: var(--e3-bg); box-shadow: var(--e3-box); -webkit-backdrop-filter: var(--e3-blur); backdrop-filter: var(--e3-blur);
+  transition: transform var(--d-press) var(--ease);
+}
+.lf-pill b { color: var(--ink); font-family: var(--round); font-weight: var(--w-fig); }
+.lf-pill svg { width: 14px; height: 14px; flex-shrink: 0; }
+.lf-pill:active { transform: scale(.96); }
+.lf-mc-tip { flex-basis: 100%; text-align: center; font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); }
+.lf-th-g { width: 26px; height: 26px; flex-shrink: 0; display: grid; place-items: center; border-radius: var(--r-xs); color: var(--ink); }
+.lf-th-g.mono { border-radius: 50%; background: color-mix(in oklch, var(--c) 24%, transparent); box-shadow: inset 0 0 0 1.5px var(--c); font-family: var(--ff-mono-g); font-weight: var(--w-mono-g); font-variation-settings: var(--fv-mono-g); font-size: var(--fs-footnote); }
+.lf-th-g.pj { background: color-mix(in srgb, var(--c) 22%, transparent); color: var(--ink); font-family: var(--round); font-weight: var(--w-fig); font-size: var(--fs-footnote); }
+.lf-th-g > i { display: block; background: var(--c); }
+.lf-th-g.ar > i { width: 12px; height: 12px; border-radius: 50%; }
+.lf-th-g.gl > i { width: 11px; height: 11px; border-radius: 2px; transform: rotate(45deg); }
+.lf-th-g.tk > i { width: 7px; height: 7px; border-radius: 50%; }
+.lf-mcard {
+  display: flex; align-items: center; gap: var(--s-3); min-height: 64px; padding: var(--s-2) var(--s-2) var(--s-2) var(--s-4);
+  border-radius: var(--r-pill); background: var(--e3-bg); box-shadow: var(--e3-box); -webkit-backdrop-filter: var(--e3-blur); backdrop-filter: var(--e3-blur);
+  animation: lf-card-in .36s var(--spring) both; --ring-bg: var(--e3);
+}
+@keyframes lf-card-in { from { opacity: 0; transform: translateY(14px) scale(.97); } }
+.lf-mcard-b { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.lf-mcard-t { font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lf-mcard-sc { margin-left: 4px; font-size: var(--fs-fig-4); color: var(--ink-2); }
+.lf-mcard-s { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lf-mcard .btn.sm { flex-shrink: 0; }
+.lf-mcard-x { width: var(--hit); height: var(--hit); border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; color: var(--ink-2); }
+.lf-mcard-x svg { width: 13px; height: 13px; }
+.lf-mcard.two { flex-direction: column; align-items: stretch; gap: var(--s-2); padding: var(--s-3) var(--s-2) var(--s-3) var(--s-4); border-radius: var(--r-xl); }
+.lf-mcard-row { display: flex; align-items: center; gap: var(--s-3); min-width: 0; }
+.lf-mcard-acts { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); padding-left: 38px; }
+.lf-mcard-acts .chev { width: 7px; height: 12px; margin-left: 2px; }
+.lf-mcard-note { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+.lf-mcard-tip { margin: 0; padding-left: 38px; font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); }
+/* an aspect a thing feeds: its dot and name open the app, the cross unlinks it */
+.lf-asp-chip { display: inline-flex; align-items: center; min-height: var(--hit); border-radius: var(--r-pill); background: color-mix(in srgb, var(--c) 16%, var(--ctl)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 40%, transparent); }
+.lf-asp-go { display: inline-flex; align-items: center; gap: 6px; min-height: var(--hit); padding: 0 var(--s-3) 0 var(--s-3); font-size: var(--fs-footnote); font-weight: var(--w-semibold); color: var(--ink); }
+.lf-asp-go .dot { width: 8px; height: 8px; background: var(--c); }
+.lf-asp-x { width: var(--hit); height: var(--hit); margin-left: -14px; display: grid; place-items: center; color: var(--ink-2); border-radius: 0 var(--r-pill) var(--r-pill) 0; }
+.lf-asp-x svg { width: 11px; height: 11px; }
+.lf-two { --sep-left: 54px; }
+.lf-two .rmeta { gap: 6px; }
+.lf-two .rmeta .dot { width: 7px; height: 7px; }
+.lf-two-sep { color: var(--ink-3); }
+.lf-app-sc { min-width: 30px; text-align: center; font-size: var(--fs-fig-4); color: var(--ink-2); }
+.lf-app-sc.none { color: var(--ink-4); }
+.lf-app-l.quiet { color: var(--ink-3); }
+.lf-w-arm.none .lf-w-groove { opacity: .6; }
+.lf-scorecta.due .lf-scored { color: var(--ink); }
+
+/* ── peek: hold an aspect ── */
+.lf-pk { --ring-bg: var(--e3); }
+.lf-pk-h { display: flex; align-items: center; gap: var(--s-3); }
+.lf-pk-h .asp-tile { width: var(--hit); height: var(--hit); border-radius: var(--r-md); }
+.lf-pk-h .asp-tile svg { width: 22px; height: 22px; }
+.lf-pk-t { flex: 1; min-width: 0; }
+.lf-pk-t .foot { margin-top: 2px; }
+.lf-pk-v { font-size: var(--fs-fig-4); }
+.lf-pk-v small { font-size: var(--fs-caption); margin-left: 1px; }
+.lf-pk-line { margin: var(--s-4) 0 0; font-size: var(--fs-callout); line-height: var(--lh-callout); text-wrap: pretty; }
+.lf-pk-m { margin-top: 2px; }
+.lf-pk-today { margin: var(--s-3) 0 0 !important; }
+.lf-pk-row { min-height: 46px; gap: var(--s-3); padding-top: var(--s-2); padding-bottom: var(--s-2); --sep-left: 50px; }
+.lf-pk-row .check { width: 22px; height: 22px; }
+.lf-pk-row .check svg { width: 11px; height: 11px; }
+.lf-pk-row .rtitle { font-size: var(--fs-subhead); line-height: var(--lh-subhead); white-space: normal; }
+.lf-pk-streak { display: flex; align-items: center; gap: 6px; margin-top: var(--s-3); }
+.lf-pk-streak svg { width: 15px; height: 15px; color: var(--ink-2); flex-shrink: 0; }
+.lf-pk-streak.risk svg { color: var(--needs-ink); }
+
+/* ── score sheet: nine rows, each a tile, a name, the slider with Wyn's tick, her reason ── */
+.lf-draft { display: flex; flex-direction: column; gap: var(--s-2); }
+.lf-draft .foot { text-align: center; text-wrap: balance; }
+.lf-score-sheet .sh { padding-top: var(--s-5); }
+.lf-sl { align-items: flex-start; gap: var(--s-3); padding-top: var(--s-3); padding-bottom: var(--s-2); cursor: pointer; --sep-left: 60px; }
+.lf-sl .asp-tile { margin-top: 1px; }
+.lf-sl-b { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.lf-sl-top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-2); }
+.lf-sl-name { font-size: var(--fs-body); line-height: var(--lh-body); }
+.lf-sl-v { font-size: var(--fs-fig-3); }
+.lf-sl.lf-sl-set .lf-sl-v { animation: lf-pop .45s var(--spring); }
+@keyframes lf-pop { 40% { transform: scale(1.25); } }
+.lf-sl-track { position: relative; display: flex; align-items: center; height: var(--hit); }
+.lf-sl input[type=range] { -webkit-appearance: none; appearance: none; position: relative; z-index: 1; width: 100%; height: var(--hit); margin: 0; background: none; cursor: pointer; touch-action: manipulation; }
+.lf-sl input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--c) 0 var(--p), color-mix(in srgb, var(--c) 20%, transparent) var(--p) 100%); }
+.lf-sl input[type=range]::-moz-range-track { height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--c) 20%, transparent); }
+.lf-sl input[type=range]::-moz-range-progress { height: 6px; border-radius: 3px; background: var(--c); }
+.lf-sl input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 26px; height: 26px; margin-top: -10px; border-radius: 50%; background: var(--knob); box-shadow: var(--knob-shadow); }
+.lf-sl input[type=range]::-moz-range-thumb { width: 26px; height: 26px; border: 0; border-radius: 50%; background: var(--knob); box-shadow: var(--knob-shadow); }
+/* Wyn's value: a short ink tick under the track, where her draft would set it */
+.lf-sl-wyn { position: absolute; z-index: 0; top: calc(50% + 6px); left: calc(13px + (100% - 26px) * var(--qn) - 1px); width: 2px; height: 8px; border-radius: 1px; background: var(--ink-2); }
+.lf-sl-why { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.lf-sl-save { margin-top: var(--s-5); }
+
+/* ── the card at the top of More: the wheel in miniature ── */
+.lfm { display: flex; align-items: center; gap: var(--s-4); width: calc(100% - 2 * var(--gutter)); margin: 0 var(--gutter); padding: var(--s-4) var(--s-3) var(--s-4) var(--s-4); border-radius: var(--r-xl); text-align: left; transition: transform var(--d-press) var(--ease); }
+.lfm:active { transform: scale(.985); }
+.lfm-wheel { width: 112px; height: 112px; flex-shrink: 0; }
+.lfm-hub { fill: var(--ctl); stroke: var(--sep); stroke-width: 1; }
+.lfm-g { stroke: color-mix(in srgb, var(--c) 18%, transparent); stroke-width: 4.5; stroke-linecap: round; }
+.lfm-s { stroke: var(--c); stroke-width: 4.5; stroke-linecap: round; }
+.lfm-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.lfm-t { margin-bottom: var(--s-1); font-size: var(--fs-title2); line-height: var(--lh-title2); font-weight: var(--w-bold); }
+.lfm-l { font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.lfm-l .met { margin-right: 2px; font-size: var(--fs-fig-3); color: var(--ink); }
+.lfm-s { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.lfm-x { margin-top: var(--s-1); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+.lfm .chev { align-self: center; }
+
+/* hours as a stacked bar with 2px gaps between areas, a legend that never cuts a name (More reads it) */
+.lf-card { position: relative; margin: 0 var(--gutter); padding: var(--s-4); border-radius: var(--r-lg); background: var(--e1-bg); box-shadow: var(--e1-box); }
+.stackbar { display: flex; gap: var(--s-0); height: 14px; border-radius: var(--r-pill); overflow: hidden; }
+.stackbar i { display: block; min-width: 4px; }
+.stack-legend { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-4); margin-top: var(--s-3); }
+.stack-legend > span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.stack-legend .dot { width: 7px; height: 7px; }
+.stack-legend .sl-n { color: var(--ink-2); }
+.stack-legend b { font-family: var(--round); font-weight: var(--w-fig); font-variant-numeric: tabular-nums; }
+.stack-tot { margin-top: var(--s-3); padding-top: var(--s-3); border-top: var(--hair) solid var(--sep); }
+.stack-tot b { font-family: var(--round); font-size: var(--fs-subhead); font-weight: var(--w-fig); color: var(--ink); }
+
+@media (prefers-reduced-motion: reduce) {
+  .lf-view.lf-swap, .lf-mcard, .lf-w-arm > .lf-w-tick, .lf-sky { animation: none; }
+  .lf-st-drop { transition: opacity .18s var(--ease); }
+  .lf-w.go .lf-w-arm { transition: opacity var(--d-state) var(--ease); }
+}
+
+/* ═══ 2 · OBSIDIAN ═════════════════════════════════════════════════════════
+   Each spoke is a lit arc: deep end at the hub, bright head at the score, and a blurred copy of it beneath that lights
+   the ground in its own colour. The light blooms once as the tab opens and settles, exactly as a ring's does. */
+:where(:root[data-skin="obsidian"]) .lf-w-groove { background: color-mix(in srgb, var(--ra) var(--track-mix), transparent); }
+:where(:root[data-skin="obsidian"]) .lf-w-bar { background: linear-gradient(90deg, var(--ra), var(--rb)); }
+:where(:root[data-skin="obsidian"]) .lf-w-light {
+  display: block; background: linear-gradient(90deg, var(--ra), var(--rb));
+  filter: blur(calc(var(--w) * var(--glow-blur) + 1px)); opacity: var(--glow-rest);
+}
+:where(:root[data-skin="obsidian"]) .lf-w.bloom .lf-w-light { animation: lf-obs-bloom var(--d-bloom) var(--ease-light) var(--d, 0ms) both; }
+@keyframes lf-obs-bloom { 0% { opacity: 0; } 36%, 56% { opacity: var(--glow-peak); } 100% { opacity: var(--glow-rest); } }
+:where(:root[data-skin="obsidian"]) .lf-w-hub { box-shadow: var(--e1-box), inset 0 0 0 1px rgba(255, 255, 255, .06); }
+@media (prefers-reduced-motion: reduce) { :where(:root[data-skin="obsidian"]) .lf-w.bloom .lf-w-light { animation: none; } }
+@media (prefers-contrast: more) { :where(:root[data-skin="obsidian"]) .lf-w-light { display: none; } }
+
+/* ═══ 3 · MATTE ════════════════════════════════════════════════════════════
+   Each spoke is an inked stroke on a paper track: flat pigment, and as the stroke stops a little ink spreads into the
+   fibres at its head, then dries (the rings' ink-in, along a line). The masthead and the card take the serif. */
+:where(:root[data-skin="matte"]) .lf-w-groove { background: var(--grain), color-mix(in oklab, var(--rc) 17%, var(--bg)); }
+:where(:root[data-skin="matte"]) .lf-w-bar { background: var(--rc); }
+:where(:root[data-skin="matte"]) .lf-w-bar::after {
+  content: ""; position: absolute; right: calc(var(--w) * -.7); top: 50%; width: calc(var(--w) * 2.4); height: calc(var(--w) * 2.4); translate: 0 -50%;
+  border-radius: 50%; background: var(--rc); opacity: 0;
+  -webkit-mask: radial-gradient(closest-side, #000 34%, transparent 100%), var(--fibre-mask); -webkit-mask-composite: source-in;
+  mask: radial-gradient(closest-side, #000 34%, transparent 100%), var(--fibre-mask); mask-composite: intersect;
+  -webkit-mask-size: 100% 100%, 40px 40px; mask-size: 100% 100%, 40px 40px;
+}
+:where(:root[data-skin="matte"]) .lf-w.ink .lf-w-bar::after { animation: mat-ink-bleed var(--bleed) var(--ease) both; animation-delay: calc(var(--draw) + var(--d, 0ms) - 100ms); }
+:where(:root[data-skin="matte"]) .lf-w-arm > .lf-w-tick { box-shadow: 0 0 0 1.5px var(--bg); }
+:where(:root[data-skin="matte"]) .lf-w-hub { background: var(--e1-bg); box-shadow: var(--e1-box); }
+:where(:root[data-skin="matte"]) .lf-w-rim { stroke: var(--ink-4); }
+:where(:root[data-skin="matte"]) .lf-fam.on { background: var(--ink); color: var(--on-color); box-shadow: none; }
+:where(:root[data-skin="matte"]) .lf-fam.on .lf-fam-n, :where(:root[data-skin="matte"]) .lf-fam.on .met { color: var(--on-color); }
+:where(:root[data-skin="matte"]) .lf-fam.on .lf-fam-dots i { box-shadow: 0 0 0 1.5px var(--ink); }
+:where(:root[data-skin="matte"]) .lf-mcard { background: var(--e3-bg); }
+:where(:root[data-skin="matte"]) .lf-stage { background: var(--grain), var(--e1-bg); }
+:where(:root[data-skin="obsidian"]:not([data-theme="light"])) .lf-stage { background: radial-gradient(120% 90% at 50% 45%, color-mix(in srgb, var(--e1) 70%, #000) 0, var(--e0, #000) 100%); }
+:where(:root[data-skin="matte"]) .lf-pk, :where(:root[data-skin="matte"]) .lf-mcard { --ring-bg: var(--float); }
+:where(:root[data-skin="matte"]) .lfm-t { margin-bottom: 2px; font-family: var(--ff-title); font-size: var(--fs-title1); line-height: var(--lh-title1); font-weight: var(--w-title); font-variation-settings: var(--fv-title); }
+:where(:root[data-skin="matte"]) .stackbar { border-radius: var(--r-xs); }
+:where(:root[data-skin="matte"]) .lf-sl input[type=range]::-webkit-slider-runnable-track { background: linear-gradient(90deg, var(--c) 0 var(--p), color-mix(in oklab, var(--c) 20%, transparent) var(--p) 100%); }
+:where(:root[data-skin="matte"]) .lf-sl input[type=range]::-webkit-slider-thumb { box-shadow: 0 2px 8px rgba(0, 0, 0, .35), 0 0 0 .5px rgba(0, 0, 0, .1); }
+@media (prefers-reduced-motion: reduce) { :where(:root[data-skin="matte"]) .lf-w.ink .lf-w-bar::after { animation: none; } }

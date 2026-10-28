@@ -1,0 +1,221 @@
+/* ═══ SCREEN · MORE ═══════════════════════════════════════════════════════════
+   More (Life card, areas, voice, modules, App group with Appearance and Theme), the account sheet,
+   the Areas and Voice recordings pages and every module page.
+   Owner: area (d). JS: js/more.js. Blocks: 1 shared · 2 OBSIDIAN · 3 MATTE (see css/system.css).
+   Neutral ground. Life leads as the one card of rings; the modules are a list that ends in each module's figure.
+   Domain colour appears only where a module reports on a domain. */
+
+/* ═══ 1 · SHARED ═══════════════════════════════════════════════════════════ */
+.mo-first { margin-top: var(--s-3); }
+.mo-me .mo-avatar { width: 44px; height: 44px; font-size: var(--fs-title3); }
+.mo-me + .mo-me, .mo-first + .mo-first { margin-top: var(--s-4); }
+.mo-areas-tile { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-0); padding: 7px; }
+.mo-areas-tile i { width: 8px; height: 8px; border-radius: 50%; }
+/* an area glyph: the area's colour in the mark (a skin may tint the tile) */
+.mo-aglyph { color: var(--t); }
+
+/* modules: one row each. Name and what it counts on the left, the figure on the right, the same column for all ten */
+.mo-mod .rmeta { margin-top: 0; }
+.mo-v { flex-shrink: 0; font-size: var(--fs-headline); line-height: var(--lh-headline); color: var(--ink); white-space: nowrap; }
+.mo-mod .mo-v + .chev { margin-left: calc(var(--s-1) * -1); }
+
+/* the App group: Appearance (the skin) on its own line under its title, then Theme (dark or light) */
+.mo-skin { flex-wrap: wrap; row-gap: var(--s-2); padding-bottom: var(--s-3); }
+.mo-skin .skin-seg { flex: 1 0 calc(100% - 44px); margin-left: 44px; }
+.mo-theme { width: 148px; flex-shrink: 0; }
+
+/* account sheet: labels only where a row cannot name itself; unlabelled groups keep the same rhythm */
+.mo-acct { padding-top: var(--s-2); padding-bottom: var(--s-3); }
+.mo-avatar { width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; background: var(--fill-3); font-family: var(--ff-mono-g); font-size: var(--fs-title2); font-weight: var(--w-mono-g); font-variation-settings: var(--fv-mono-g); color: var(--ink); }
+.mo-gl { margin: var(--s-5) calc(var(--gutter) + var(--s-1)) var(--s-2); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.mo-gap { margin-top: var(--s-5); }
+.mo-acct-sheet .sheet-body { padding-top: 0; }
+.mo-sync { color: var(--done); }
+.mo-code { font-size: var(--fs-callout); }
+/* the invite's terms may take a second line beside the Copy button, never a clipped one */
+.mo-code + .rmeta { white-space: normal; }
+.mo-danger .rtitle, .mo-danger .tile { color: var(--fail-ink); }
+.sheet .seg.sm { width: 140px; flex-shrink: 0; }
+/* the account sheet's Appearance group: the same control, the whole width of its row */
+.mo-skin-sheet .skin-seg { flex: 1; min-width: 0; }
+
+/* areas / tag */
+.mo-acard { margin-top: var(--s-1); }
+.mo-tagbtn { flex-shrink: 0; color: var(--needs-ink); }
+.mo-tags { display: flex; flex-direction: column; gap: var(--s-2); }
+.mo-tagrow { margin: 0 var(--gutter); padding: var(--s-3) var(--s-4) var(--s-4); border-radius: var(--r-lg); background: var(--inlay); box-shadow: var(--inlay-box); }
+.mo-tag-t { margin: 0; font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+.mo-tagrow .foot { margin-top: 2px; }
+.sheet .seg.sm.mo-tagseg { width: 100%; margin-top: var(--s-3); }
+.mo-tagseg button { gap: 6px; }
+.mo-tagseg .dot { width: 7px; height: 7px; }
+.mo-tagfoot { margin-top: var(--s-2); }
+
+/* voice recordings: one list; a row opens in place to the full text and its actions */
+.mo-wait { color: var(--needs-ink); }
+.mo-rec { position: relative; transition: opacity .25s var(--ease), transform .25s var(--ease); }
+.mo-rec + .mo-rec::before { content: ""; position: absolute; z-index: 1; top: 0; right: 0; left: 68px; height: var(--hair); background: var(--sep); }
+.mo-rec-top { align-items: flex-start; }
+.mo-play { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); }
+.mo-play svg { width: 19px; height: 19px; }
+.mo-rec-top .rtitle { font-size: var(--fs-callout); line-height: var(--lh-callout); }
+.mo-rec-top .rmeta { margin-top: var(--s-1); }
+/* a status is a coloured word that leads the meta line: green done, orange waiting on you, red failed */
+.mo-st { font-weight: var(--w-semibold); color: var(--c, var(--ink-2)); }
+.mo-caret { width: 16px; height: 16px; margin-top: var(--s-1); flex-shrink: 0; color: var(--ink-3); transition: transform .35s var(--spring), color var(--d-state); }
+.mo-caret svg { width: 16px; height: 16px; }
+.mo-rec.open .mo-caret, .mo-book.open .mo-caret { transform: rotate(180deg); color: var(--ink); }
+.mo-rec-more { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .4s var(--ease); }
+.mo-rec-more > div { overflow: hidden; padding: 0 var(--s-4) 0 68px; }
+.mo-rec.open .mo-rec-more { grid-template-rows: 1fr; }
+.mo-rec.open .mo-rec-more > div { padding-bottom: var(--s-4); }
+.mo-rec-full { margin: 0 0 var(--s-3); font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.mo-rec-acts { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.mo-rec-acts .btn svg, .mo-acts .btn svg { width: 15px; height: 15px; }
+/* destructive actions are a red bin on a control: square to the 36px row of buttons */
+.btn.mo-del, .btn.mo-drop { width: 36px; padding: 0; color: var(--fail-ink); }
+.btn.mo-del svg, .btn.mo-drop svg { width: 17px; height: 17px; }
+/* a note beside a button may take a second line rather than clip */
+.mo-voice .row:has(> .btn.sm) .rmeta { white-space: normal; }
+.mo-rec-src { margin: calc(var(--s-1) * -1) 0 var(--s-3); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+.mo-out { opacity: 0 !important; transform: translateX(-20px) !important; }
+
+/* module pages: the module's glyph in the same tile it wears in the list, a large title, one line on what it does */
+.mo-head { padding-top: var(--s-1); }
+.mo-ic { width: var(--hit); height: var(--hit); margin-bottom: var(--s-3); border-radius: var(--r-md); display: grid; place-items: center; background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); }
+.mo-ic svg { width: 22px; height: 22px; }
+.mo-card { position: relative; margin: 0 var(--gutter); padding: var(--s-4); border-radius: var(--r-lg); background: var(--e1-bg); box-shadow: var(--e1-box); transition: opacity .25s var(--ease), transform .25s var(--ease); }
+.mo-card p { margin: 0; }
+.mo-card .t2 { margin: 2px 0; }
+.mo-cards { display: flex; flex-direction: column; gap: var(--s-3); }
+.mo-cards .mo-card { margin: 0 var(--gutter); }
+.mo-acts { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-3); }
+.mo-foot { margin-top: var(--s-4); }
+.mo-why { display: block; margin-top: 2px; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); white-space: normal; }
+.mo-hero > .foot:first-child { font-weight: var(--w-semibold); }
+.mo-hero .t2 + .foot { margin-top: var(--s-1); }
+.mo-ask { align-items: flex-start; }
+.mo-ask .mo-v { margin-top: 1px; font-size: var(--fs-fig-3); line-height: var(--lh-title3); }
+.mo-ib { width: var(--hit); height: var(--hit); border-radius: 50%; background: var(--ctl); box-shadow: var(--ctl-box); }
+.mo-ib svg { width: 18px; height: 18px; }
+/* a conflict: the two areas it sits between, side by side under it */
+.mo-conf { flex-wrap: wrap; row-gap: var(--s-2); }
+.mo-conf .rbody { flex-basis: 100%; }
+.mo-pick { gap: var(--s-2); }
+.mo-block { --sep-left: 38px; }
+
+/* ribbon */
+.mo-ribrow { display: flex; align-items: center; gap: var(--s-3); margin-bottom: var(--s-2); }
+.mo-ribrow .foot { width: 34px; flex-shrink: 0; font-weight: var(--w-semibold); }
+.mo-strip { flex: 1; display: grid; grid-template-columns: repeat(16, 1fr); gap: var(--s-0); height: 22px; }
+.mo-strip i { border-radius: var(--r-xs); background: var(--fill-2); }
+.mo-strip i.fut { opacity: .45; }
+.mo-ticks { margin-bottom: var(--s-3); padding-left: 46px; }
+.mo-tk { position: relative; display: block; height: 16px; }
+.mo-tk i { position: absolute; top: 0; translate: -50% 0; font-style: normal; font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.mo-rstats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-3); padding-top: var(--s-3); border-top: var(--hair) solid var(--sep); }
+.mo-rs { display: flex; flex-direction: column; gap: var(--s-1); min-width: 0; }
+.mo-rs-n { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.mo-rs .met { font-size: var(--fs-fig-3); }
+.mo-link { font-family: var(--mono); font-size: var(--fs-footnote); }
+.mo-prow-t { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3); }
+.mo-prow-t b { flex-shrink: 0; font-family: var(--round); font-size: var(--fs-subhead); font-weight: var(--w-fig); color: var(--ink-2); }
+.mo-pbar { display: block; margin-top: var(--s-2); }
+
+/* weather: one ring per day, in Today's colour because it is time; an over-full day laps itself */
+.mo-fc { display: flex; align-items: center; gap: var(--s-4); overflow: hidden; --ring-bg: var(--e1); }
+.mo-fc-t { flex: 1; min-width: 0; }
+.mo-fc-t > .foot:first-child { font-weight: var(--w-semibold); }
+.mo-fc-h { margin: var(--s-1) 0 !important; font-size: var(--fs-title1); line-height: var(--lh-title1); font-weight: var(--w-bold); }
+.mo-fc-n { font-size: var(--fs-fig-3); }
+.mo-fc-n small { font-size: var(--fs-caption); }
+.mo-load { --ring-bg: var(--e1); }
+.mo-rings { display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--s-1); }
+.mo-rcol { display: flex; flex-direction: column; align-items: center; gap: var(--s-1); }
+.mo-rcol .rg { margin-bottom: var(--s-1); }
+.mo-rcol b { font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.mo-rcol .met { font-size: var(--fs-fig-4); }
+.mo-rcol.over b, .mo-rcol.over .met { color: var(--today-ink); }
+.mo-bfoot { margin-top: var(--s-3) !important; }
+.mo-chg { align-items: center; }
+
+/* demand */
+.mo-cl-top { display: flex; align-items: flex-start; gap: var(--s-3); margin-bottom: var(--s-1); }
+.mo-cl-top .rbody { flex: 1; min-width: 0; }
+.mo-rank { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); font-family: var(--round); font-size: var(--fs-subhead); font-weight: var(--w-fig); font-variant-numeric: tabular-nums; }
+.mo-quote { margin: var(--s-2) 0 0 42px !important; padding-left: var(--s-3); border-left: 2px solid var(--fill-3); font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-style: italic; color: var(--ink-2); }
+.mo-kv { display: flex; justify-content: space-between; align-items: baseline; margin-top: var(--s-3); padding-top: var(--s-3); border-top: var(--hair) solid var(--sep); }
+.mo-kv b { font-family: var(--round); font-size: var(--fs-fig-3); font-weight: var(--w-fig); font-variant-numeric: tabular-nums; }
+.mo-cl .mo-drop { margin-left: auto; }
+
+/* doctrine: each piece of evidence is a day, the block and its time, and what happened */
+.mo-obs { margin: var(--s-2) 0 var(--s-3) !important; font-size: var(--fs-title3); line-height: var(--lh-title3); }
+.mo-ev { display: flex; flex-direction: column; border-top: var(--hair) solid var(--sep); }
+.mo-evrow { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-2) 0; border-bottom: var(--hair) solid var(--sep); }
+.mo-evrow > .foot { width: 48px; flex-shrink: 0; }
+.mo-evt { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.mo-evt small { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+
+/* thumbs: each tab's bar wears its tab's colour */
+.mo-use { display: flex; align-items: center; gap: var(--s-3); padding: 6px 0; }
+.mo-use-n { width: 66px; font-size: var(--fs-subhead); font-weight: var(--w-semibold); }
+.mo-use .bar { flex: 1; height: 8px; }
+.mo-use-v { width: 40px; text-align: right; font-size: var(--fs-headline); }
+.mo-prop { display: flex; gap: var(--s-4); align-items: flex-start; }
+.mo-prop .rbody { flex: 1; min-width: 0; }
+.mo-prop .t2 { margin-top: 0; }
+.mo-mock { display: flex; flex-direction: column; gap: var(--s-1); width: 56px; height: 100px; flex-shrink: 0; padding: var(--s-2) 6px; border-radius: var(--r-md); background: var(--ctl); box-shadow: var(--ctl-box); }
+.mo-mock i { display: block; height: 9px; border-radius: var(--r-xs); background: var(--ink-4); }
+.mo-mock.jobs i:first-child { height: 24px; background: color-mix(in srgb, var(--jobs) 60%, transparent); }
+.mo-mock.tab i:last-child { margin-top: auto; height: 11px; border-radius: var(--r-pill); background: linear-gradient(90deg, var(--fill-3) 0 40%, var(--content) 40% 60%, var(--fill-3) 60%); }
+.mo-mock.hold i:last-child { margin-top: auto; align-self: flex-end; width: 15px; height: 15px; border-radius: 50%; background: var(--ink); }
+
+/* price */
+.mo-blk { --sep-left: 38px; }
+.mo-rupee { font-family: var(--round); font-size: var(--fs-headline); font-weight: var(--w-fig); color: var(--ink); font-variant-numeric: tabular-nums; }
+.mo-rupee.off { font-family: var(--font); font-size: var(--fs-subhead); font-weight: var(--w-regular); color: var(--ink-3); }
+
+/* runbooks: one list; a ready book runs from its row, and opens in place to its steps */
+.mo-book { position: relative; }
+.mo-book + .mo-book::before { content: ""; position: absolute; z-index: 1; top: 0; right: 0; left: 60px; height: var(--hair); background: var(--sep); }
+.mo-book-top { padding: 0 var(--s-4) 0 0; gap: var(--s-2); }
+.mo-book-top:has(.mo-book-hit:active) { background: var(--row-press); }
+.mo-book-hit { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--s-3); min-height: 64px; padding: var(--s-3) 0 var(--s-3) var(--s-4); text-align: left; }
+.mo-book-hit .rbody { flex: 1; min-width: 0; }
+.mo-book-hit .rmeta { gap: var(--s-2); }
+.mo-book-hit .mo-caret { margin: 0 var(--s-1) 0 0; }
+.mo-stepwrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .4s var(--ease); }
+.mo-stepwrap > div { overflow: hidden; padding: 0 var(--s-4) 0 60px; }
+.mo-book.open .mo-stepwrap { grid-template-rows: 1fr; }
+.mo-book.open .mo-stepwrap > div { padding-bottom: var(--s-3); }
+.mo-steps { margin: 0; padding: 0 0 0 var(--s-5); }
+.mo-steps li { padding: 3px 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.mo-steps li::marker { font-family: var(--round); font-weight: var(--w-fig); color: var(--ink-3); }
+.mo-stepfoot { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); margin-top: var(--s-2); }
+
+/* bounty */
+.mo-pay { display: flex; flex-direction: column; gap: var(--s-1); }
+.mo-pay-v { font-size: var(--fs-fig-1); font-weight: var(--w-fig-l); line-height: 1.05; }
+.mo-bty { flex-wrap: wrap; align-items: flex-start; row-gap: var(--s-3); transition: opacity .2s var(--ease), transform .2s var(--ease); }
+.mo-bty-v { flex-shrink: 0; font-size: var(--fs-fig-3); line-height: var(--lh-title3); }
+.mo-bty-a { display: flex; flex-basis: 100%; gap: var(--s-2); }
+
+/* ping */
+.mo-log { margin-top: var(--s-4); }
+.mo-logrow { min-height: 48px; }
+.mo-log .mono { color: var(--ink-2); font-size: var(--fs-footnote); }
+
+/* ═══ 2 · OBSIDIAN ═════════════════════════════════════════════════════════
+   Nothing to restate: Obsidian's More is the shared block. */
+
+/* ═══ 3 · MATTE ════════════════════════════════════════════════════════════ */
+/* an area glyph is printed on a 15% wash of its own colour */
+:where(:root[data-skin="matte"]) .mo-aglyph { background: color-mix(in oklab, var(--t) 15%, var(--paper)); box-shadow: none; }
+/* the account V is a monogram: the title serif, set on raised stock */
+:where(:root[data-skin="matte"]) .mo-avatar { background: var(--ctl); box-shadow: var(--ctl-box); font-size: 26px; font-variation-settings: 'opsz' 36; }
+/* a quote is printed upright, without the rule */
+:where(:root[data-skin="matte"]) .mo-quote { padding-left: 0; border-left: 0; font-style: normal; }
+/* the usage bars sit on a quiet neutral track rather than their own pigment */
+:where(:root[data-skin="matte"]) .mo-use .bar { border-radius: 4px; background: var(--fill-1); }
+/* a ribbon hour is a printed block: square-ish ends */
+:where(:root[data-skin="matte"]) .mo-strip i { border-radius: 3px; }

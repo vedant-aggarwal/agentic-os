@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-skin="obsidian">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<script>(function () { try { var q = new URLSearchParams(location.search).get('skin'); var ok = function (s) { return s === 'obsidian' || s === 'matte'; }; var s = ok(q) ? q : localStorage.getItem('aos-skin'); if (!ok(s)) s = 'obsidian'; document.documentElement.setAttribute('data-skin', s); if (ok(q)) localStorage.setItem('aos-skin', q); var t = new URLSearchParams(location.search).get('theme'); if (t === 'light') document.documentElement.setAttribute('data-theme', 'light'); } catch (e) {} })();</script>
+<meta name="theme-color" content="#050506" />
+<meta name="color-scheme" content="dark light" />
+<title>Agentic OS · the system</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23000'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="css/system.css" />
+<link rel="stylesheet" href="css/skins/obsidian.css" />
+<link rel="stylesheet" href="css/skins/matte.css" />
+<style>
+  /* style-guide page only. Every value is a token from css/system.css or the active skin */
+  html, body { height: auto; overflow: auto; }
+  body { background: var(--e0-bg); overscroll-behavior: auto; }
+  .sg { max-width: 440px; margin: 0 auto; padding: calc(var(--safe-top) + var(--s-6)) 0 calc(var(--safe-bottom) + var(--s-16)); }
+  .sg-head { padding: 0 var(--gutter) var(--s-2); }
+  .sg-head .sub { margin-top: var(--s-2); }
+  .sg-back { display: inline-flex; align-items: center; gap: var(--s-1); margin-bottom: var(--s-5); color: var(--ink-2); font-size: var(--fs-subhead); font-weight: var(--w-semibold); text-decoration: none; min-height: var(--hit); }
+  .sg-back svg { width: 16px; height: 16px; }
+  .sg-ctl { position: sticky; top: 0; z-index: 30; display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-3) var(--gutter); }
+  .sg-ctl::before { content: ""; position: absolute; inset: 0 0 -16px; z-index: -1; background: linear-gradient(180deg, var(--e0) 72%, transparent); }
+  .sg-ctl .theme-seg { width: 148px; align-self: flex-end; }
+  .sg-sec { padding: var(--s-10) 0 0; }
+  .sg-sec > .sh { padding-top: 0; }
+  .sg-lead { padding: 0 var(--gutter) var(--s-4); margin: calc(var(--s-2) * -1) 0 0; }
+  .sg-card { margin: 0 var(--gutter); padding: var(--s-4); border-radius: var(--r-xl); --ring-bg: var(--e1); }
+  .sg-card + .sg-card { margin-top: var(--s-3); }
+  .sg-k { display: block; font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); margin-bottom: var(--s-3); }
+  .sg-note { margin: var(--s-3) 0 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+  .sg-mono { font-family: var(--mono); font-size: var(--fs-caption); color: var(--ink-2); overflow-wrap: anywhere; }
+  .sg-out { display: block; margin: var(--s-6) var(--gutter) var(--s-3) calc(var(--gutter) + var(--s-1)); }
+  /* one skin's notes show at a time */
+  :where(:root[data-skin="obsidian"]) .only-matte, :where(:root[data-skin="matte"]) .only-obsidian { display: none !important; }
+
+  /* the two skins side by side, painted with their own literal colours so both read in either skin */
+  .duo { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); margin: 0 var(--gutter); }
+  .duo-c { position: relative; display: flex; flex-direction: column; gap: var(--s-2); min-height: 184px; padding: var(--s-4); border-radius: var(--r-xl); text-align: left; overflow: hidden; transition: transform var(--d-press) var(--ease); }
+  .duo-c:active { transform: scale(.98); }
+  .duo-c b { font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+  .duo-c small { font-size: var(--fs-footnote); line-height: var(--lh-footnote); }
+  .duo-c .duo-r { width: 46px; height: 46px; border-radius: 50%; margin-bottom: var(--s-1); }
+  .duo-c .duo-on { position: absolute; top: var(--s-3); right: var(--s-3); font-size: var(--fs-caption); font-weight: var(--w-semibold); padding: 2px var(--s-2); border-radius: var(--r-pill); opacity: 0; }
+  .duo-c[aria-pressed="true"] .duo-on { opacity: 1; }
+  .duo-o { background: linear-gradient(180deg, #17171b, #0b0b0d); color: #f5f5f7; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 1px 2px rgba(0, 0, 0, .6); }
+  .duo-o small { color: #a8a8b0; }
+  .duo-o .duo-r { background: conic-gradient(#e0004b 0turn, #ff5a96 .62turn, rgba(224, 0, 75, .18) 0); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6.6px)); mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6.6px)); }
+  .duo-o .duo-on { background: rgba(255, 255, 255, .14); color: #f5f5f7; }
+  .duo-m { background: #1c1916; color: #eee8df; box-shadow: inset 0 0 0 1px rgba(255, 240, 222, .07); }
+  .duo-m b { font-family: "Literata", Georgia, serif; font-weight: 600; font-size: 19px; }
+  .duo-m small { color: #b5aea5; }
+  .duo-m .duo-r { background: conic-gradient(#d55e72 0 .62turn, #3a2a29 0); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6.6px)); mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6.6px)); }
+  .duo-m .duo-on { background: #eee8df; color: #12100e; }
+  .duo-o b { font-weight: 700; }
+
+  /* the contract: tokens shared by both skins, tokens each skin owns */
+  .ct { display: grid; grid-template-columns: 92px 1fr; gap: var(--s-2) var(--s-3); font-size: var(--fs-footnote); line-height: var(--lh-footnote); }
+  .ct dt { color: var(--ink); font-weight: var(--w-semibold); }
+  .ct dd { margin: 0; color: var(--ink-2); }
+
+  /* elevation diorama: the four levels, stacked as they are in the app */
+  .dio { position: relative; height: 340px; margin: 0 var(--gutter); border-radius: var(--r-xl); background: var(--e0-bg); box-shadow: inset 0 0 0 1px var(--sep); overflow: hidden; }
+  .dio-l { position: absolute; font-size: var(--fs-caption); line-height: var(--lh-caption); font-weight: var(--w-semibold); color: var(--ink-3); }
+  .dio-l b { color: var(--ink); font-weight: var(--w-semibold); }
+  .dio-card { position: absolute; left: var(--s-4); right: var(--s-4); top: var(--s-10); display: flex; align-items: center; gap: var(--s-4); padding: var(--s-4); border-radius: var(--r-lg); --ring-bg: var(--e1); }
+  .dio-card .met { font-size: var(--fs-fig-2); }
+  .dio-pill { position: absolute; left: var(--s-8); right: var(--s-8); top: 122px; height: 52px; display: flex; align-items: center; justify-content: center; gap: var(--s-2); border-radius: var(--r-pill); font-size: var(--fs-subhead); font-weight: var(--w-semibold); }
+  .dio-sheet { position: absolute; left: var(--s-2); right: var(--s-2); bottom: calc(var(--s-6) * -1); height: 116px; padding: var(--s-4) var(--s-5); border-radius: var(--r-sheet) var(--r-sheet) 0 0; }
+  .dio-sheet .grab { margin: 0 auto var(--s-3); }
+  .lvl .row { align-items: flex-start; gap: var(--s-3); }
+  .lvl-n { width: 28px; flex-shrink: 0; font-family: var(--round); font-size: var(--fs-subhead); font-weight: var(--w-fig); color: var(--ink-3); padding-top: 1px; }
+  .lvl .rtitle { font-size: var(--fs-headline); font-weight: var(--w-semibold); }
+  .lvl dl { display: grid; grid-template-columns: 64px 1fr; gap: var(--s-1) var(--s-2); margin: var(--s-2) 0 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); }
+  .lvl dt { color: var(--ink-3); }
+  .lvl dd { margin: 0; color: var(--ink-2); }
+
+  /* rings */
+  .lights { display: flex; align-items: center; justify-content: space-around; gap: var(--s-3); padding: var(--s-4) 0 var(--s-2); }
+  .lights figure, .doms figure, .rst figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: var(--s-3); }
+  .lights figcaption, .doms figcaption, .rst figcaption { font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-2); text-align: center; }
+  .lights figcaption b, .doms figcaption b, .rst figcaption b { display: block; color: var(--ink); font-weight: var(--w-semibold); }
+  .rin { display: flex; flex-direction: column; align-items: center; line-height: 1; }
+  .rin .met { font-size: var(--fs-fig-2); }
+  .rin small { margin-top: var(--s-1); font-size: var(--fs-caption); color: var(--ink-2); }
+  .doms, .rst { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--s-1); padding-top: var(--s-2); }
+  .rst { grid-template-columns: repeat(4, 1fr); margin-top: var(--s-4); padding-top: var(--s-4); border-top: var(--hair) solid var(--sep); }
+  .anat { display: grid; grid-template-columns: auto 1fr; gap: var(--s-1) var(--s-3); margin-top: var(--s-4); padding-top: var(--s-3); border-top: var(--hair) solid var(--sep); font-size: var(--fs-footnote); line-height: var(--lh-footnote); }
+  .anat dt { color: var(--ink-3); }
+  .anat dd { margin: 0; color: var(--ink-2); }
+  .sg-replay { margin-top: var(--s-4); }
+
+  /* colour */
+  .dmr { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: var(--s-1) var(--s-3); padding: var(--s-3) 0; }
+  .dmr + .dmr { border-top: var(--hair) solid var(--sep); }
+  .dmr-bar { grid-column: 1 / -1; height: 12px; border-radius: var(--r-track); }
+  .dmr b { font-size: var(--fs-headline); font-weight: var(--w-semibold); }
+  .dmr .sg-mono { text-align: right; }
+  .sw-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s-3); }
+  .sw { display: flex; align-items: center; gap: var(--s-3); min-width: 0; }
+  .sw i { width: 36px; height: 36px; border-radius: var(--r-sm); flex-shrink: 0; box-shadow: inset 0 0 0 1px var(--sep); }
+  .sw span { display: flex; flex-direction: column; min-width: 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); }
+  .sw span b { font-weight: var(--w-semibold); }
+  .areas { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-4); }
+  .areas span { display: inline-flex; align-items: center; gap: var(--s-2); font-size: var(--fs-footnote); color: var(--ink-2); }
+
+  /* type */
+  .ty { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: var(--s-3); padding: var(--s-3) 0; }
+  .ty + .ty { border-top: var(--hair) solid var(--sep); }
+  .ty .sg-mono { white-space: nowrap; }
+  .fig { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3); padding: var(--s-2) 0; }
+  .fig + .fig { border-top: var(--hair) solid var(--sep); }
+  .fams { display: grid; gap: var(--s-2); }
+  .fams div { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-3); }
+
+  /* spacing, radius */
+  .sp { display: grid; grid-template-columns: 44px 1fr 40px; align-items: center; gap: var(--s-3); padding: var(--s-1) 0; }
+  .sp i { display: block; height: 12px; border-radius: var(--r-track); background: var(--fill-3); }
+  .sp span:last-child { text-align: right; }
+  .radii { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s-3); }
+  .radii figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: var(--s-2); }
+  .radii i { width: 100%; aspect-ratio: 1; background: var(--ctl); box-shadow: var(--ctl-box), var(--e1-edge); }
+
+  /* texture */
+  .tex { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-3); }
+  .tex.four { grid-template-columns: repeat(2, 1fr); }
+  .tex figure { margin: 0; display: flex; flex-direction: column; gap: var(--s-2); }
+  .tex i { display: block; aspect-ratio: 1; border-radius: var(--r-md); box-shadow: inset 0 0 0 1px var(--sep); }
+  .tex .four i { aspect-ratio: 1.6; }
+  :where(:root[data-skin="obsidian"]) .tex .t-g { background: var(--tex-ground) 0 0 / 720px 720px, var(--e0); }
+  :where(:root[data-skin="obsidian"]) .tex .t-s { background: var(--tex-stone) 0 0 / 512px 512px, var(--e1); }
+  :where(:root[data-skin="obsidian"]) .tex .t-f { background: var(--tex-frost) 0 0 / 560px 560px, var(--e3); }
+  :where(:root[data-skin="matte"]) .tex .z1 { background: var(--grain), var(--paper); background-size: 880px 880px, auto; }
+  :where(:root[data-skin="matte"]) .tex .z2 { background: var(--grain-heavy), var(--float); background-size: 880px 880px, auto; }
+  :where(:root[data-skin="matte"]) .tex .z3 { background: var(--today); -webkit-mask: var(--ink-mask); mask: var(--ink-mask); -webkit-mask-size: 480px 480px; mask-size: 480px 480px; }
+  :where(:root[data-skin="matte"]) .tex .z4 { background: var(--clients); -webkit-mask: var(--fibre-mask); mask: var(--fibre-mask); -webkit-mask-size: 288px 288px; mask-size: 288px 288px; }
+  .tex-real { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-3); margin-top: var(--s-3); }
+  .tex-real i { display: block; height: 44px; border-radius: var(--r-sm); }
+  .tex-real .r-g { background: var(--e0-bg); box-shadow: inset 0 0 0 1px var(--sep); }
+  .tex-real .r-s { background: var(--e1-bg); box-shadow: var(--e1-box); }
+  .tex-real .r-f { background: var(--e3-bg); box-shadow: var(--e3-box); }
+
+  /* components */
+  .st-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s-4) var(--s-3); }
+  .st { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-2); min-width: 0; }
+  .st > .caption { padding-left: var(--s-1); }
+  .st .btn { width: 100%; }
+  .st-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3); }
+  .st-row + .st-row { margin-top: var(--s-4); }
+  .comp + .comp { margin-top: var(--s-5); padding-top: var(--s-4); border-top: var(--hair) solid var(--sep); }
+  .sg-card .group { margin: 0; }
+  .chrome-demo { position: relative; display: flex; gap: var(--s-3); align-items: center; margin: 0 var(--gutter); padding: var(--s-4); border-radius: var(--r-xl); background: var(--e1-bg); box-shadow: var(--e1-box); overflow: hidden; --ring-bg: var(--e1); }
+  .chrome-demo .gbtn.accent { --c: var(--clients-fill); }
+  .monos { display: flex; align-items: center; gap: var(--s-3); }
+  .monos span { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--ctl); box-shadow: var(--ctl-box); font-family: var(--ff-mono-g); font-weight: var(--w-mono-g); font-variation-settings: var(--fv-mono-g); font-size: var(--fs-subhead); }
+  .monos span.lg { width: 64px; height: 64px; font-size: var(--fs-title2); }
+
+  /* rules */
+  .rules { margin: 0; padding: 0; list-style: none; }
+  .rules li { display: grid; grid-template-columns: 28px 1fr; gap: var(--s-2); padding: var(--s-3) 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+  .rules li + li { border-top: var(--hair) solid var(--sep); }
+  .rules li b { color: var(--ink); font-weight: var(--w-semibold); }
+  .rules .met { font-size: var(--fs-subhead); color: var(--ink-3); }
+</style>
+</head>
+<body>
+<main class="sg" id="sg">
+
+  <header class="sg-head">
+    <a class="sg-back" href="index.html" id="sgBack"></a>
+    <h1 class="display">The system</h1>
+    <p class="sub">One app, two skins. Layout, geometry and every component are shared; each skin owns its tokens, materials, texture, type and the way its rings arrive. Every value on this page is read live from the skin you pick.</p>
+  </header>
+  <div class="sg-ctl" id="sgCtl"></div>
+
+  <!-- 0 · SKINS -->
+  <section class="sg-sec" aria-labelledby="h-skins" style="padding-top: var(--s-6)">
+    <div class="sh"><h2 id="h-skins">Skins</h2><span class="sh-count">2</span></div>
+    <div class="duo">
+      <button class="duo-c duo-o" data-act="sg-skin" data-id="obsidian" aria-pressed="false"><span class="duo-on">Showing</span><i class="duo-r"></i><b>Obsidian</b><small>Smoked stone for what you read, real glass for what floats, and the rings as the only light. The light blooms as a page opens.</small></button>
+      <button class="duo-c duo-m" data-act="sg-skin" data-id="matte" aria-pressed="false"><span class="duo-on">Showing</span><i class="duo-r"></i><b>Matte</b><small>Matte stock and pigment inks: cream words, serif titles, rings drawn as inked strokes. The ink goes in as a page opens.</small></button>
+    </div>
+    <div class="sg-card surface" style="margin-top: var(--s-3)">
+      <span class="sg-k">What is shared and what each skin owns</span>
+      <dl class="ct">
+        <dt>Shared</dt><dd>Layout, spacing scale, type sizes, radii, every component and its states, the ring geometry, motion for pages and sheets. <span class="sg-mono">css/system.css</span>, <span class="sg-mono">css/screens/*.css</span> block 1</dd>
+        <dt>Each skin</dt><dd>Ink and domain colours, the four materials, texture, title and monogram faces, the gutter and section rhythm, how a ring is painted and how it arrives. <span class="sg-mono">css/skins/&lt;skin&gt;.css</span>, screen blocks 2 and 3</dd>
+        <dt>Switching</dt><dd>One attribute on the page, a <span class="num">240 ms</span> crossfade, then the rings on the page you are on draw again in the new material.</dd>
+      </dl>
+    </div>
+  </section>
+
+  <!-- 1 · ELEVATION -->
+  <section class="sg-sec" aria-labelledby="h-elev">
+    <div class="sh"><h2 id="h-elev">Elevation</h2><span class="sh-count">4</span></div>
+    <p class="sub sg-lead only-obsidian">Four levels, used strictly. Each has one surface, one edge and one shadow. Controls sit on them as fills, never as a fifth level.</p>
+    <p class="sub sg-lead only-matte">Four levels. Each is exactly one surface, one edge and one shadow. Nothing is see-through: depth is a tone step, a cut edge and a soft shadow.</p>
+    <div class="dio" aria-label="The four levels, stacked">
+      <span class="dio-l" style="top: var(--s-3); left: var(--s-4)"><b>E0</b> Ground</span>
+      <div class="dio-card surface"><span id="dioRing"></span><span><span class="dio-l" style="position: static"><b>E1</b> <span class="only-obsidian">Stone</span><span class="only-matte">Paper</span></span><br><b class="met c-clients">47<small>%</small></b></span></div>
+      <div class="dio-pill chrome"><b>E2</b> <span class="only-obsidian">Glass</span><span class="only-matte">Float</span></div>
+      <div class="dio-sheet overlay"><div class="grab"></div><span class="dio-l" style="position: static"><b>E3</b> <span class="only-obsidian">Sheet</span><span class="only-matte">Float</span></span></div>
+    </div>
+    <div class="group lvl only-obsidian" style="margin-top: var(--s-3)">
+      <div class="row"><span class="lvl-n">E0</span><span class="rbody"><span class="rtitle">Ground</span><dl><dt>Surface</dt><dd><span class="sg-mono" data-tok="--e0"></span> obsidian, static grain 3.2%</dd><dt>Edge</dt><dd>None</dd><dt>Shadow</dt><dd>None. Everything scrolls over it</dd></dl></span></div>
+      <div class="row"><span class="lvl-n">E1</span><span class="rbody"><span class="rtitle">Stone</span><dl><dt>Surface</dt><dd><span class="sg-mono" data-tok="--e1"></span> smoked, frosted grain 7%, polish 2.8%</dd><dt>Edge</dt><dd>Bevel: 1px top light at 7%</dd><dt>Shadow</dt><dd>Contact: <span class="sg-mono">0 1 2 / 62%</span></dd></dl></span></div>
+      <div class="row"><span class="lvl-n">E2</span><span class="rbody"><span class="rtitle">Glass</span><dl><dt>Surface</dt><dd>Smoke 42%, blur 24, saturate 185%</dd><dt>Edge</dt><dd>Specular rim, bright top-left and bottom-right, bending into an inner highlight</dd><dt>Shadow</dt><dd>Float: <span class="sg-mono">0 10 28 / 50%</span></dd></dl></span></div>
+      <div class="row"><span class="lvl-n">E3</span><span class="rbody"><span class="rtitle">Sheet</span><dl><dt>Surface</dt><dd>Smoke 84%, blur 44, frost grain 5%</dd><dt>Edge</dt><dd>Top rim at 30%</dd><dt>Shadow</dt><dd>Lift: <span class="sg-mono">0 24 64 / 64%</span></dd></dl></span></div>
+    </div>
+    <div class="group lvl only-matte" style="margin-top: var(--s-3)">
+      <div class="row"><span class="lvl-n">E0</span><span class="rbody"><span class="rtitle">Ground</span><dl><dt>Surface</dt><dd><span class="sg-mono" data-tok="--bg"></span> black uncoated card</dd><dt>Edge</dt><dd>None</dd><dt>Shadow</dt><dd>None</dd></dl></span></div>
+      <div class="row"><span class="lvl-n">E1</span><span class="rbody"><span class="rtitle">Paper</span><dl><dt>Surface</dt><dd><span class="sg-mono" data-tok="--paper"></span> with paper grain</dd><dt>Edge</dt><dd>A 1px cut edge at 4.5%</dd><dt>Shadow</dt><dd>None. It lies flat</dd></dl></span></div>
+      <div class="row"><span class="lvl-n">·</span><span class="rbody"><span class="rtitle">Raised, for controls</span><dl><dt>Surface</dt><dd>Cream at 7.5% with grain, one step lighter than what it sits on</dd><dt>Edge</dt><dd>1px at 5.5%</dd><dt>Shadow</dt><dd>A 1px contact line under buttons</dd></dl></span></div>
+      <div class="row"><span class="lvl-n">E2·3</span><span class="rbody"><span class="rtitle">Float</span><dl><dt>Surface</dt><dd><span class="sg-mono" data-tok="--float"></span> with heavy grain, for chrome and overlays alike</dd><dt>Edge</dt><dd>1px at 7%</dd><dt>Shadow</dt><dd><span class="sg-mono">0 18 38 −14 / 78%</span></dd></dl></span></div>
+    </div>
+    <p class="hint">E2 is the tab bar, the accessory, the + button, top-bar buttons, the sticky switch and the composer. E3 is every sheet, peek, menu, toast and banner. Markup names the level (.surface, .chrome, .overlay); the skin decides what it is made of.</p>
+  </section>
+
+  <!-- 2 · RINGS -->
+  <section class="sg-sec" aria-labelledby="h-rings" id="rings">
+    <div class="sh"><h2 id="h-rings">Rings</h2></div>
+    <p class="sub sg-lead only-obsidian">A ring is the only thing that glows. Its light is a blurred copy of the lit arc, laid a little below it, so the stone picks up the ring's colour where the arc is lit and nowhere else.</p>
+    <p class="sub sg-lead only-matte">An inked stroke on a paper track. Flat pigment, printed caps. Past 100% the ring laps itself in a denser second pass, trapped by a hairline of paper.</p>
+    <div class="sg-card surface">
+      <span class="sg-k">The ring at three sizes</span>
+      <div class="lights" id="lights"></div>
+      <span class="sg-k" style="margin-top: var(--s-4)">One per domain</span>
+      <div class="doms" id="doms"></div>
+      <div class="rst" id="ringStates"></div>
+      <dl class="anat only-obsidian">
+        <dt>Groove</dt><dd>The domain's deep end at 16%</dd>
+        <dt>Arc</dt><dd>Gradient along the stroke, deep end to bright head</dd>
+        <dt>Light</dt><dd>Blur 0.78 × stroke, drop 0.2 × stroke, rests at 50%</dd>
+        <dt>Bloom</dt><dd>As a page opens: swells to 96% with the arc, holds, settles over 1.7 s. Once</dd>
+        <dt>Reduced motion</dt><dd>Rings and light are simply there, at rest</dd>
+      </dl>
+      <dl class="anat only-matte">
+        <dt>Track</dt><dd>17% pigment mixed into the surface, with the paper grain</dd>
+        <dt>Ink</dt><dd>Flat pigment; strokes of 9px and up carry unprinted specks</dd>
+        <dt>Head cap</dt><dd>6% fuller than the line, where the pen stops</dd>
+        <dt>Ink-in</dt><dd>As a page opens each stroke is drawn once; ink spreads at its cap and dries over 0.95 s</dd>
+        <dt>Marker</dt><dd>A cream tick knocked out of the paper: time gone, or a past score</dd>
+      </dl>
+      <button class="btn block sg-replay" data-act="sg-replay"><span class="only-obsidian">Replay the bloom</span><span class="only-matte">Replay the ink-in</span></button>
+    </div>
+  </section>
+
+  <!-- 3 · COLOUR -->
+  <section class="sg-sec" aria-labelledby="h-colour">
+    <div class="sh"><h2 id="h-colour">Colour</h2></div>
+    <p class="sub sg-lead">Colour is earned. Rings, key figures and the one primary action on a screen wear it. Chrome, labels and secondary controls stay neutral. Orange is the only colour that asks for you.</p>
+    <div class="sg-card surface">
+      <span class="sg-k">Domains · pigment, text tint and the fill of the one primary action</span>
+      <div id="domains"></div>
+    </div>
+    <div class="sg-card surface">
+      <span class="sg-k">Semantics</span>
+      <div class="sw-grid" id="semantics"></div>
+    </div>
+    <div class="sg-card surface">
+      <span class="sg-k">Ink and surfaces</span>
+      <div class="sw-grid" id="neutrals"></div>
+    </div>
+    <div class="sg-card surface">
+      <span class="sg-k">Areas · live agentos colours, the same in both skins, only as 8px dots and 3px rails</span>
+      <div class="areas">
+        <span><i class="dot" style="--c: var(--a-college)"></i>City College</span><span><i class="dot" style="--c: var(--a-store)"></i>Morgan & Co.</span><span><i class="dot" style="--c: var(--a-market)"></i>Corner Market</span><span><i class="dot" style="--c: var(--a-northwind)"></i>Northwind Studio</span>
+        <span><i class="dot" style="--c: var(--a-projects)"></i>Projects</span><span><i class="dot" style="--c: var(--a-content)"></i>Content</span><span><i class="dot" style="--c: var(--a-personal)"></i>Personal</span><span><i class="dot" style="--c: var(--a-none)"></i>No area</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · TYPE -->
+  <section class="sg-sec" aria-labelledby="h-type">
+    <div class="sh"><h2 id="h-type">Type</h2><span class="sh-count">10</span></div>
+    <p class="sub sg-lead only-obsidian">SF Pro for words, SF Pro Rounded for figures, SF Mono for paths. Weights 400, 600 and 700. Large figures go lighter so they read at the same weight.</p>
+    <p class="sub sg-lead only-matte">SF Pro for text, SF Pro Rounded for every number at one matte weight, SF Mono for paths. Literata at its display optical size sets page titles and monograms, nothing else.</p>
+    <div class="sg-card surface" id="typeScale"></div>
+    <div class="sg-card surface">
+      <span class="sg-k">Figures · rounded, tabular</span>
+      <div class="fig"><b class="met" style="font-size: var(--fs-fig-hero); font-weight: var(--w-fig-l)">2:15</b><span class="sg-mono" data-spec="hero"></span></div>
+      <div class="fig"><b class="met c-content" style="font-size: var(--fs-fig-1); font-weight: var(--w-fig-l)">2,310</b><span class="sg-mono" data-spec="fig1"></span></div>
+      <div class="fig"><b class="met c-clients" style="font-size: var(--fs-fig-2)">≈ ₹45,000</b><span class="sg-mono">Figure 2 · 28 · 700</span></div>
+      <div class="fig"><b class="met" style="font-size: var(--fs-fig-3)">3/7</b><span class="sg-mono">Figure 3 · 20 · 700</span></div>
+      <div class="fig"><b class="met" style="font-size: var(--fs-fig-4)">13</b><span class="sg-mono">Figure 4 · 15 · 700</span></div>
+    </div>
+    <div class="sg-card surface">
+      <span class="sg-k">Families and monograms</span>
+      <div class="fams">
+        <div><span class="headline">SF Pro</span><span class="sg-mono">words · Geist on desktop</span></div>
+        <div><span class="met" style="font-size: var(--fs-headline)">SF Pro Rounded 0123</span><span class="sg-mono">figures · Nunito</span></div>
+        <div><span class="mono" style="font-size: var(--fs-subhead)">sales\magic-mirror\</span><span class="sg-mono">paths · Geist Mono</span></div>
+        <div class="only-matte"><span class="title1" style="font-size: var(--fs-title3); line-height: var(--lh-title3)">Literata, titles</span><span class="sg-mono">display optical size</span></div>
+      </div>
+      <div class="monos" style="margin-top: var(--s-4)"><span class="lg">TC</span><span>MM</span><span>AS</span><span>V</span></div>
+    </div>
+  </section>
+
+  <!-- 5 · SPACE AND SHAPE -->
+  <section class="sg-sec" aria-labelledby="h-space">
+    <div class="sh"><h2 id="h-space">Space and shape</h2></div>
+    <p class="sub sg-lead">A 4pt grid on an 8pt rhythm, shared. Each skin sets its page gutter and section rhythm. Inner radius is outer radius minus padding, so corners stay concentric.</p>
+    <div class="sg-card surface" id="spacing"></div>
+    <div class="sg-card surface">
+      <span class="sg-k">Radii</span>
+      <div class="radii" id="radii"></div>
+    </div>
+  </section>
+
+  <!-- 6 · TEXTURE -->
+  <section class="sg-sec" aria-labelledby="h-tex">
+    <div class="sh"><h2 id="h-tex">Texture</h2></div>
+    <p class="sub sg-lead">Static SVG noise painted as the background of a surface, never an overlay on scrolling content and never over the words. Felt more than seen: here at 4×, then at 1×.</p>
+    <div class="sg-card surface">
+      <div class="tex only-obsidian">
+        <figure><i class="t-g"></i><figcaption class="caption">Ground · 180px tile · 3.2%</figcaption></figure>
+        <figure><i class="t-s"></i><figcaption class="caption">Stone · 128px · 7%</figcaption></figure>
+        <figure><i class="t-f"></i><figcaption class="caption">Frost · 140px · 5%</figcaption></figure>
+      </div>
+      <div class="tex four only-matte">
+        <figure><i class="z1"></i><figcaption class="caption">Grain · paper fibre on paper and raised stock</figcaption></figure>
+        <figure><i class="z2"></i><figcaption class="caption">Heavy grain · the floating stock</figcaption></figure>
+        <figure><i class="z3"></i><figcaption class="caption">Ink mask · specks in strokes of 9px and up</figcaption></figure>
+        <figure><i class="z4"></i><figcaption class="caption">Fibre mask · the edge of an ink bleed</figcaption></figure>
+      </div>
+      <div class="tex-real"><i class="r-g" aria-label="Ground at 1x"></i><i class="r-s" aria-label="Surface at 1x"></i><i class="r-f" aria-label="Overlay at 1x"></i></div>
+      <p class="sg-note only-obsidian">Clear glass has no grain; thick glass is frosted so what passes behind it never fights the words. With more contrast turned on, every grain is removed.</p>
+      <p class="sg-note only-matte">Opacity 14% and 19% of a sparse speck field: visible only up close. Thin rings stay flat so they never look dirty.</p>
+    </div>
+  </section>
+
+  <!-- 7 · COMPONENTS -->
+  <section class="sg-sec" aria-labelledby="h-comp">
+    <div class="sh"><h2 id="h-comp">Components and states</h2></div>
+    <p class="sub sg-lead only-obsidian">One set of states for every control. Pressed is a brighter fill and a 3% press. Selected is the lit lens. Disabled is 38%. Focus is a 2px ink ring.</p>
+    <p class="sub sg-lead only-matte">One set of states for every control. Pressed scales to 97% and darkens 12%. Selected is cream ink. Disabled is 40%. Focus is a 2px cream ring.</p>
+    <div class="sg-card surface">
+      <div class="comp">
+        <span class="sg-k">Buttons</span>
+        <div class="st-grid" id="btns"></div>
+      </div>
+      <div class="comp">
+        <span class="sg-k">Chips</span>
+        <div class="st-row">
+          <span class="st"><span class="caption">Rest</span><button class="chip">City College</button></span>
+          <span class="st"><span class="caption">Selected</span><button class="chip on">Northwind Studio</button></span>
+          <span class="st"><span class="caption">Pressed</span><button class="chip is-pressed">Projects</button></span>
+          <span class="st"><span class="caption">Disabled</span><button class="chip" disabled>Content</button></span>
+          <span class="st"><span class="caption">Focus</span><button class="chip is-focus">Personal</button></span>
+        </div>
+      </div>
+      <div class="comp">
+        <span class="sg-k">Segmented · the selection is the same lens as the tab bar</span>
+        <div id="segs"></div>
+      </div>
+    </div>
+    <span class="sg-k sg-out">Rows · a group sits on the ground, never inside another panel</span>
+    <div class="group" id="rows"></div>
+    <div class="sg-card surface" style="margin-top: var(--s-5)">
+      <div class="comp">
+        <span class="sg-k">Status pills</span>
+        <div class="st-row">
+          <span class="pill plain">active · unpaid</span><span class="pill" style="--c: var(--needs-ink)">Needs your OK</span><span class="pill" style="--c: var(--done)">Paid</span><span class="pill" style="--c: var(--fail-ink)">Ship failed</span><span class="pill plain">Spec only</span>
+        </div>
+      </div>
+      <div class="comp">
+        <span class="sg-k">Switches and checks</span>
+        <div class="st-row">
+          <span class="st"><span class="caption">Off</span><button class="switch" aria-label="Off"></button></span>
+          <span class="st"><span class="caption">On</span><button class="switch on" aria-label="On"></button></span>
+          <span class="st"><span class="caption">Disabled</span><button class="switch on" disabled aria-label="Disabled"></button></span>
+          <span class="st"><span class="caption">Open</span><span class="check"></span></span>
+          <span class="st"><span class="caption">Done</span><span class="check done" id="chk"></span></span>
+        </div>
+      </div>
+      <div class="comp">
+        <span class="sg-k">Field</span>
+        <div class="st-row"><label class="field" style="flex: 1"><span id="fico"></span><input placeholder="Search clients" aria-label="Search clients" /></label></div>
+      </div>
+    </div>
+    <span class="sg-k sg-out">Chrome controls · E2 over a surface</span>
+    <div class="chrome-demo" id="chromeDemo"></div>
+  </section>
+
+  <!-- 8 · MOTION -->
+  <section class="sg-sec" aria-labelledby="h-motion">
+    <div class="sh"><h2 id="h-motion">Motion</h2></div>
+    <p class="sub sg-lead">Motion explains state or makes the one signature moment. The only loops are a running job's head, the spinner on work in progress, and Wyn on a call.</p>
+    <div class="group lvl">
+      <div class="row"><span class="rbody"><span class="rtitle">Draw</span><dl><dt>Curve</dt><dd><span class="only-obsidian">Critically damped spring</span><span class="only-matte">A pen stroke: quick, then a soft stop <span class="sg-mono">.3, .72, .18, 1</span></span> · <span class="num" data-tok="--draw"></span></dd><dt>Used by</dt><dd>Every ring, once per open; the figures beside it count up with it</dd></dl></span></div>
+      <div class="row only-obsidian"><span class="rbody"><span class="rtitle">Bloom</span><dl><dt>Curve</dt><dd><span class="sg-mono">.45, 0, .25, 1</span> · <span class="num" data-tok="--d-bloom"></span></dd><dt>Used by</dt><dd>The ring's light, once per open</dd></dl></span></div>
+      <div class="row only-matte"><span class="rbody"><span class="rtitle">Ink bleed</span><dl><dt>Curve</dt><dd>Settle · <span class="num" data-tok="--bleed"></span>, the cap swells 16% and settles 6% fuller</dd><dt>Used by</dt><dd>Each ring's head as its stroke stops, and again when a ring moves</dd></dl></span></div>
+      <div class="row"><span class="rbody"><span class="rtitle">Skin switch</span><dl><dt>Curve</dt><dd>Crossfade · <span class="num" data-tok="--d-skin"></span>, then the page's rings draw again in the new material</dd><dt>Used by</dt><dd>More → Appearance, the account sheet, this page</dd></dl></span></div>
+      <div class="row"><span class="rbody"><span class="rtitle">Move</span><dl><dt>Curve</dt><dd><span class="sg-mono">.32, .72, 0, 1</span> · 0.48 s</dd><dt>Used by</dt><dd>Pushed pages, the dock</dd></dl></span></div>
+      <div class="row"><span class="rbody"><span class="rtitle">Settle and press</span><dl><dt>Curve</dt><dd><span class="sg-mono">.22, 1, .36, 1</span> · 0.12 s and 0.22 s</dd><dt>Used by</dt><dd>Taps, state changes, sheets</dd></dl></span></div>
+      <div class="row"><span class="rbody"><span class="rtitle">Reduced motion</span><dl><dt>Then</dt><dd>No draw, no <span class="only-obsidian">bloom</span><span class="only-matte">bleed</span>, no beat. The skin switch keeps a short fade</dd></dl></span></div>
+    </div>
+  </section>
+
+  <!-- 9 · RULES -->
+  <section class="sg-sec" aria-labelledby="h-rules">
+    <div class="sh"><h2 id="h-rules">Rules</h2></div>
+    <div class="sg-card surface">
+      <ol class="rules only-obsidian">
+        <li><span class="met">1</span><span><b>Rings are the only light.</b> Nothing else glows: no halos, no coloured shadows, no radial lights.</span></li>
+        <li><span class="met">2</span><span><b>Glass floats; stone holds.</b> Content never sits on glass and chrome is never stone.</span></li>
+        <li><span class="met">3</span><span><b>One primary per screen.</b> It is the only coloured fill. Everything else is a neutral fill or coloured words.</span></li>
+        <li><span class="met">4</span><span><b>Orange asks for you.</b> It means waiting on you, and nothing else.</span></li>
+        <li><span class="met">5</span><span><b>Selection is the lit lens,</b> in the tab bar, a segmented control, a chip or a tile.</span></li>
+        <li><span class="met">6</span><span><b>Texture lives on surfaces,</b> under the words, never over scrolling content.</span></li>
+      </ol>
+      <ol class="rules only-matte">
+        <li><span class="met">1</span><span><b>Nothing is see-through.</b> No blur, no glow. Depth is a tone step, a cut edge and one soft shadow.</span></li>
+        <li><span class="met">2</span><span><b>Paper under the words.</b> Grain is the surface itself, never laid over text or scrolling content.</span></li>
+        <li><span class="met">3</span><span><b>One inked primary per screen.</b> Everything else is stock.</span></li>
+        <li><span class="met">4</span><span><b>Orange asks for you.</b> It means waiting on you, and nothing else.</span></li>
+        <li><span class="met">5</span><span><b>Selection is cream ink,</b> on a chip, a smart list or an option; a segmented thumb is lighter stock.</span></li>
+        <li><span class="met">6</span><span><b>Titles are the masthead.</b> Literata sets titles and monograms; labels, rows and data are instrument.</span></li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+<script type="module">
+  import { $, $$, ring, ringSet, pulse, wireSegs, seg, on, esc } from './js/core.js';
+  import { I } from './js/icons.js';
+  import { initSkin, skinSeg, setSkin, skin } from './js/skin.js';
+
+  initSkin();
+  const root = document.documentElement;
+  const v = (n) => getComputedStyle(root).getPropertyValue(n).trim();
+  $('#sgBack').innerHTML = `${I.chevL}Back to the app`;
+  $('#sgCtl').innerHTML = skinSeg() + seg('sg-theme', [['dark', 'Dark'], ['light', 'Light']], root.dataset.theme === 'light' ? 'light' : 'dark', 'sm theme-seg');
+
+  // ── what does not change with the skin ──
+  $('#dioRing').innerHTML = ring(.47, 'clients', 64, 7.5, { label: '47% collected' });
+  $('#lights').innerHTML = [[112, 13, 'Hero', '112 · stroke 13'], [64, 7.5, 'Card', '64 · stroke 7.5'], [34, 4.5, 'Row', '34 · stroke 4.5']]
+    .map(([s, w, n, d]) => `<figure>${ring(.62, 'clients', s, w, { inner: s > 100 ? '<span class="rin"><b class="met">62<small>%</small></b><small>collected</small></span>' : '', label: `${n} ring` })}<figcaption><b>${n}</b>${d}</figcaption></figure>`).join('');
+  $('#doms').innerHTML = [['today', 'Today', .53], ['jobs', 'Jobs', .43], ['clients', 'Clients', .47], ['content', 'Content', .57], ['life', 'Life', .3]]
+    .map(([h, n, p], i) => `<figure>${ring(p, h, 46, 6, { delay: i * 60, label: n })}<figcaption><b>${n}</b></figcaption></figure>`).join('');
+  $('#ringStates').innerHTML = [[0, 'today', 'Empty'], [.62, 'jobs', 'With a mark'], [1, 'content', 'Closed'], [1.28, 'today', 'Lapped · 128%']]
+    .map(([p, hue, l], i) => `<figure>${ring(p, hue, 52, 6.5, { k: i === 1 ? .45 : null, label: l })}<figcaption><b>${l}</b></figcaption></figure>`).join('');
+
+  const B = (cls, label, state, extra = '') => `<span class="st"><span class="caption">${state}</span><button class="btn ${cls}" ${extra}>${label}</button></span>`;
+  $('#btns').innerHTML = [
+    B('primary', 'Start shoot', 'Primary', 'style="--c: var(--content-fill)"'),
+    B('primary is-pressed', 'Start shoot', 'Primary · pressed', 'style="--c: var(--content-fill)"'),
+    B('', 'Run a workflow', 'Secondary'),
+    B('is-pressed', 'Run a workflow', 'Secondary · pressed'),
+    B('tint', 'Allow', 'Tint', 'style="--c: var(--needs-ink)"'),
+    B('tint', 'Approve', 'Tint · done', 'style="--c: var(--done)"'),
+    B('primary', 'File the lead', 'Disabled', 'style="--c: var(--clients-fill)" disabled'),
+    B('is-focus', 'Log work', 'Focus'),
+  ].join('');
+  const cap = (t) => `<span class="caption" style="display: block; margin: var(--s-3) 0 var(--s-2) var(--s-1)">${t}</span>`;
+  $('#segs').innerHTML = cap('Selected · the count takes the domain where the skin says so') + seg('sg-a', [['clients', 'Clients', 4], ['leads', 'Leads', 1], ['pipeline', 'Pipeline']], 'clients', 'dom')
+    + cap('As chrome, the sticky switch') + seg('sg-b', [['schedule', 'Schedule'], ['tasks', 'Tasks', 7]], 'tasks', 'dom chrome')
+    + cap('Disabled option · focus') + seg('sg-c', [['day', 'Day'], ['week', 'Week'], ['month', 'Month']], 'day', 'sm');
+  $('[data-seg="sg-a"]').style.setProperty('--seg-n', 'var(--clients-ink)');
+  $('[data-seg="sg-b"]').style.setProperty('--seg-n', 'var(--today-ink)');
+  const sc = $('[data-seg="sg-c"]');
+  sc.querySelector('[data-v="month"]').disabled = true;
+  sc.querySelector('[data-v="week"]').classList.add('is-focus');
+  $('#rows').innerHTML = `
+    <button class="row ic"><span class="tile">${I.folder}</span><span class="rbody"><span class="rtitle">Rest</span><span class="rmeta">A row with a glyph tile</span></span>${I.chevR}</button>
+    <button class="row ic is-pressed"><span class="tile">${I.flow}</span><span class="rbody"><span class="rtitle">Pressed</span><span class="rmeta">The row takes a fill, not a scale</span></span>${I.chevR}</button>
+    <div class="row is-done"><span class="check done"><svg viewBox="0 0 12 12"><path d="M2.5 6.3l2.3 2.3 4.7-5"/></svg></span><span class="rbody"><span class="rtitle">Done</span><span class="rmeta"><i class="dot" style="--c: var(--a-northwind)"></i><span>Northwind Studio</span><span class="late">1 day late</span></span></span></div>
+    <div class="row"><span class="rbody"><span class="rtitle">With a switch</span></span><button class="switch on" aria-label="On"></button></div>
+    <button class="row ic"><span class="tile" style="color: var(--fail-ink)">${I.arrowR}</span><span class="rbody"><span class="rtitle" style="color: var(--fail-ink)">Destructive</span></span></button>`;
+  $('#chk').innerHTML = '<svg viewBox="0 0 12 12"><path d="M2.5 6.3l2.3 2.3 4.7-5"/></svg>';
+  $('#fico').outerHTML = I.search;
+  $('#chromeDemo').innerHTML = `${ring(.7, 'jobs', 40, 5)}<button class="gbtn chrome back">${I.chevL}<span>Clients</span></button><button class="gbtn chrome icon" aria-label="Search">${I.search}</button><button class="gbtn chrome icon accent" aria-label="New lead">${I.plus}</button>`;
+
+  // ── what is read live from the active skin ──
+  const DOMAINS = [['today', 'Today'], ['jobs', 'Jobs'], ['clients', 'Clients'], ['content', 'Content'], ['life', 'Life']];
+  const SEM = [['--needs', 'Needs you'], ['--done', 'Done, live, on'], ['--warn', 'Needs attention'], ['--fail', 'Failed, at risk']];
+  const NEUTRAL = [['--ink', 'Ink'], ['--ink-2', 'Ink 2'], ['--ink-3', 'Ink 3'], ['--ink-4', 'Strokes'], ['--e0', 'E0 ground'], ['--e1', 'E1 surface'], ['--fill-2', 'Fill'], ['--sel', 'Selected lens']];
+  const TYPE = [['display', 'Display', '--fs-display', '--lh-display', '--w-display'], ['title1', 'Title 1', '--fs-title1', '--lh-title1', '--w-title'], ['title2', 'Title 2', '--fs-title2', '--lh-title2', '--w-bold'], ['title3', 'Title 3', '--fs-title3', '--lh-title3', '--w-semibold'], ['headline', 'Headline', '--fs-headline', '--lh-headline', '--w-semibold'], ['body', 'Body', '--fs-body', '--lh-body', '--w-regular'], ['callout', 'Callout', '--fs-callout', '--lh-callout', '--w-regular'], ['subhead', 'Subhead', '--fs-subhead', '--lh-subhead', '--w-regular'], ['footnote', 'Footnote', '--fs-footnote', '--lh-footnote', '--w-regular'], ['caption', 'Caption', '--fs-caption', '--lh-caption', '--w-regular']];
+  const SP = ['s-0', 's-1', 's-2', 's-3', 's-4', 's-5', 's-6', 's-8', 's-10', 's-12', 's-16', 'gutter', 'gap-sec'];
+  const RAD = ['r-xs', 'r-sm', 'r-md', 'r-lg', 'r-xl', 'r-sheet', 'r-track', 'r-pill'];
+  const px = (s) => s.replace(/px$/, '');
+  function paint() {
+    $('#domains').innerHTML = DOMAINS.map(([d, n]) => `<div class="dmr"><b class="c-${d}">${n}</b><span class="sg-mono">${esc(v(`--${d}`))} · ink ${esc(v(`--${d}-ink`))} · fill ${esc(v(`--${d}-fill`))}</span><i class="dmr-bar" style="background: linear-gradient(90deg, var(--${d}-a), var(--${d}-b))"></i></div>`).join('');
+    $('#semantics').innerHTML = SEM.map(([t, n]) => `<div class="sw"><i style="background: var(${t})"></i><span><b>${n}</b><span class="sg-mono">${esc(v(t))}</span></span></div>`).join('');
+    $('#neutrals').innerHTML = NEUTRAL.map(([t, n]) => `<div class="sw"><i style="background: var(${t})${t === '--sel' ? '; box-shadow: var(--sel-edge)' : ''}"></i><span><b>${n}</b><span class="sg-mono">${esc(v(t))}</span></span></div>`).join('');
+    const face = (r) => (['display', 'title1'].includes(r) && skin() === 'matte' ? 'Literata' : 'SF Pro');
+    $('#typeScale').innerHTML = TYPE.map(([r, n, fs, lh, w]) => `<div class="ty"><span class="${r}"${['subhead', 'footnote', 'caption'].includes(r) ? ' style="color: var(--ink)"' : ''}>${n}</span><span class="sg-mono">${face(r)} · ${px(v(fs))}/${px(v(lh))} · ${v(w)}</span></div>`).join('');
+    $('[data-spec="hero"]').textContent = `Hero 64 · ${v('--w-fig-l')}`;
+    $('[data-spec="fig1"]').textContent = `Figure 1 · 44 · ${v('--w-fig-l')}`;
+    $('#spacing').innerHTML = `<span class="sg-k">Spacing</span>` + SP.map((k) => `<div class="sp"><span class="sg-mono">${k}</span><span><i style="width: var(--${k})"></i></span><span class="sg-mono">${px(v(`--${k}`))}</span></div>`).join('');
+    $('#radii').innerHTML = RAD.map((k) => `<figure><i style="border-radius: var(--${k})${k === 'r-pill' ? '; aspect-ratio: 2' : ''}"></i><figcaption class="caption">${k.slice(2)} · ${v(`--${k}`) === '999px' ? 'pill' : px(v(`--${k}`))}</figcaption></figure>`).join('');
+    $$('[data-tok]').forEach((el) => { el.textContent = v(el.dataset.tok); });
+    $$('.duo-c').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.id === skin())));
+  }
+  const draw = () => { pulse($('#rings')); pulse($('.dio')); };
+  paint();
+  wireSegs(document);
+  requestAnimationFrame(draw);
+  on('sg-replay', draw);
+  on('sg-skin', (el) => setSkin(el.dataset.id));
+  // a skin switch (from the control, the cards, or elsewhere) repaints the live values and re-draws the rings
+  new MutationObserver(() => { paint(); draw(); }).observe(root, { attributes: true, attributeFilter: ['data-skin'] });
+  document.addEventListener('change', (e) => {
+    if (!e.target.closest?.('[data-seg="sg-theme"]')) return;
+    root.dataset.theme = e.detail; requestAnimationFrame(paint);
+  });
+</script>
+</body>
+</html>

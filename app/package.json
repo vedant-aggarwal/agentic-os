@@ -1,0 +1,4 @@
+{
+  "//": "Lets node --check read these files as ES modules. The browser ignores this file.",
+  "type": "module"
+}

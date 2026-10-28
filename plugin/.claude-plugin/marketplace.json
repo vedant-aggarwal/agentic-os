@@ -1,0 +1,11 @@
+{
+  "name": "agentic-os-local",
+  "owner": { "name": "Vedant" },
+  "plugins": [
+    {
+      "name": "wyn",
+      "source": ".",
+      "description": "Lets Wyn, Vedant's assistant in Agentic OS, hand this session a prompt and get the reply back."
+    }
+  ]
+}

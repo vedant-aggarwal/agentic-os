@@ -1,0 +1,68 @@
+/* ═══ ASPECT APPS · the shared frame ══════════════════════════════════════════
+   Every aspect of the life wheel is its own app (js/aspects.js). This file is the frame they share: the colour
+   mapping, the section header, the app's own tab bar and its primary action. Owned by the lead.
+   Each app's own screens live in css/aspects/<id>.css (blocks: 1 shared · 2 OBSIDIAN · 3 MATTE).
+
+   Inside an app, read the aspect's colour through --as, never through --money etc., so a component written for one
+   app works in another:  --as (pigment) · --as-a, --as-b (ring ends) · --as-ink (text-safe tint) · --as-fill (one
+   primary action). ring(p, 'as', …) draws in it; .c-as colours text with it.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ═══ 1 · SHARED ═══════════════════════════════════════════════════════════ */
+[data-aspect="body"]    { --as: var(--body);    --as-a: var(--body-a);    --as-b: var(--body-b);    --as-ink: var(--body-ink);    --as-fill: var(--body-fill); --as-on: var(--body-on); }
+[data-aspect="mind"]    { --as: var(--mind);    --as-a: var(--mind-a);    --as-b: var(--mind-b);    --as-ink: var(--mind-ink);    --as-fill: var(--mind-fill); --as-on: var(--mind-on); }
+[data-aspect="soul"]    { --as: var(--soul);    --as-a: var(--soul-a);    --as-b: var(--soul-b);    --as-ink: var(--soul-ink);    --as-fill: var(--soul-fill); --as-on: var(--soul-on); }
+[data-aspect="mission"] { --as: var(--mission); --as-a: var(--mission-a); --as-b: var(--mission-b); --as-ink: var(--mission-ink); --as-fill: var(--mission-fill); --as-on: var(--mission-on); }
+[data-aspect="money"]   { --as: var(--money);   --as-a: var(--money-a);   --as-b: var(--money-b);   --as-ink: var(--money-ink);   --as-fill: var(--money-fill); --as-on: var(--money-on); }
+[data-aspect="growth"]  { --as: var(--growth);  --as-a: var(--growth-a);  --as-b: var(--growth-b);  --as-ink: var(--growth-ink);  --as-fill: var(--growth-fill); --as-on: var(--growth-on); }
+[data-aspect="family"]  { --as: var(--family);  --as-a: var(--family-a);  --as-b: var(--family-b);  --as-ink: var(--family-ink);  --as-fill: var(--family-fill); --as-on: var(--family-on); }
+[data-aspect="romance"] { --as: var(--romance); --as-a: var(--romance-a); --as-b: var(--romance-b); --as-ink: var(--romance-ink); --as-fill: var(--romance-fill); --as-on: var(--romance-on); }
+[data-aspect="friends"] { --as: var(--friends); --as-a: var(--friends-a); --as-b: var(--friends-b); --as-ink: var(--friends-ink); --as-fill: var(--friends-fill); --as-on: var(--friends-on); }
+.c-as { color: var(--as-ink); }
+/* text on the app's fill reads --as-on (dark or light per skin and theme, set for contrast). Buttons filled inline with
+   style="--c:var(--as-fill)" pick it up here; your own filled elements should use color: var(--as-on) */
+[data-aspect] [style*="--as-fill"], [data-aspect] .as-on { color: var(--as-on); }
+/* inside an app a switch that's on wears the app's colour, not the system green */
+[data-aspect] .switch.on { background: var(--as-fill); }
+
+/* the aspect's glyph on a tile, tinted with its colour (rows, cards, the wheel) */
+.asp-tile { background: color-mix(in oklch, var(--as) 18%, transparent); color: var(--as-ink); box-shadow: none; }
+
+/* a section's large title: kicker in the app's colour, the title, a subline; an optional slot on the right */
+.asp-head { display: flex; align-items: flex-end; gap: var(--s-3); }
+.asp-head-l { flex: 1; min-width: 0; }
+.asp-head-l .kicker { margin: 0 0 var(--s-1); }
+.asp-head-r { flex-shrink: 0; padding-bottom: var(--s-1); }
+
+/* sections swap in place; each keeps its scroll */
+/* (specific enough to beat system.css's .stack .page .scroll, so the last card clears the app's dock) */
+.stack .page.asp > .scroll { padding-bottom: calc(var(--safe-bottom) + var(--dock-h) + var(--s-12)); }
+.asp-sec.asp-in { animation: swap .24s var(--ease); }
+
+/* the app's own dock: its sections, and its one primary action, filled with the app's colour */
+.adock { position: absolute; z-index: 30; left: 0; right: 0; bottom: var(--safe-bottom); padding: 0 var(--s-3); display: flex; align-items: center; gap: var(--s-3); pointer-events: none; }
+.adock > * { pointer-events: auto; }
+.adock-gap { flex: 1; }
+.atabbar { flex: 1; height: var(--dock-h); border-radius: var(--r-pill); padding: var(--s-1); display: grid; grid-template-columns: repeat(var(--n, 4), 1fr); position: relative; }
+.atab-lens { position: absolute; top: var(--s-1); bottom: var(--s-1); left: var(--s-1); width: calc((100% - 2 * var(--s-1)) / var(--n, 4)); border-radius: var(--r-pill); background: var(--sel); box-shadow: var(--sel-edge); transition: transform .42s var(--spring); }
+.atab {
+  position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 0;
+  color: var(--ink-2); font-size: var(--fs-caption); font-weight: var(--w-semibold); line-height: 1.1;
+  transition: color var(--d-state), transform var(--d-press) var(--ease);
+}
+.atab span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 2px; }
+.atab svg { width: 24px; height: 24px; }
+.atab:active { transform: scale(.9); }
+.atab.on { color: var(--as-ink); }
+.aact { width: var(--dock-h); height: var(--dock-h); border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; background: var(--as-fill); color: var(--as-on); transition: transform var(--d-press) var(--ease), filter var(--d-press); }
+.aact svg { width: 26px; height: 26px; }
+.aact:active { transform: scale(.9); filter: brightness(.9); }
+
+/* ═══ 2 · OBSIDIAN ═════════════════════════════════════════════════════════ */
+/* the primary action is lit from inside, like the rings: a soft bloom of its own colour beneath it */
+:where(:root[data-skin="obsidian"]) .aact { box-shadow: 0 10px 28px -10px color-mix(in oklch, var(--as) 70%, transparent), inset 0 1px 0 rgba(255, 255, 255, .28); }
+
+/* ═══ 3 · MATTE ════════════════════════════════════════════════════════════ */
+/* printed stock: the action is a flat pigment disc with the grain over it; the tint tile is the pigment thinned */
+:where(:root[data-skin="matte"]) .aact { box-shadow: none; background: var(--grain), var(--as-fill); }
+:where(:root[data-skin="matte"]) .asp-tile { background: color-mix(in oklab, var(--as) 22%, transparent); }

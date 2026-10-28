@@ -1,0 +1,436 @@
+/* ═══ SCREEN · CLIENTS ════════════════════════════════════════════════════════
+   The Clients tab (summary, Clients · Leads · Pipeline), the client and lead pages, and their sheets
+   (run a workflow, log work, next touch, new lead, search).
+   Owner: area (c). JS: js/clients.js (data: js/clients-data.js). Blocks: 1 shared · 2 OBSIDIAN · 3 MATTE (see css/system.css).
+   The clients colour is client money and the client pipeline. Health is the dossier's traffic light, as a dot,
+   and in words whenever it is not on track. Cards are surfaces; what sits inside them is an inlay or a hairline.
+   Density: cards take 16px padding and iOS row heights (44 to 56px); each card has one focal line. */
+/* the shared motion kit's CSS (rolling numbers, the loading shimmer, spring curves) comes from index.html's link (the
+   lead's), or from work-ui.js until that link is there: not imported here, so the skins that follow it keep winning */
+
+/* ═══ 1 · SHARED ═══════════════════════════════════════════════════════════ */
+/* summary: how much of what you billed has come in (the ring and the figure), then who is healthy */
+.cl-sum { margin: 0 var(--gutter); padding: var(--s-4); border-radius: var(--r-lg); --ring-bg: var(--e1); }
+.cl-sum-main { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s-4); align-items: center; }
+.cl-sum-in { display: flex; flex-direction: column; align-items: center; }
+.cl-sum-in .met { font-size: var(--fs-fig-2); }
+.cl-sum-in .met small { font-size: var(--fs-footnote); }
+.cl-sum-in > small { margin-top: var(--s-0); font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-2); }
+.cl-sum-stats { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-1); min-width: 0; }
+.cl-sum-l { font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.cl-sum-big { font-size: var(--fs-fig-2); line-height: var(--lh-title2); white-space: nowrap; }
+.cl-sum-s { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.cl-sum-s b { color: var(--ink); font-weight: var(--w-semibold); }
+/* the health split: one bar in the traffic-light colours, then its key in words */
+.cl-health { display: flex; flex-direction: column; gap: var(--s-2); margin-top: var(--s-4); }
+.cl-hbar { display: flex; gap: var(--s-0); height: 6px; border-radius: var(--r-track); overflow: hidden; }
+.cl-hbar i { display: block; min-width: var(--s-2); flex-basis: 0; transform-origin: left center; transition: flex-grow var(--mx-spring-d, .5s) var(--mx-spring, ease); }
+.cl-hbar i[hidden] { display: none; }
+.cl-hkey { display: flex; justify-content: space-between; gap: var(--s-2); }
+.cl-h { display: inline-flex; align-items: center; gap: var(--s-1); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); white-space: nowrap; }
+.cl-h .dot { margin-right: var(--s-0); }
+.cl-h .met { font-size: var(--fs-fig-4); color: var(--ink); }
+.cl-h.zero, .cl-h.zero .met { color: var(--ink-3); }
+
+.cl-seg { padding-top: var(--s-4); }
+
+/* client and lead cards: who and the money on top, the next step under them */
+.cl-list { display: flex; flex-direction: column; gap: var(--s-3); padding: var(--s-3) var(--gutter) 0; }
+.cl-card { display: flex; flex-direction: column; width: 100%; text-align: left; padding: var(--s-4); border-radius: var(--r-lg); transition: transform var(--d-press) var(--ease), filter var(--d-press); }
+.cl-card:active { transform: var(--press); filter: var(--press-filter); }
+.cl-head { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: var(--s-3); align-items: start; }
+.cl-id { display: flex; flex-direction: column; gap: var(--s-0); min-width: 0; }
+.cl-l1 { display: flex; align-items: baseline; gap: var(--s-1); min-width: 0; }
+/* the name is the card's focal line: a long one wraps to a second line rather than lose its end */
+.cl-name { min-width: 0; font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.cl-pinned { display: grid; align-self: center; flex-shrink: 0; color: var(--ink-2); }
+.cl-pinned svg { width: 14px; height: 14px; }
+/* the stage chip leads the product line, so the stages read down the list in one column */
+.cl-l2 { display: flex; align-items: center; gap: var(--s-2); min-width: 0; min-height: var(--lh-headline); }
+.cl-stage { flex-shrink: 0; display: inline-flex; align-items: center; height: var(--s-5); padding: 0 var(--s-2); border-radius: var(--r-pill); background: var(--fill-2); font-size: var(--fs-caption); line-height: 1; font-weight: var(--w-semibold); color: var(--ink-2); white-space: nowrap; }
+.cl-prod { min-width: 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* health in words when it is not on track (the dot is never the only cue), then the marks a client carries */
+.cl-l3 { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--s-1); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+.cl-hw { color: var(--ink); font-weight: var(--w-semibold); }
+/* money at the right of the name line only, so the lines under it keep the full width */
+.cl-amt { display: inline-flex; align-items: baseline; gap: var(--s-1); flex-shrink: 0; margin-left: auto; padding-left: var(--s-2); white-space: nowrap; }
+.cl-amt .met { font-size: var(--fs-headline); line-height: var(--lh-headline); }
+.cl-amt small { font-size: var(--fs-caption); line-height: var(--lh-caption); font-weight: var(--w-semibold); color: var(--ink-3); }
+.cl-amt.is-text { font-size: var(--fs-footnote); line-height: var(--lh-headline); font-weight: var(--w-semibold); color: var(--ink-2); }
+.cl-amt.is-warm { align-self: center; }
+/* the next step, set into the card. The due floats on its first line, so the words wrap under it, never cut.
+   The well sits 16px in from the card's corners, so its radius is the card's less that inset (concentric) */
+.cl-next { display: flex; align-items: flex-start; gap: var(--s-2); margin-top: var(--s-3); padding: var(--s-2) var(--s-3); border-radius: var(--r-xs); background: var(--inlay); box-shadow: var(--inlay-box); }
+.cl-next-i { display: grid; place-items: center; height: var(--lh-subhead); flex-shrink: 0; color: var(--ink-3); }
+.cl-next-i svg { width: 16px; height: 16px; }
+.cl-next-b { display: block; flex: 1; min-width: 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); text-wrap: pretty; }
+.cl-next-b > .cl-due { float: right; margin-left: var(--s-3); }
+/* a hyphenated word (first-year) wraps whole */
+.cl-nw { white-space: nowrap; }
+.cl-due { font-size: var(--fs-footnote); line-height: var(--lh-subhead); font-weight: var(--w-semibold); color: var(--ink-2); white-space: nowrap; }
+.cl-due.late { color: var(--needs-ink); }
+.cl-due.quiet { color: var(--ink-3); font-weight: var(--w-regular); }
+/* warmth: three bars, like signal */
+.cl-warm { display: inline-flex; align-items: center; gap: var(--s-1); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); white-space: nowrap; }
+.cl-warm-b { display: inline-flex; align-items: flex-end; gap: var(--s-0); height: 12px; }
+.cl-warm-b i { width: 3px; border-radius: 1px; background: var(--ink-4); }
+.cl-warm-b i:nth-child(1) { height: 5px; }
+.cl-warm-b i:nth-child(2) { height: 8px; }
+.cl-warm-b i:nth-child(3) { height: 12px; }
+.cl-warm-b i.on { background: var(--ink-2); }
+
+/* the sync issue: real, and one tap from fixed */
+.cl-issue { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 var(--s-3); align-items: center; margin: var(--s-3) var(--gutter) 0; padding: var(--s-3) var(--s-4) var(--s-4); border-radius: var(--r-lg); }
+.cl-issue-i { color: var(--needs-ink); }
+.cl-issue-b { display: flex; flex-direction: column; gap: var(--s-0); min-width: 0; }
+.cl-issue-b b { font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); }
+.cl-issue-b small { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.cl-issue .btn { grid-column: 2; justify-self: start; margin-top: var(--s-3); }
+.cl-issue .btn .spin { --c: var(--ink); }
+.cl-retired { margin-top: var(--s-3); }
+.cl-retired .rend .met { font-size: var(--fs-fig-4); color: var(--ink-3); }
+.cl-fold { display: grid; color: var(--ink-3); }
+.cl-fold svg { width: 15px; height: 15px; }
+/* the sync line: where the mirror comes from, how fresh it is, and a quiet way to refresh it */
+.cl-sync { display: flex; align-items: center; gap: var(--s-2); margin: var(--s-2) var(--gutter) 0; padding-left: var(--s-2); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+.cl-sync > svg { width: 14px; height: 14px; flex-shrink: 0; }
+.cl-sync-t { flex: 1; min-width: 0; text-wrap: balance; }
+.cl-sync-btn { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; min-width: 76px; min-height: var(--hit); padding: 0 var(--s-2); border-radius: var(--r-pill); font-size: var(--fs-footnote); font-weight: var(--w-semibold); color: var(--ink); transition: background-color var(--d-press); }
+.cl-sync-btn:active { background: var(--row-press); }
+.cl-sync-btn:disabled { cursor: default; }
+.cl-sync-btn .spin { width: 14px; height: 14px; --c: var(--ink-2); }
+.cl-addlead { margin-top: var(--s-3); }
+/* an empty list or search says what is missing, and the way on sits right under it */
+.cl-empty b { display: block; margin-bottom: var(--s-0); color: var(--ink); font-weight: var(--w-semibold); }
+.cl-empty { margin-top: var(--s-3); }
+
+/* pipeline: one path, leads into clients. A filled node is a stage with someone in it; an empty stage is one quiet line */
+.cl-pipe { padding-top: var(--s-3); }
+.clp-card { margin: 0 var(--gutter); padding: var(--s-3) var(--s-4); border-radius: var(--r-lg); }
+.clp-hd { margin: 0 0 var(--s-2); font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+.clp-path { list-style: none; margin: 0; padding: 0; }
+.clp-st { position: relative; padding: 0 0 var(--s-2) var(--s-6); }
+.clp-st:last-child { padding-bottom: 0; }
+/* the rail runs from this stage's node to the next one's */
+.clp-st:not(:last-child)::before { content: ""; position: absolute; left: 5px; top: 17px; bottom: -5px; width: 2px; border-radius: 1px; background: var(--ink-4); }
+.clp-node { position: absolute; left: 0; top: 5px; width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--ink-4); }
+.clp-st.has .clp-node { background: var(--clients); box-shadow: none; }
+.clp-h { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-2); min-height: var(--lh-headline); }
+.clp-h b { font-size: var(--fs-subhead); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+.clp-h .met { font-size: var(--fs-fig-4); color: var(--ink-3); }
+.clp-st:not(.has) .clp-h b { color: var(--ink-3); font-weight: var(--w-regular); }
+.clp-st.has .clp-h .met { color: var(--ink); }
+.clp-items { display: flex; flex-direction: column; gap: var(--s-1); margin-top: var(--s-1); }
+.clp-item { display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: var(--hit); padding: var(--s-1) var(--s-3) var(--s-1) var(--s-1); border-radius: var(--r-md); background: var(--inlay); box-shadow: var(--inlay-box); text-align: left; transition: transform var(--d-press) var(--ease), filter var(--d-press); }
+.clp-item:active { transform: var(--press); filter: var(--press-filter); }
+.clp-t { flex: 1; min-width: 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.clp-m { flex-shrink: 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.clp-off { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-1) var(--s-3); margin: var(--s-3) 0 0; padding-top: var(--s-3); border-top: var(--hair) solid var(--sep); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+.clp-off-l { font-weight: var(--w-semibold); color: var(--ink-2); }
+.clp-off .met { margin-left: var(--s-0); font-size: var(--fs-footnote); color: var(--ink-3); }
+.clp-off .has, .clp-off .has .met { color: var(--ink-2); }
+/* where a lead crosses into the client path: the rail goes on, dashed, between the two cards */
+.clp-conv { position: relative; display: flex; align-items: center; min-height: var(--s-10); margin: 0 var(--gutter); padding: var(--s-2) 0 var(--s-2) calc(var(--s-4) + var(--s-6)); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+.clp-conv::before { content: ""; position: absolute; left: calc(var(--s-4) + 5px); top: 0; bottom: 0; border-left: 2px dashed var(--ink-4); }
+
+/* ── client and lead pages ── */
+/* a monogram is a title in miniature: the skin's monogram face on a control medallion */
+.cl-mono {
+  position: relative; width: var(--hit); height: var(--hit); border-radius: 50%; flex-shrink: 0; display: grid; place-items: center;
+  font-family: var(--ff-mono-g); font-size: var(--fs-subhead); font-weight: var(--w-mono-g); font-variation-settings: var(--fv-mono-g); color: var(--ink);
+  background: var(--ctl); box-shadow: var(--e1-edge);
+}
+.cl-mono.lg { width: 56px; height: 56px; font-size: var(--fs-title3); }
+.cl-mono.sm { width: 32px; height: 32px; font-size: var(--fs-caption); }
+.cl-hdot { position: absolute; right: -1px; bottom: -1px; width: 12px; height: 12px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 2.5px var(--e1); }
+.cl-mono.lg .cl-hdot { width: 14px; height: 14px; box-shadow: 0 0 0 3px var(--e0); }
+.cl-mono.sm .cl-hdot { width: 9px; height: 9px; box-shadow: 0 0 0 2px var(--e1); }
+
+.cl-hero { padding: var(--s-2) var(--gutter) 0; }
+.cl-hero-id { display: flex; align-items: center; gap: var(--s-4); }
+.cl-hero-t { flex: 1; min-width: 0; }
+.cl-hname { text-wrap: balance; }
+.cl-hero-t .sub { margin-top: var(--s-0); }
+.cl-hmeta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); margin-top: var(--s-4); }
+.cl-hh { display: inline-flex; align-items: center; gap: var(--s-2); margin-right: var(--s-1); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); }
+.cl-hsum { margin: var(--s-3) 0 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); text-wrap: pretty; }
+
+/* the next step: the one thing to do, who it is for and when, and the three ways to act on it */
+.cl-nextcard { margin: var(--s-5) var(--gutter) 0; padding: var(--s-4); border-radius: var(--r-lg); }
+.cl-nc-top { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2); }
+.cl-nc-k { display: inline-flex; align-items: center; gap: var(--s-1); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.cl-nc-k svg { width: 14px; height: 14px; }
+.cl-nc-t { margin: var(--s-1) 0 var(--s-4); font-size: var(--fs-title3); line-height: var(--lh-title3); font-weight: var(--w-semibold); text-wrap: pretty; }
+.cl-nc-acts { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-2); margin-top: var(--s-2); }
+.cl-nc-acts .btn { height: var(--hit); padding: 0 var(--s-3); font-size: var(--fs-subhead); }
+
+/* waiting on: you first (a list you can tick off), then them. Bullets and checks share one 24px column */
+.cl-wl { display: flex; align-items: baseline; gap: var(--s-2); padding: var(--s-3) var(--s-4) var(--s-1); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.cl-wl .met { font-size: var(--fs-footnote); color: var(--ink-3); }
+.cl-wait .row + .cl-wl { border-top: var(--hair) solid var(--sep); }
+.cl-wl + .row::before { display: none; }
+.cl-wr { min-height: var(--hit); padding-top: var(--s-2); padding-bottom: var(--s-2); --sep-left: 52px; align-items: flex-start; }
+.cl-wr .rtitle { font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.cl-wd { display: grid; place-items: center; width: 24px; height: var(--lh-subhead); flex-shrink: 0; }
+.cl-wd i { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-3); }
+.cl-wy { align-items: center; }
+.cl-wy .check { width: 24px; height: 24px; }
+.cl-none { font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-3); }
+
+.cl-money { margin: 0 var(--gutter); padding: var(--s-4); border-radius: var(--r-lg); --ring-bg: var(--e1); }
+.cl-m-top { display: flex; align-items: center; gap: var(--s-4); }
+.cl-m-pct { font-size: var(--fs-fig-4); }
+.cl-m-pct small { font-size: var(--fs-caption); }
+.cl-m-stats { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-0); min-width: 0; }
+.cl-m-l { font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.cl-m-big { font-size: var(--fs-fig-2); line-height: var(--lh-title2); white-space: nowrap; }
+/* an amount the files give in words ("Price not set") is set as words, not as a figure */
+.cl-m-words { font-size: var(--fs-title3); line-height: var(--lh-title3); font-weight: var(--w-semibold); }
+.cl-pays { margin-top: var(--s-3); border-top: var(--hair) solid var(--sep); }
+.cl-pay { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) 0; }
+.cl-pay + .cl-pay { border-top: var(--hair) solid var(--sep); }
+.cl-pay:last-child { padding-bottom: 0; }
+.cl-pay-b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--s-0); }
+.cl-pay-b b { font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); }
+.cl-pay-b small { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.cl-pay-r { display: flex; flex-direction: column; align-items: flex-end; gap: var(--s-1); flex-shrink: 0; }
+.cl-pay-r .met { font-size: var(--fs-fig-4); }
+
+/* workflows the client is opted into: named in words, the folder underneath, the state on the right.
+   No glyph tile: every row would carry the same one, and the section already says what they are */
+.cl-wf { min-height: 56px; }
+.cl-wf .rmeta .mono { font-size: var(--fs-caption); color: var(--ink-3); }
+.cl-wfst { display: inline-flex; align-items: center; gap: var(--s-2); flex-shrink: 0; font-size: var(--fs-footnote); font-weight: var(--w-semibold); color: var(--ink-2); white-space: nowrap; }
+.cl-wfst.run { color: var(--ink); }
+.cl-dates .row, .cl-goals .row { min-height: var(--hit); }
+.cl-proj { min-height: 56px; }
+
+.cl-le { align-items: flex-start; --sep-left: 72px; }
+.cl-le-d { width: 44px; flex-shrink: 0; font-size: var(--fs-footnote); line-height: var(--lh-subhead); font-weight: var(--w-semibold); color: var(--ink-3); }
+.cl-le .rtitle { font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); }
+.cl-le-b { display: block; margin-top: var(--s-0); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.cl-le.fresh { animation: cl-fresh 1.6s var(--ease) both; }
+@keyframes cl-fresh { from { background: var(--fill-3); } to { background: transparent; } }
+
+.cl-kv .row { align-items: flex-start; gap: var(--s-3); min-height: var(--hit); }
+.cl-k { width: 96px; flex-shrink: 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.cl-v { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.cl-v .cl-warm { min-height: var(--lh-subhead); }
+
+/* a lead's stage: the path's four steps, the ones it has reached in the clients colour, the one it is in named */
+.cl-track { display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-3) var(--s-4); }
+.cl-track-l { display: flex; align-items: baseline; gap: var(--s-3); font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.cl-track-l > span:last-child { margin-left: auto; font-size: var(--fs-footnote); color: var(--ink-3); }
+.cl-track-bar, .cl-track-s { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: var(--s-1); }
+.cl-track-bar i { height: 4px; border-radius: var(--r-track); background: var(--fill-3); }
+.cl-track-bar i.on { background: var(--clients); }
+.cl-track-s { font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); }
+.cl-track-s .now { color: var(--ink); font-weight: var(--w-semibold); }
+.cl-track.off .cl-track-bar i { background: var(--fill-2); }
+.cl-track + .row::before { content: ""; position: absolute; top: 0; right: 0; left: var(--s-4); height: var(--hair); background: var(--sep); }
+
+.cl-filewrap { display: flex; flex-direction: column; gap: var(--s-3); }
+.cl-froot { min-height: 56px; }
+.cl-froot .rmeta .mono { font-size: var(--fs-caption); color: var(--ink-2); }
+.cl-nofolder .rmeta { white-space: normal; }
+.cl-f { min-height: var(--hit); padding-top: var(--s-2); padding-bottom: var(--s-2); --sep-left: 60px; }
+.cl-f-i { display: grid; place-items: center; width: 32px; color: var(--ink-3); flex-shrink: 0; }
+.cl-f-i svg { width: 16px; height: 16px; }
+.cl-f .rtitle.mono { font-size: var(--fs-footnote); line-height: var(--lh-subhead); color: var(--ink-2); }
+.cl-moves .row, .cl-flows .row { min-height: 56px; }
+/* what a move or a workflow does is a short sentence: it wraps instead of being cut */
+.cl-moves .rmeta, .cl-flows .rmeta { flex-wrap: wrap; white-space: normal; }
+/* in the workflow sheet, "Needs your OK · what it does" reads as one line of text that wraps where it must */
+.row .rmeta.cl-fl-m { display: block; white-space: normal; }
+.cl-fl-m > * { display: inline; }
+.cl-moves .rmeta .ell, .cl-flows .rmeta .ell { white-space: normal; }
+.cl-moves .pill svg, .cl-flows .pill svg { width: 11px; height: 11px; }
+
+/* sheets */
+.cl-lbl { margin: var(--s-4) calc(var(--gutter) + var(--s-1)) var(--s-2); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+/* run a workflow: what already runs for this client, then what can run, then what is only written down */
+.cl-flow-now { display: flex; align-items: flex-start; gap: var(--s-2); margin: var(--s-1) var(--gutter) 0; padding: var(--s-3); border-radius: var(--r-md); background: var(--inlay); box-shadow: var(--inlay-box); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.cl-flow-now svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: var(--s-0); color: var(--ink-3); }
+.cl-flow-now b { color: var(--ink); font-weight: var(--w-semibold); }
+.cl-flow-sheet .sheet-body { padding-bottom: calc(var(--safe-bottom) + var(--s-5)); }
+.cl-fl.spec .rtitle { color: var(--ink-2); }
+.cl-logsheet { display: flex; flex-direction: column; gap: var(--s-3); padding-top: var(--s-1); }
+.cl-ta { align-items: flex-start; border-radius: var(--r-lg); }
+.cl-ta textarea { min-height: 112px; font-size: var(--fs-body); line-height: var(--lh-body); }
+.cl-touchsheet { padding-bottom: var(--s-2); }
+.cl-touchsheet .cl-lbl { margin: var(--s-3) var(--s-1) var(--s-2); }
+.cl-touchsheet .btn { margin-top: var(--s-6); }
+.cl-res { padding-bottom: var(--s-5); }
+.cl-res .cl-lbl { display: flex; align-items: baseline; gap: var(--s-2); margin-top: var(--s-4); }
+.cl-res .cl-lbl .num { font-family: var(--round); font-weight: var(--w-fig); color: var(--ink-3); }
+/* search: the platform's clear glyph is replaced by one drawn like the sheet's close */
+.cl-find input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; display: none; }
+.cl-find-x { flex-shrink: 0; color: var(--ink-2); }
+.cl-find-x::before { content: ""; position: absolute; inset: var(--s-1); border-radius: 50%; background: var(--fill-3); }
+.cl-find .cl-find-x svg { position: relative; width: 12px; height: 12px; color: inherit; }
+.sheet .cl-empty { margin: var(--s-3) var(--gutter) 0; background: var(--inlay); box-shadow: var(--inlay-box); }
+/* a retired client is found, but has no page to open */
+.cl-res-ret .rtitle { color: var(--ink-2); }
+.cl-nl { display: flex; flex-direction: column; gap: var(--s-3); padding: var(--s-1) var(--gutter) 0; }
+.cl-nl-field { display: flex; align-items: flex-start; gap: var(--s-2); padding: var(--s-2) var(--s-2) var(--s-2) var(--s-4); border-radius: var(--r-lg); background: var(--ctl); box-shadow: var(--ctl-box); transition: box-shadow var(--d-state) var(--ease); }
+.cl-nl-field:focus-within { box-shadow: inset 0 0 0 1.5px var(--field-focus); }
+.cl-nl-in { flex: 1; min-width: 0; min-height: 88px; border: 0; outline: 0; background: none; resize: none; padding: var(--s-2) 0; font-size: var(--fs-body); line-height: var(--lh-body); }
+.cl-nl-in::placeholder { color: var(--ink-3); }
+.cl-nl-mic { width: var(--hit); height: var(--hit); border-radius: 50%; display: grid; place-items: center; background: var(--ctl); box-shadow: var(--ctl-box); flex-shrink: 0; transition: transform var(--d-press) var(--ease), filter var(--d-press); }
+.cl-nl-mic:active { transform: var(--press); background: var(--ctl-press); filter: var(--press-filter); }
+.cl-nl-mic svg { width: 21px; height: 21px; }
+.cl-nl-tools { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); }
+.cl-nl-to { display: flex; flex-direction: column; align-items: flex-end; gap: var(--s-0); min-width: 0; font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); }
+.cl-nl-path { max-width: 230px; font-size: var(--fs-footnote); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cl-nl-dup { margin: 0; padding: var(--s-3); border-radius: var(--r-md); background: var(--inlay); box-shadow: var(--inlay-box); font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.cl-nl-dup b { color: var(--ink); font-weight: var(--w-semibold); }
+.cl-nl-steps { display: flex; flex-direction: column; gap: var(--s-1); margin: 0; padding: var(--s-3) var(--s-4) var(--s-3) var(--s-8); border-radius: var(--r-md); background: var(--inlay); box-shadow: var(--inlay-box); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.cl-nl-steps li::marker { font-family: var(--round); font-weight: var(--w-fig); color: var(--ink-3); }
+.cl-nl-steps b { color: var(--ink); font-weight: var(--w-semibold); }
+.cl-nl .btn.primary { margin: var(--s-1) 0 var(--s-2); }
+
+/* ── real data: how fresh the copy is, what the sync found, the client window, loading ── */
+/* the copy's freshness is said up top only when it is not live (offline, or the PC could not read the files) */
+.cl-stalebox:empty { display: none; }
+.cl-stale { display: flex; align-items: flex-start; gap: var(--s-2); margin: 0 var(--gutter) var(--s-3); padding: var(--s-2) var(--s-3); border-radius: var(--r-md); background: var(--inlay); box-shadow: var(--inlay-box); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); text-wrap: pretty; }
+.cl-stale svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; color: var(--needs-ink); }
+.cl-stale b { color: var(--ink); font-weight: var(--w-semibold); }
+.cl-page .cl-stale { margin: var(--s-2) var(--gutter) 0; }
+/* while the PC reads, the sync glyph turns */
+.cl-sync.is-busy > svg { animation: rot 1.1s linear infinite; }
+/* the files could not be read at all: said above the list */
+.cl-hard { margin: var(--s-3) var(--gutter) 0; }
+.cl-hard p { margin: 0; }
+.cl-hard p + p { margin-top: var(--s-1); }
+/* several problems from the sync share one card, a hairline between them */
+.cl-issues { margin: var(--s-3) var(--gutter) 0; border-radius: var(--r-lg); overflow: hidden; }
+.cl-issues .cl-issue { position: relative; margin: 0; border-radius: 0; }
+.cl-issues .cl-issue + .cl-issue::before { content: ""; position: absolute; top: 0; right: 0; left: calc(var(--s-4) + 32px + var(--s-3)); height: var(--hair); background: var(--sep); }
+.cl-windows { margin-top: var(--s-3); }
+/* a short section action (Log ›) still takes a whole fingertip */
+.cl-page .sh .sh-act::after { content: ""; position: absolute; inset: -6px -4px; }
+/* a view arriving slides in from the side; nothing it moves may widen the page */
+.cl-home #clPanel { overflow-x: clip; }
+.cl-loading { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-4) calc(var(--gutter) + var(--s-1)); font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.cl-retry { display: flex; margin-top: var(--s-3); }
+/* the first read on a phone with no copy: the shapes of what is coming, breathing (the kit's shimmer) */
+.cl-skel { pointer-events: none; }
+.cl-sk-line { display: inline-block; width: 220px; max-width: 70%; height: 14px; border-radius: var(--r-pill); vertical-align: middle; }
+.cl-sk-ring { width: 92px; height: 92px; border-radius: 50%; }
+.cl-sk-stats { display: flex; flex-direction: column; gap: var(--s-2); flex: 1; min-width: 0; }
+.cl-sk-stats i { display: block; height: 12px; border-radius: var(--r-pill); }
+.cl-sk-stats i:nth-child(1) { width: 40%; }
+.cl-sk-stats i:nth-child(2) { width: 75%; height: 22px; }
+.cl-sk-stats i:nth-child(3) { width: 55%; }
+.cl-sk-bar { display: block; height: 6px; margin-top: var(--s-5); border-radius: var(--r-track); }
+.cl-sk-mono { width: var(--hit); height: var(--hit); border-radius: 50%; flex-shrink: 0; }
+.cl-sk-mono.lg { width: 56px; height: 56px; }
+.cl-sk-next { display: block; height: 44px; margin-top: var(--s-3); border-radius: var(--r-xs); }
+.cl-card.cl-skel .cl-head { align-items: center; }
+.cl-hero .cl-sk-stats { max-width: 220px; }
+.cl-nextcard.cl-skel { min-height: 140px; }
+
+/* the page's extra lines from the files */
+.cl-wr .rmeta { margin-top: var(--s-0); }
+.cl-wfst.done { gap: var(--s-1); color: var(--ink-3); }
+.cl-wfst svg { width: 14px; height: 14px; }
+.cl-cnote { font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.cl-kv .cl-wl { border-top: var(--hair) solid var(--sep); }
+.cl-wt { margin-left: var(--s-2); font-size: var(--fs-footnote); color: var(--ink-3); }
+.cl-offboard { color: var(--ink-3); }
+/* the money card says when payments.md is behind the brain, and when its figures are the snapshot's */
+.cl-behind, .cl-src { margin: var(--s-3) 0 0; padding-top: var(--s-3); border-top: var(--hair) solid var(--sep); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); text-wrap: pretty; }
+.cl-behind { color: var(--needs-ink); }
+.cl-behind + .cl-src { margin-top: var(--s-1); padding-top: 0; border-top: 0; }
+/* the work log shows six, then the rest on a tap; an entry waiting for the PC says so */
+.cl-more { min-height: var(--hit); }
+.cl-more .rtitle { font-size: var(--fs-subhead); font-weight: var(--w-semibold); color: var(--ink-2); }
+.cl-more svg { width: 15px; height: 15px; color: var(--ink-3); }
+.cl-le.is-waiting .cl-le-d { color: var(--needs-ink); }
+.cl-le-w { display: block; margin-top: var(--s-1); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--needs-ink); }
+/* a file row copies its path: the copy glyph sits where the chevron was */
+.cl-f > svg:last-child, .cl-froot > svg:last-child { width: 16px; height: 16px; flex-shrink: 0; color: var(--ink-3); }
+
+/* their page (the client window): the link and its two moves, then what waits on them, Claude's asks, the answers */
+.row .rmeta.cl-wrapm { display: block; white-space: normal; text-wrap: pretty; }
+.cl-win-live { color: var(--done); }
+.cl-win-copy { flex-shrink: 0; background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); }
+.cl-win-copy svg { width: 18px; height: 18px; }
+.cl-win-acts { display: flex; flex-wrap: wrap; gap: var(--s-2); padding: 0 var(--s-4) var(--s-3) calc(var(--s-4) + 32px + var(--s-3)); }
+.cl-win-acts .btn svg { width: 16px; height: 16px; }
+.cl-win-acts + .row::before { content: ""; position: absolute; top: 0; right: 0; left: var(--sep-left, var(--s-4)); height: var(--hair); background: var(--sep); }
+.cl-dec { align-items: flex-start; --sep-left: 52px; }
+.cl-dec-i { display: grid; place-items: center; width: 24px; height: 24px; margin-top: 1px; border-radius: 50%; flex-shrink: 0; background: var(--fill-2); color: var(--ink-2); font-family: var(--round); font-size: var(--fs-footnote); font-weight: var(--w-fig); }
+.cl-dec-i svg { width: 13px; height: 13px; }
+.cl-dec-i.open { background: color-mix(in oklab, var(--needs) 18%, transparent); color: var(--needs-ink); }
+.cl-dec-i.ai { background: none; }
+.cl-dec-i.ai svg { width: 18px; height: 18px; }
+.cl-dec-i.next { width: 12px; height: 12px; margin: 6px; background: none; box-shadow: inset 0 0 0 2px var(--ink-4); }
+.cl-dec .btn.sm, .cl-dec .pill { align-self: center; flex-shrink: 0; }
+.cl-wins { padding-bottom: var(--s-5); }
+.cl-wins .cl-lbl { display: flex; align-items: baseline; gap: var(--s-2); }
+.cl-wins .cl-lbl .num { font-family: var(--round); font-weight: var(--w-fig); color: var(--ink-3); }
+.cl-prev { display: flex; flex-direction: column; padding-bottom: var(--s-5); }
+.cl-prev-head { display: flex; flex-direction: column; gap: var(--s-0); margin: var(--s-1) var(--gutter) 0; padding: var(--s-4); border-radius: var(--r-lg); }
+.cl-prev-head .cl-lbl { margin: 0; }
+.cl-prev-head b { font-size: var(--fs-title3); line-height: var(--lh-title3); font-weight: var(--w-semibold); }
+.cl-prow { align-items: flex-start; --sep-left: 52px; }
+.cl-prev-foot { margin-top: var(--s-4); }
+.cl-prev-foot a.btn { text-decoration: none; color: var(--ink); }
+
+/* sheets for real data */
+.cl-off { margin: 0; padding: var(--s-3); border-radius: var(--r-md); background: var(--inlay); box-shadow: var(--inlay-box); font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); text-wrap: pretty; }
+.cl-foot { margin: var(--s-3) calc(var(--gutter) + var(--s-1)) 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); text-wrap: pretty; }
+.cl-touch-note { margin: var(--s-4) var(--s-1) 0; }
+.cl-nl-job { margin: 0; color: var(--ink-3); }
+.cl-asksheet { display: flex; flex-direction: column; gap: var(--s-3); padding-top: var(--s-1); }
+.cl-revoke { display: flex; flex-direction: column; gap: var(--s-2); padding-top: var(--s-2); padding-bottom: var(--s-2); }
+@media (prefers-reduced-motion: reduce) { .cl-sync.is-busy > svg { animation: none; } .cl-hbar i { transition: none; } }
+
+/* ═══ 2 · OBSIDIAN ═════════════════════════════════════════════════════════
+   Nothing of its own here: Obsidian's Clients is the shared look above, lit by its tokens and its ring light. */
+
+/* ═══ 3 · MATTE ════════════════════════════════════════════════════════════
+   Cobalt ink on matte stock. Monograms are stamped in the title serif; the health split is a printed bar;
+   inside a card the next step sits under a hairline instead of in a well. */
+/* the selected segment's count is a number, so it takes Clients' pigment */
+:where(:root[data-skin="matte"]) .cl-seg .seg button[aria-selected="true"] .n { color: var(--clients-ink); }
+/* summary: a little more stock round the ring */
+:where(:root[data-skin="matte"]) .cl-sum { padding: var(--s-5) var(--s-5) var(--s-4); }
+/* monograms: initials stamped in the serif, like stationery, on raised stock */
+:where(:root[data-skin="matte"]) .cl-mono { font-size: 17px; letter-spacing: .02em; box-shadow: var(--edge-2); }
+:where(:root[data-skin="matte"]) .cl-mono.lg { font-size: 23px; }
+:where(:root[data-skin="matte"]) .cl-mono.sm { font-size: 13px; }
+:where(:root[data-skin="matte"]) .clp-item .cl-mono, :where(:root[data-skin="matte"]) .sheet .cl-mono { background: var(--surface-3); box-shadow: none; }
+:where(:root[data-skin="matte"]) .cl-pinned { color: var(--clients-ink); }
+/* health words wear their traffic light; a due today is rose, Today's ink, and overdue stays orange */
+:where(:root[data-skin="matte"]) .cl-hw { color: var(--c, var(--ink)); }
+:where(:root[data-skin="matte"]) .cl-due.is-today { color: var(--today-ink); }
+/* the next step sits under a hairline, on the stock itself */
+:where(:root[data-skin="matte"]) .cl-next { padding: var(--s-3) 0 0; border-radius: 0; background: none; box-shadow: none; border-top: var(--hair) solid var(--sep); }
+/* warmth: three printed bars of one height */
+:where(:root[data-skin="matte"]) .cl-warm-b { align-items: center; gap: 3px; height: 11px; }
+:where(:root[data-skin="matte"]) .cl-warm-b i { width: 4px; border-radius: 2px; }
+:where(:root[data-skin="matte"]) .cl-warm-b i:nth-child(n) { height: 11px; }
+/* the sync issue is something only you can do, so its glyph is orange on an orange-tinted tile; the action stays stock */
+:where(:root[data-skin="matte"]) .cl-issue-i { background: color-mix(in oklab, var(--needs) 14%, var(--paper)); box-shadow: none; }
+:where(:root[data-skin="matte"]) .cl-sync { color: var(--ink-2); }
+/* pipeline: a printed rail, raised stock capsules for the people on it */
+:where(:root[data-skin="matte"]) .clp-st:not(:last-child)::before { background: var(--fill-2); }
+:where(:root[data-skin="matte"]) .clp-node { background: var(--paper); }
+:where(:root[data-skin="matte"]) .clp-item { border-radius: var(--r-pill); }
+:where(:root[data-skin="matte"]) .clp-conv::before { border-left-color: var(--fill-3); }
+/* the page: the summary is read in ink, Next step is a plain label, the pin wears cobalt once set */
+:where(:root[data-skin="matte"]) .cl-hsum { font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink); }
+:where(:root[data-skin="matte"]) .cl-nc-k svg { display: none; }
+:where(:root[data-skin="matte"]) .cl-pin.on svg { color: var(--clients-ink); }
+:where(:root[data-skin="matte"]) .cl-le.fresh .cl-le-d { color: var(--clients-ink); }
+:where(:root[data-skin="matte"]) .cl-nofolder .tile { color: var(--needs-ink); }
+:where(:root[data-skin="matte"]) .cl-track-bar i { background: var(--fill-2); }
+:where(:root[data-skin="matte"]) .cl-nl-mic { background: var(--surface-3); box-shadow: none; }
+:where(:root[data-skin="matte"]) .cl-nl-path { color: var(--clients-ink); }
+/* real data, in stock: the stale line is an orange-tinted slip, the client window's live glyph is green ink */
+:where(:root[data-skin="matte"]) .cl-stale { background: color-mix(in oklab, var(--needs) 10%, var(--paper)); box-shadow: none; }
+:where(:root[data-skin="matte"]) .cl-dec-i.open { background: color-mix(in oklab, var(--needs) 14%, var(--paper)); }
+:where(:root[data-skin="matte"]) .cl-win-copy { background: var(--surface-3); box-shadow: none; }
+:where(:root[data-skin="matte"]) .cl-prev-head .cl-lbl, :where(:root[data-skin="matte"]) .cl-wins .cl-lbl .num { color: var(--clients-ink); }

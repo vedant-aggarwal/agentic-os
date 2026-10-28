@@ -1,0 +1,90 @@
+/* ═══ SCREEN · CONTENT + MODULE PAGES ═════════════════════════════════════════
+   Owner: area (d): the Content tab (app/modules/content.js|css) and every module page and card (app/modules/*, not
+   crm). This file holds what module pages share: the page head, cards, rows that wrap, hints, loading and error
+   states, and the module cards on Today and Life. A module's own look lives in its own sheet (loaded after this
+   one through AOS.css, so it wins at equal weight). Targets: j15/mockup/final/css/screens/content.css and more.css.
+   Blocks: 1 · SHARED · 2 · OBSIDIAN · 3 · MATTE. Pushed pages and tabs carry the page margin (.tab-content). */
+
+/* ═══ 1 · SHARED ═══════════════════════════════════════════════════════════ */
+/* a module page: its glyph in the tile it wears in More's list, a large title, one line on what it does */
+.mp-head { padding: var(--s-1) 0 var(--s-1); }
+.mp-ic { width: var(--hit); height: var(--hit); margin-bottom: var(--s-3); border-radius: var(--r-md); display: grid; place-items: center; background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); }
+.mp-ic svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.mp-head .sub { margin-top: var(--s-1); text-wrap: pretty; }
+/* a card: the page's state or its one figure. Sections after it are .sh + .group */
+.mp-card { position: relative; margin-top: var(--s-4); padding: var(--s-4); border-radius: var(--r-lg); background: var(--e1-bg); box-shadow: var(--e1-box); }
+.mp-card + .mp-card { margin-top: var(--s-3); }
+.mp-card > p, .mp-card p.foot { margin: 0; }
+.mp-k { margin: 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.mp-card .t2 { margin: 2px 0 0; text-wrap: pretty; }
+.mp-card .t2 + .foot, .mp-card .t2 + .mp-text { margin-top: var(--s-1); }
+.mp-text { margin: 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); text-wrap: pretty; }
+.mp-big { margin: var(--s-1) 0 0; font-size: var(--fs-fig-1); font-weight: var(--w-fig-l); line-height: 1.05; }
+.mp-acts { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-3); }
+.mp-acts .btn svg, .mp-racts .btn svg { width: 15px; height: 15px; }
+.mp-acts .btn .spin, .mp-racts .btn .spin, .mp-foot .btn .spin { width: 14px; height: 14px; }
+.mp-foot { margin-top: var(--s-4); }
+.mp-foot .btn svg { width: 17px; height: 17px; }
+.mp-hint { margin: 0; padding: var(--s-3) var(--s-1) 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); text-wrap: pretty; }
+.mp-hint b { color: var(--ink-2); font-weight: var(--w-semibold); }
+/* a status is a coloured word that leads a meta line */
+.mp-st { display: inline-flex; align-items: center; gap: 5px; font-weight: var(--w-semibold); color: var(--c, var(--ink-2)); white-space: nowrap; }
+.mp-st .spin { width: 12px; height: 12px; }
+/* rows: a second line that may wrap, a figure at the end, actions under the text */
+.mp-why { display: block; margin-top: 2px; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); white-space: normal; overflow-wrap: anywhere; }
+.mp-v { flex-shrink: 0; font-size: var(--fs-headline); line-height: var(--lh-headline); color: var(--ink); white-space: nowrap; }
+.lrow.mp-tall { align-items: flex-start; }
+.lrow.mp-tall > .tile, .lrow.mp-tall > .dot, .lrow.mp-tall > .mp-v { margin-top: 2px; }
+.lrow.mp-tall > .dot { margin-top: 7px; }
+.lrow.mp-dot { --sep-left: 38px; }
+.mp-racts { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-3); }
+.lrow.mp-off .rtitle, .lrow.mp-off .mp-why { color: var(--ink-3); }
+.lrow.mp-off .rtitle { text-decoration: line-through; text-decoration-color: var(--ink-4); }
+/* a loading line, and an error with a way out */
+.mp-load { display: flex; align-items: center; gap: var(--s-3); margin-top: var(--s-4); padding: var(--s-4) var(--s-1); font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.mp-load .spin { width: 16px; height: 16px; }
+.mp-note { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-3); }
+.mp-note > span { flex: 1 1 200px; min-width: 0; }
+.mp-note > b { flex-basis: 100%; color: var(--ink); font-weight: var(--w-semibold); }
+.mp-note.fail > b { color: var(--fail-ink); }
+/* a disclosure (the Cabinet's transcript): a row that opens in place */
+.mp-more > summary { list-style: none; cursor: pointer; }
+.mp-more > summary::-webkit-details-marker { display: none; }
+.mp-more > summary .mp-caret { flex-shrink: 0; color: var(--ink-3); transition: transform .35s var(--spring); }
+.mp-more > summary .mp-caret svg { display: block; width: 16px; height: 16px; }
+.mp-more[open] > summary .mp-caret { transform: rotate(180deg); color: var(--ink); }
+/* fields: the capsule shows focus (:focus-within), so the field inside it draws no second ring */
+:is(.mod-page, .ct-sheet, .mp-sheet) :is(.ifield, .search) :is(input, textarea, select):focus-visible { outline: none; }
+:is(.mod-page, .ct-sheet, .mp-sheet) .search input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+/* a field and its button on one line (paste an ask, hide a title, echo) */
+.mp-add { display: flex; gap: var(--s-2); margin-top: var(--s-3); }
+.mp-add .ifield { flex: 1; min-width: 0; }
+.mp-add .ifield input { font-size: 16px; }
+.mp-add .btn { height: 46px; flex-shrink: 0; }
+/* an area glyph: the area's colour in the mark (a skin may tint the tile) */
+.mp-aglyph { color: var(--t); }
+
+/* module cards on Today: rows of the brief's list (#modTodayTop sits in .brief-g, area (a)), each a neutral glyph
+   (.bi), a line that says what changed, then a chevron or the one action. A card with a glyph rules off at the
+   text, like the brief's own rows (area (a) draws the rule at 16px for cards without one) */
+.mcard { color: var(--ink); }
+.mcard .rmeta .ell { min-width: 0; }
+.mcard > .btn, .mcard .mc-act { flex-shrink: 0; }
+.mcard .rtitle.wrap { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.mcard.mp-tall .bi { align-self: flex-start; margin-top: 1px; }
+.brief-g .mod-slot > [data-mod-card]:has(> .mcard .bi, > .mcard-list .bi):not(:empty)::before { left: 50px; }
+/* a card that lists more than one thing (Runbooks): each line is its own row of the brief */
+.mcard-list > .mcard + .mcard::before { content: ""; position: absolute; top: 0; right: 0; left: 50px; height: var(--hair); background: var(--sep); }
+/* the Life page's slot (#modLife, area (e)): a module's card is a card of its own */
+#modLife > [data-mod-card] > .mp-card { margin-top: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-more > summary .mp-caret { transition: none; }
+}
+
+/* ═══ 2 · OBSIDIAN ═════════════════════════════════════════════════════════ */
+/* nothing to restate: Obsidian's module pages are the shared block */
+
+/* ═══ 3 · MATTE ════════════════════════════════════════════════════════════ */
+/* an area glyph is printed on a 15% wash of its own colour */
+:where(:root[data-skin="matte"]) .mp-aglyph { background: color-mix(in oklab, var(--t) 15%, var(--paper)); box-shadow: none; }

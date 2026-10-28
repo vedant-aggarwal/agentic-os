@@ -1,0 +1,364 @@
+/* ═══ SCREEN · OVERLAYS ═══════════════════════════════════════════════════════
+   Owner: area (e) the + sheet (capture), the recorder bar in it, Wyn's sheet, call screen, call pill and incoming banner.
+   The sheet material itself is ui/system.css; the legacy rules are in styles.css (Wyn, the + sheet's form) and
+   work/work.css (the recorder bar, a job's options). Loaded after both.
+   Blocks: 1 · SHARED · 2 · OBSIDIAN · 3 · MATTE. Target: j15/mockup/final/css/screens/overlays.css. */
+
+/* ═══ 1 · SHARED ═══════════════════════════════════════════════════════════ */
+
+/* ── the + sheet: Task · Idea · Job, the words, what the sheet read, Claude's answer, Project, the one button ── */
+#captureSheet [hidden] { display: none !important; }
+/* never taller than the screen: the form scrolls under a foot that keeps the hint and the button in reach */
+#captureSheet { max-height: calc(100% - var(--safe-top) - 10px - var(--kb, 0px)); }
+#captureSheet .capture-form { flex: 1 1 auto; min-height: 0; gap: 0; padding: var(--s-2) var(--gutter) 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+#captureSheet .capture-form::-webkit-scrollbar { display: none; }
+#captureSheet .capture-form > * { flex-shrink: 0; }
+/* the form's own rails (projects, a job's model and effort) bleed to the form's edges, which sit at the gutter */
+#captureSheet .capture-form { overflow-x: hidden; }
+#captureSheet .capture-form .chips.scroll { margin: 0 calc(var(--gutter) * -1); padding: 0 var(--gutter) 2px; }
+#captureSheet .cap-foot { position: sticky; z-index: 2; bottom: 0; margin: 0 calc(var(--gutter) * -1); padding: var(--s-1) var(--gutter) 0; background: linear-gradient(180deg, transparent 0, var(--e3) var(--s-3)); }
+#capType { height: var(--hit); }
+#capType button { height: 40px; line-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: var(--s-1); font-size: var(--fs-callout); }
+#capType[data-on="task"] .ct-thumb { transform: none; }
+#capType[data-on="idea"] .ct-thumb { transform: translateX(100%); }
+#capType[data-on="job"] .ct-thumb { transform: translateX(200%); }
+.cap-jg { display: inline-grid; width: 15px; height: 15px; }
+.cap-jg svg { width: 15px; height: 15px; }
+
+/* the field is one capsule: the words, and the mic a step inside it */
+#captureSheet .cap-field { display: flex; align-items: flex-end; gap: var(--s-2); min-height: 60px; margin-top: var(--s-4); padding: var(--s-1) var(--s-1) var(--s-1) var(--s-5); border-radius: var(--r-xl); background: var(--ctl); box-shadow: var(--ctl-box); transition: box-shadow var(--d-state) var(--ease); }
+#captureSheet .cap-field:focus-within { box-shadow: inset 0 0 0 1.5px var(--field-focus); }
+#captureSheet .capture-form #captureInput { flex: 1; min-width: 0; max-height: 168px; padding: var(--s-3) 0; border-radius: 0; background: none; box-shadow: none; font-size: var(--fs-title3); line-height: 26px; }
+#captureSheet .capture-form .cap-field:focus-within #captureInput { box-shadow: none; }
+#captureSheet .cap-field .mic-btn { position: static; translate: none; width: 48px; height: 48px; }
+#captureSheet .cap-field .mic-btn svg { width: 23px; height: 23px; }
+#captureSheet .cap-field .mic-btn:active { transform: scale(.88); }
+/* while the mic is open the recorder takes the field's place: a live dot, the wave, the time, cancel and stop */
+#captureSheet .capture-form.recording .cap-field { display: none; }
+#captureSheet .rec-slot .rec-bar { height: 60px; margin-top: var(--s-4); border-radius: var(--r-xl); padding: 0 var(--s-1) 0 var(--s-4); }
+
+/* a job for a client: the client rides on the sheet as a chosen chip you can clear */
+#capClient { display: flex; align-items: center; gap: var(--s-2); padding: var(--s-3) 0 0 var(--s-1); }
+#capClient:empty { display: none; }
+.cap-for-l { font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-bold); color: var(--ink-2); }
+.chip-btn.cap-for-c { gap: var(--s-2); padding-right: var(--s-1); }
+.cap-for-c > svg { width: 15px; height: 15px; }
+.cap-for-x { position: relative; width: 28px; height: 28px; margin-left: 2px; border-radius: 50%; display: grid; place-items: center; color: var(--ink-2); }
+.cap-for-x::after { content: ""; position: absolute; inset: -8px; border-radius: 50%; }
+.cap-for-c .cap-for-x svg { width: 11px; height: 11px; }
+
+/* what the sheet read from the words: a glyph and a label each, springing in as they are recognised */
+#captureSheet .capture-chips { display: flex; flex-wrap: wrap; gap: var(--s-2); min-height: 0; padding-top: var(--s-3); }
+#captureSheet .capture-chips:empty { display: none; }
+.pchip { display: inline-flex; align-items: center; gap: var(--s-2); height: 32px; padding: 0 var(--s-3) 0 var(--s-2); border-radius: var(--r-pill); background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); font-size: var(--fs-subhead); font-weight: var(--w-semibold); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pchip > svg { width: 15px; height: 15px; flex: none; color: var(--ink-2); }
+.pchip .dot { margin: 0 var(--s-0); }
+.pchip.new { animation: pchip-in .3s var(--ease) both; }
+@keyframes pchip-in { from { opacity: 0; transform: scale(.92); } }
+
+/* Claude's suggestions when the field is empty: quiet sparkle chips */
+#suggest { display: flex; flex-wrap: wrap; gap: var(--s-2); padding-top: var(--s-3); }
+#suggest:empty { display: none; }
+.schip { position: relative; display: inline-flex; align-items: center; gap: var(--s-2); height: 36px; padding: 0 var(--s-4) 0 var(--s-3); border-radius: var(--r-pill); background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); font-size: var(--fs-subhead); font-weight: var(--w-semibold); transition: transform var(--d-press) var(--ease), filter var(--d-press); }
+.schip::after { content: ""; position: absolute; inset: -4px 0; }
+.schip > svg { width: 15px; height: 15px; flex: none; color: var(--ink-2); }
+.schip:active { transform: scale(.95); background: var(--ctl-press); filter: var(--press-filter); }
+
+/* Claude's answer: what you asked, what it says, each change a row you can untick, and where it ran */
+#askResult { margin-top: var(--s-3); }
+.ask-card { padding: var(--s-4) 0 var(--s-2); border-radius: var(--r-xl); background: var(--inlay); box-shadow: var(--inlay-box); }
+.ask-card.in { animation: ask-rise .5s var(--ease) both; }
+@keyframes ask-rise { from { opacity: 0; transform: translateY(8px); } }
+.ask-k { display: flex; align-items: center; gap: var(--s-2); min-height: 32px; padding: 0 var(--s-3) 0 var(--s-4); font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-bold); }
+.ask-k > svg { width: 15px; height: 15px; flex: none; }
+.ask-k span { flex: 1; min-width: 0; }
+.ask-x { position: relative; flex: none; width: 32px; height: 32px; margin: -6px 0; border-radius: 50%; display: grid; place-items: center; color: var(--ink-3); background: var(--fill-2); }
+.ask-x::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; }
+.ask-x svg { width: 12px; height: 12px; }
+.ask-load { display: flex; align-items: center; gap: var(--s-3); margin: var(--s-3) var(--s-4); font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.ask-load .spin { --c: var(--ink-2); }
+.ask-ans { display: flex; flex-direction: column; gap: var(--s-2); margin: var(--s-3) var(--s-4) 0; font-size: var(--fs-callout); line-height: 1.4; }
+.ask-ans p { margin: 0; }
+.ask-ans.ask-err { color: var(--ink-2); }
+.ask-sum { margin: var(--s-3) var(--s-4); font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.ask-sum b { color: var(--ink); font-weight: var(--w-bold); }
+.ask-rows { margin: 0 var(--s-1); }
+.ask-row { position: relative; display: flex; align-items: flex-start; gap: var(--s-3); width: 100%; min-height: 58px; padding: var(--s-3); border-radius: var(--r-md); text-align: left; color: var(--ink); }
+.ask-row + .ask-row::before { content: ""; position: absolute; top: 0; left: 56px; right: 0; height: var(--hair); background: var(--sep); }
+.ask-row:active { background: var(--row-press); }
+.ask-row:disabled { opacity: var(--off); }
+.ask-row .tile { margin-top: 1px; }
+.ask-row .rbody { flex: 1; min-width: 0; }
+.ask-row .rtitle { display: block; font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.ask-row .rmeta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-1); margin-top: 2px; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.ask-row .rmeta s { color: var(--ink-3); }
+.ask-row .rmeta b { color: var(--ink); font-weight: var(--w-bold); }
+.ask-row .arr { color: var(--ink-3); }
+.ask-ck { flex: none; width: 28px; height: 28px; margin-top: 1px; border-radius: 50%; display: grid; place-items: center; box-shadow: inset 0 0 0 2px var(--ink-3); color: transparent; transition: background-color var(--d-state) var(--ease), box-shadow var(--d-state) var(--ease); }
+.ask-ck svg { width: 14px; height: 14px; }
+.ask-row.on .ask-ck { background: var(--done); box-shadow: none; color: var(--on-color); }
+.ask-meta { margin: var(--s-1) var(--s-4); font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); }
+
+/* the project, or for a job where it works: one row of chips that runs to the sheet's edges */
+#captureSheet .cap-lbl { margin: 0; padding: var(--s-4) var(--s-1) var(--s-2); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+#captureSheet .cap-projects { margin: 0 calc(var(--gutter) * -1); padding: 0 var(--gutter) 2px; }
+.capture.goal .cap-lbl { display: none; }
+
+/* a job's options (app/work draws them): labels like the sheet's own, two engine cards, no rules between */
+#captureSheet #capJob { gap: 0; }
+#captureSheet #capJob .field { padding: 0; border-top: 0; }
+#captureSheet #capJob .f-label { margin: 0; padding: var(--s-4) var(--s-1) var(--s-2); }
+#captureSheet #capJob .engine-pick { gap: var(--s-2); margin-top: var(--s-4); }
+#captureSheet #capJob .engine-pick.small .engine { position: relative; height: 64px; justify-content: flex-start; gap: var(--s-3); padding: 0 var(--s-3); border-radius: var(--r-lg); background: var(--inlay); box-shadow: var(--inlay-box); color: var(--ink); transition: background-color .3s var(--ease), box-shadow .3s var(--ease), transform var(--d-press) var(--ease); }
+#captureSheet #capJob .engine-pick.small .engine svg { width: 40px; height: 40px; padding: 10px; border-radius: 50%; background: var(--ctl); box-shadow: var(--ctl-box); }
+#captureSheet #capJob .engine-pick.small .engine b { font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); font-family: var(--font); letter-spacing: 0; }
+/* the chosen engine is selected the way every choice is, and a tick lands on its glyph */
+#captureSheet #capJob .engine.on { background: var(--sel); box-shadow: var(--sel-edge); }
+#captureSheet #capJob .engine::before, #captureSheet #capJob .engine::after { content: ""; position: absolute; left: calc(var(--s-3) + 26px); top: 36px; width: 20px; height: 20px; border-radius: 50%; opacity: 0; transform: scale(.4); transition: opacity .2s var(--ease), transform .3s var(--spring); }
+#captureSheet #capJob .engine::before { background: var(--ink); box-shadow: 0 0 0 2px var(--e3); }
+#captureSheet #capJob .engine::after { background: var(--on-ink); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / 11px no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / 11px no-repeat; }
+#captureSheet #capJob .engine.on::before, #captureSheet #capJob .engine.on::after { opacity: 1; transform: none; }
+#captureSheet #capJob .cap-ctx { padding-top: var(--s-4); }
+
+/* the hint and the one button. A job's button wears Jobs' fill (styles.css); a task or an idea's is ink */
+#captureSheet .capture-hint { margin: var(--s-3) var(--s-1) 0; font-size: var(--fs-footnote); line-height: 1.35; color: var(--ink-3); }
+#captureSheet .capture-add { width: 100%; margin-top: var(--s-3); }
+
+/* ── the orb: Wyn reads every domain, so the domain colours meet inside her. She holds still at rest; on a call she
+      breathes with whoever is talking (app.js sets --level from the audio), and her sheen turns only while she speaks.
+      The orb is an illustration, like an image: its internal gradients are hers, not system tokens ── */
+.wyn-orb, .wyn-orb.small, .wyn-orb.big, .wyn-orb.tiny {
+  --s: 44px;
+  position: relative; overflow: hidden; isolation: isolate; width: var(--s); height: var(--s); border-radius: 50%;
+  background:
+    radial-gradient(circle at 70% 76%, color-mix(in srgb, var(--jobs) 85%, transparent), transparent 52%),
+    radial-gradient(circle at 24% 70%, color-mix(in srgb, var(--content) 90%, transparent), transparent 56%),
+    radial-gradient(circle at 62% 26%, var(--today-b), var(--life-a) 74%);
+  box-shadow: inset 0 calc(var(--s) * -.08) calc(var(--s) * .2) rgba(10, 0, 30, .45);
+}
+.wyn-orb::before {
+  content: ""; position: absolute; inset: -25%; border-radius: 50%;
+  background: conic-gradient(from 40deg, transparent, color-mix(in srgb, var(--content) 70%, transparent) 18%, transparent 34%, color-mix(in srgb, var(--today) 70%, transparent) 52%, transparent 68%, color-mix(in srgb, var(--jobs) 55%, transparent) 84%, transparent);
+  filter: blur(calc(var(--s) * .14)); mix-blend-mode: screen;
+}
+.wyn-orb::after {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle at 34% 24%, rgba(255, 255, 255, .9), rgba(255, 255, 255, 0) 24%), radial-gradient(circle at 50% 118%, rgba(255, 255, 255, .26), rgba(255, 255, 255, 0) 48%);
+  box-shadow: inset 0 0 0 .5px rgba(255, 255, 255, .4);
+}
+.wyn-orb.tiny { --s: 22px; }
+.wyn-incoming .wyn-orb { --s: 46px; }
+.nm-empty .wyn-orb { --s: 72px; }
+.wyn-orb.big { --s: 200px; box-shadow: inset 0 -16px 40px rgba(10, 0, 30, .5); }
+#wynCall[data-state="speaking"] .wyn-orb.big::before { animation: rot 7s linear infinite; }
+
+/* ── Wyn's sheet: who she is and whether the PC answers, the call button (the screen's one coloured fill) ── */
+#wynSheet .wyn-head { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-2) var(--s-3) var(--s-3) var(--s-5); }
+#wynSheet .nh-text h2 { margin: 0; font-size: var(--fs-title2); line-height: var(--lh-title2); font-weight: var(--w-bold); }
+#wynSheet .nh-text p { display: flex; align-items: center; gap: var(--s-2); min-width: 0; margin: 2px 0 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.nh-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; background: var(--done); }
+.nh-dot.off { background: var(--needs); }
+#wynSub { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#wynHeadCall { background: var(--done); color: var(--on-color); box-shadow: none; }
+#wynSheet .wyn-tabs { display: block; padding: 0 var(--gutter) var(--s-2); }
+#wynSheet .wyn-tabs .segmented { height: 40px; }
+#wynBody.wyn-body { padding: var(--s-1) var(--gutter) var(--s-4); }
+
+/* chat: what she changed is one quiet line with an Undo you can hit */
+.nm-undo { position: relative; flex: none; height: 30px; margin-left: var(--s-1); padding: 0 var(--s-3); border-radius: var(--r-pill); background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); font-size: var(--fs-footnote); font-weight: var(--w-semibold); }
+.nm-undo::after { content: ""; position: absolute; inset: -7px -2px; }
+.nm-undo:active { background: var(--ctl-press); filter: var(--press-filter); }
+.nm-undo:disabled { opacity: var(--off); }
+/* a finished call is one row in the chat; tap it for the summary, action points and transcript */
+.nm-callrow { min-height: 60px; gap: var(--s-3); padding: var(--s-2) var(--s-3) var(--s-2) var(--s-2); border-radius: var(--r-lg); }
+.nm-callrow .ncc-ico { width: 40px; height: 40px; flex: none; background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); }
+.nm-callrow .ncc-ico svg { width: 18px; height: 18px; }
+.nm-callrow b { display: block; font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.nm-callrow small { display: block; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nm-callrow .nm-chev { width: 14px; height: 14px; }
+/* the call opened in the chat: the same tile, and its transcript one chip away */
+.nm-call .ncc-ico { width: 32px; height: 32px; background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); }
+.nm-call .ncc-ico svg { width: 16px; height: 16px; }
+.nm-call .chip-btn.ncc-more { margin-top: var(--s-3); color: var(--ink); text-decoration: none; }
+
+/* the composer: quick asks in one row that scrolls sideways and fades at the sheet's edges, then field and send */
+#wynForm.wyn-bar { padding: var(--s-2) var(--s-3) calc(var(--safe-bottom) + var(--s-1)); }
+#wynQuick.nb-quick {
+  gap: var(--s-2); margin: 0 calc(var(--s-3) * -1); padding: 0 var(--s-3) 2px;
+  -webkit-mask: linear-gradient(90deg, transparent 0, #000 var(--s-3), #000 calc(100% - var(--s-6)), transparent); mask: linear-gradient(90deg, transparent 0, #000 var(--s-3), #000 calc(100% - var(--s-6)), transparent);
+}
+.qchip { position: relative; display: inline-flex; flex-shrink: 0; align-items: center; gap: var(--s-1); height: 36px; padding: 0 var(--s-3) 0 var(--s-2); border-radius: var(--r-pill); background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); font-size: var(--fs-subhead); font-weight: var(--w-semibold); white-space: nowrap; transition: transform var(--d-press) var(--ease), filter var(--d-press); }
+.qchip::after { content: ""; position: absolute; inset: -4px 0; }
+.qchip > svg { width: 15px; height: 15px; flex: none; color: var(--ink-2); }
+.qchip:active { transform: scale(.94); background: var(--ctl-press); filter: var(--press-filter); }
+#wynInput { height: 46px; padding: 0 50px 0 var(--s-4); }
+#wynMic:not(.on) { background: transparent; color: var(--ink-2); }
+#wynForm .ask-send { width: 46px; height: 46px; background: var(--ink); color: var(--on-ink); transition: opacity .2s, transform .2s var(--spring); }
+#wynForm .ask-send:disabled { background: var(--ink); color: var(--on-ink); opacity: .3; transform: scale(.9); }
+
+/* calls: what they cost this month, then each call opens in place */
+.nv-lead { display: flex; align-items: baseline; gap: var(--s-2); margin: var(--s-2) var(--s-1) var(--s-1); font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.nv-lead b { font-family: var(--round); font-size: var(--fs-fig-2); line-height: 1; font-weight: var(--w-fig); color: var(--ink); }
+.group.calls .call-item { position: relative; }
+.group.calls .call-item + .call-item::before { content: ""; position: absolute; z-index: 1; top: 0; left: 60px; right: 0; height: var(--hair); background: var(--sep); }
+.tile.call-ic { border-radius: 50%; }
+.tile.call-ic.in { color: var(--done); }
+.cr-day { display: flex; flex-direction: column; align-items: flex-end; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.cr-day small { font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); }
+.cr-chev { display: grid; width: 16px; height: 16px; color: var(--ink-3); transition: transform .35s var(--spring); }
+.cr-chev svg { width: 16px; height: 16px; }
+.call-item.open .cr-chev { transform: rotate(180deg); }
+.call-item.open > .lrow .rmeta { display: none; }
+.call-more, .np-more { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .4s var(--ease); }
+.call-more > div, .np-more > div { min-height: 0; overflow: hidden; visibility: hidden; transition: visibility 0s .4s; }
+.call-item.open .call-more, .np-item.open .np-more { grid-template-rows: 1fr; }
+.call-item.open .call-more > div, .np-item.open .np-more > div { visibility: visible; transition: none; }
+.call-more > div { padding: 0 var(--s-4) 0 60px; }
+.call-item.open .call-more > div { padding-bottom: var(--s-3); }
+.cm-sum { margin: 0; font-size: var(--fs-subhead); line-height: 1.4; }
+.cm-lbl { margin: var(--s-3) 0 var(--s-1); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-bold); color: var(--ink-2); }
+.call-more ul { margin: 0; padding: 0 0 0 var(--s-4); font-size: var(--fs-subhead); line-height: 1.5; }
+.call-more .ncc-tr { margin-top: var(--s-3); }
+.cm-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); margin-top: var(--s-3); }
+.cm-foot .chip-btn { color: var(--ink); }
+.nv-callbtn { margin-top: var(--s-4); }
+.nv-callbtn svg { color: var(--done); }
+/* two levels of label: a section (a day, Right now, What she knows) and, under it, a kind of memory */
+.nv-day { margin: 0; padding: var(--s-5) var(--s-1) var(--s-2); font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); color: var(--ink); }
+.nv-day:first-child { padding-top: var(--s-2); }
+.nv-day .sec-count { margin-left: var(--s-1); }
+.nv-kind { margin: 0; padding: var(--s-3) var(--s-1) var(--s-2); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.nv-day + .nv-kind { padding-top: 0; }
+.jr { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-2); padding: var(--s-3) var(--s-4); border-radius: var(--r-xl); background: var(--inlay); box-shadow: var(--inlay-box); }
+.jr .pill { color: var(--ink); }
+.jr p { margin: 0; font-size: var(--fs-callout); line-height: 1.45; }
+.jr small { font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); }
+.mem { gap: 0; }
+.mem > .jr + .jr { margin-top: var(--s-2); }
+.mem-now { min-height: 52px; }
+.mem-now .dot { --c: var(--ink-2); }
+.mem .rtitle.wrap { font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.mem .lrow .mem-x { position: relative; top: auto; right: auto; width: 34px; height: 34px; flex: none; background: var(--fill-2); color: var(--ink-3); }
+.mem .lrow .mem-x::after { content: ""; position: absolute; inset: -5px; border-radius: 50%; }
+.mem .lrow .mem-x svg { width: 11px; height: 11px; }
+.imp { display: inline-flex; gap: var(--s-0); flex-shrink: 0; }
+.imp i { width: 7px; height: 7px; border-radius: 50%; background: var(--fill-3); }
+.imp i.on { background: var(--ink); }
+.nv-soul { margin-top: var(--s-4); }
+
+/* her settings: each a row with its value; it opens in place to its choices */
+.np-head { display: flex; align-items: flex-start; gap: var(--s-3); padding-right: var(--s-4); }
+.np-head .sh-text { flex: 1; min-width: 0; }
+#wynPrefsSheet .sheet-close::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; }
+#wynPrefsBody.wyn-prefs { padding: 0 var(--gutter) 60px; }
+.wyn-prefs .np-item { position: relative; }
+.wyn-prefs .group > * + *::before { content: ""; position: absolute; z-index: 1; top: 0; left: var(--s-4); right: 0; height: var(--hair); background: var(--sep); }
+.np-val { max-width: 168px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-2); font-size: var(--fs-subhead); }
+.np-row .chev { transition: transform .3s var(--spring); }
+.np-item.open .np-row .chev { transform: rotate(90deg); }
+.np-more > div { padding: 0 var(--s-4); }
+.np-item.open .np-more > div { padding-bottom: var(--s-4); }
+.np-more .f-help { margin-top: var(--s-2); }
+.np-sw .rmeta { white-space: normal; }
+.np-acts { margin-top: var(--s-3); }
+
+/* ── the call screen: the ground, nearly opaque, and the orb as the only colour. It stays dark in light (.stay-dark) ── */
+#wynCall { padding: calc(var(--safe-top) + var(--s-1)) var(--s-6) calc(var(--safe-bottom) + var(--s-5)); justify-content: flex-start; background: color-mix(in srgb, var(--e0) 95%, transparent); color: var(--ink); -webkit-backdrop-filter: blur(40px); backdrop-filter: blur(40px); }
+#wynCall .nc-min { left: var(--s-4); top: calc(var(--safe-top) + var(--s-1)); width: var(--hit); height: var(--hit); border-radius: 50%; background: var(--fill-3); color: var(--ink); }
+#wynCall .nc-top { margin-top: 44px; }
+#wynCall .nc-name { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); font-weight: var(--w-bold); letter-spacing: 0; }
+#wynCall .nc-status { margin-top: var(--s-1); font-family: var(--round); font-size: var(--fs-fig-3); line-height: 1.25; font-weight: var(--w-fig); color: var(--done); font-variant-numeric: tabular-nums; }
+#wynCall .nc-orb-wrap { width: 100%; }
+#wynCall .nc-rings i { width: 200px; height: 200px; border: 3px solid color-mix(in srgb, var(--ink) 50%, transparent); }
+#wynCall[data-state="connecting"] .nc-rings i { animation: none; }
+#wynCall .nc-caption { min-height: 84px; max-width: 320px; margin: 0 0 var(--s-6); font-size: var(--fs-title3); line-height: 1.38; font-weight: var(--w-semibold); color: var(--ink); }
+#wynCall .nc-controls { gap: var(--s-8); }
+#wynCall .nc-btn { gap: var(--s-2); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+#wynCall .nc-btn svg { width: 74px; height: 74px; padding: 23px; background: var(--fill-3); color: var(--ink); stroke: currentColor; }
+#wynCall .nc-btn.on svg { background: var(--ink); color: var(--e0); }
+#wynCall .nc-btn.end svg { background: var(--fail); color: var(--on-deep); }
+
+/* the call, stepped aside: the Dynamic Island's call activity, hardware black */
+#wynPill { height: 40px; min-width: 0; gap: var(--s-2); padding: 0 var(--s-1) 0 var(--s-2); border-radius: var(--r-pill); background: var(--island); color: var(--on-deep); box-shadow: 0 6px 24px rgba(0, 0, 0, .45); }
+#wynPill::after { content: ""; position: absolute; inset: -4px -2px; border-radius: var(--r-pill); }
+#wynPill b { font-size: var(--fs-subhead); line-height: 1.2; font-weight: var(--w-semibold); }
+#wynPill small { font-family: var(--round); font-size: var(--fs-footnote); line-height: 1.2; font-weight: var(--w-fig); color: var(--done); opacity: 1; }
+#wynPill .np-end { position: relative; z-index: 1; width: 30px; height: 30px; background: var(--fail); }
+#wynPill .np-end::after { content: ""; position: absolute; inset: -7px; border-radius: 50%; }
+#wynPill .np-end svg { width: 16px; height: 16px; fill: var(--on-deep); }
+
+/* Wyn calling you: a banner of overlay material at the top, Later · Decline · Answer */
+#wynIncoming { left: var(--s-2); right: var(--s-2); top: calc(var(--safe-top) + var(--s-1)); min-height: 76px; gap: var(--s-2); padding: var(--s-3) var(--s-3) var(--s-3) var(--s-4); border-radius: var(--r-sheet); background: var(--e3-bg); color: var(--ink); box-shadow: var(--e3-box); transform: translateY(-140%) scale(.9); opacity: 0; transition: transform .55s var(--spring), opacity .25s var(--ease); }
+#wynIncoming.in { transform: none; opacity: 1; }
+#wynIncoming .ni-text { margin-left: var(--s-1); }
+#wynIncoming .ni-text b { font-size: var(--fs-callout); line-height: var(--lh-callout); font-weight: var(--w-bold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#wynIncoming .ni-text small { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+#wynIncoming .ni-btn { width: 46px; height: 46px; border-radius: 50%; padding: 0; }
+#wynIncoming .ni-btn:active { transform: scale(.9); }
+#wynIncoming .ni-btn svg { width: 21px; height: 21px; }
+#wynIncSnooze { background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); }
+#wynIncSnooze svg { fill: none; }
+#wynIncDecline { background: var(--fail); color: var(--on-deep); }
+#wynIncAnswer { background: var(--done); color: var(--on-color); }
+
+@media (prefers-reduced-motion: reduce) {
+  #wynCall[data-state="speaking"] .wyn-orb.big::before { animation: none; }
+  #wynIncoming { transition: opacity .2s linear; transform: none; }
+}
+
+/* ═══ 2 · OBSIDIAN ═════════════════════════════════════════════════════════
+   Nothing to restate for the + sheet: the shared block is Obsidian's. */
+
+/* ═══ 3 · MATTE ════════════════════════════════════════════════════════════ */
+/* the mic sits a step up inside the field */
+:where(:root[data-skin="matte"]) #captureSheet .cap-field .mic-btn { background: var(--surface-3); }
+/* a job scoped to a client: a capsule stamped in cobalt, not a cream selection */
+:where(:root[data-skin="matte"]) .chip-btn.on.cap-for-c { background: color-mix(in oklab, var(--clients) 14%, transparent); color: var(--ink); box-shadow: none; }
+:where(:root[data-skin="matte"]) .cap-for-c > svg { color: var(--clients-ink); }
+:where(:root[data-skin="matte"]) .cap-for-l { font-weight: var(--w-semibold); }
+/* ask results and the engines: controls inside raised stock step up once more */
+:where(:root[data-skin="matte"]) .ask-x { background: var(--surface-3); }
+:where(:root[data-skin="matte"]) .ask-row .tile { color: var(--ink-2); }
+:where(:root[data-skin="matte"]) #captureSheet #capJob .engine-pick.small .engine svg { background: var(--surface-3); box-shadow: none; }
+/* the chosen engine is cream ink: a ring of it round the card, and the tick on its glyph */
+:where(:root[data-skin="matte"]) #captureSheet #capJob .engine.on { background: var(--inlay); box-shadow: inset 0 0 0 2px var(--ink); }
+:where(:root[data-skin="matte"]) #captureSheet #capJob .engine::before { box-shadow: 0 0 0 2px var(--float); }
+/* the recorder is time, so it is rose: a rose-tinted bar, a rose dot and wave, a rose stop */
+:where(:root[data-skin="matte"]) #captureSheet .rec-bar { background: var(--grain), color-mix(in oklab, var(--today) 12%, var(--float)); }
+:where(:root[data-skin="matte"]) #captureSheet .rec-bar .rb-dot, :where(:root[data-skin="matte"]) #captureSheet .rb-stop { background: var(--today); }
+:where(:root[data-skin="matte"]) #captureSheet .rb-wave i { background: var(--today-ink); }
+:where(:root[data-skin="matte"]) #captureSheet .rb-stop i { background: var(--on-color); }
+
+/* the orb: the five pigments pool inside her like ink drops on violet stock. No specular highlight, a soft fall-off at
+   the rim, the grain on top. It holds still at rest and only turns while she speaks on a call */
+:where(:root[data-skin="matte"]) :is(.wyn-orb, .wyn-orb.small, .wyn-orb.big, .wyn-orb.tiny) { background: none; box-shadow: none; }
+:where(:root[data-skin="matte"]) .wyn-orb::before {
+  inset: 0; filter: none; mix-blend-mode: normal;
+  background:
+    radial-gradient(circle at 30% 30%, var(--today) 0 16%, color-mix(in oklab, var(--today) 0%, transparent) 50%),
+    radial-gradient(circle at 74% 36%, var(--content) 0 13%, color-mix(in oklab, var(--content) 0%, transparent) 46%),
+    radial-gradient(circle at 62% 78%, var(--jobs) 0 11%, color-mix(in oklab, var(--jobs) 0%, transparent) 44%),
+    radial-gradient(circle at 24% 72%, var(--clients) 0 12%, color-mix(in oklab, var(--clients) 0%, transparent) 46%),
+    var(--life);
+}
+:where(:root[data-skin="matte"]) .wyn-orb::after { background: var(--grain-heavy); box-shadow: inset 0 calc(var(--s) * -.07) calc(var(--s) * .16) rgba(14, 10, 24, .42), inset 0 0 0 .5px rgba(255, 240, 222, .14); }
+:where(:root[data-skin="matte"]) #wynCall[data-state="speaking"] .wyn-orb.big::before { animation-duration: 14s; }
+
+/* Wyn's sheet title is a page title: Literata. Her bubbles are raised stock; yours are cream ink */
+:where(:root[data-skin="matte"]) #wynSheet .nh-text h2 { font-family: var(--ff-title); font-size: var(--fs-title1); line-height: var(--lh-title1); font-weight: var(--w-title); font-variation-settings: var(--fv-title); }
+:where(:root[data-skin="matte"]) .nm-wyn, :where(:root[data-skin="matte"]) .nm-typing { background: var(--grain), var(--raised); box-shadow: var(--edge-2); }
+:where(:root[data-skin="matte"]) .nm-me { font-weight: 500; }
+/* a call is printed in the done ink: the tile is a stamp of it */
+:where(:root[data-skin="matte"]) .nm-callrow .ncc-ico, :where(:root[data-skin="matte"]) .nm-call .ncc-ico, :where(:root[data-skin="matte"]) .tile.call-ic { background: var(--done); color: var(--on-color); box-shadow: none; }
+:where(:root[data-skin="matte"]) .nv-soul .tile { background: color-mix(in oklab, var(--life) 18%, transparent); color: var(--life-ink); box-shadow: none; }
+:where(:root[data-skin="matte"]) .mem .lrow .mem-x { background: var(--surface-3); }
+
+/* the call screen is the darkest stock with its grain, cream ink, Literata for her name */
+:where(:root[data-skin="matte"]) #wynCall { --ink: #f4efe7; --ink-2: rgba(244, 239, 231, .66); background: var(--grain), #0b0a09; -webkit-backdrop-filter: none; backdrop-filter: none; }
+:where(:root[data-skin="matte"]) #wynCall .nc-min { background: rgba(244, 239, 231, .1); }
+:where(:root[data-skin="matte"]) #wynCall .nc-name { font-family: var(--ff-title); font-size: 34px; line-height: 40px; font-weight: var(--w-display); font-variation-settings: 'opsz' 48; }
+:where(:root[data-skin="matte"]) #wynCall .nc-rings i { border: 2px solid color-mix(in oklab, var(--life) 70%, transparent); }
+:where(:root[data-skin="matte"]) #wynCall .nc-btn svg { background: rgba(244, 239, 231, .12); }
+:where(:root[data-skin="matte"]) #wynCall .nc-btn.on svg { background: var(--ink); color: #0b0a09; }
+:where(:root[data-skin="matte"]) #wynCall .nc-btn.end svg { background: var(--fail); }
+:where(:root[data-skin="matte"]) #wynPill { border-radius: 20px; }

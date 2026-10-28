@@ -1,0 +1,83 @@
+# Builds an UNSIGNED iOS app on a version tag (v*) and attaches it to that tag's GitHub release as
+# AgenticOS-<version>-unsigned.ipa. Nothing here needs Apple credentials: sign the IPA yourself before installing it
+# (e.g. with your own team in Xcode, or a sideloading tool). The Android APK is built and signed locally, not here.
+# Optional repository variable AOS_SERVER_URL bakes your server's address into the build (Info.plist AOSServerURL);
+# without it the app starts with a placeholder and uses whatever address you sign in with.
+name: Release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to build and upload to (e.g. v2.0.0); created from this commit if it doesn't exist
+        required: true
+        type: string
+permissions:
+  contents: write
+jobs:
+  ios:
+    runs-on: macos-latest
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+      AOS_SERVER_URL: ${{ vars.AOS_SERVER_URL }}
+      FAMILY_CONTROLS: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Version
+        run: |
+          VERSION="${TAG#v}"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          # CFBundleShortVersionString takes numbers only: 2.1.0-beta.1 builds as 2.1.0.
+          echo "MARKETING=${VERSION%%-*}" >> "$GITHUB_ENV"
+      - name: Xcode 26 or newer
+        run: |
+          major() { xcodebuild -version | head -1 | awk '{print $2}' | cut -d. -f1; }
+          if [ "$(major)" -lt 26 ]; then
+            pick=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+            [ -n "$pick" ] || { echo "No Xcode 26 on this runner"; exit 1; }
+            sudo xcode-select -s "$pick/Contents/Developer"
+          fi
+          xcodebuild -version
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install
+        run: npm ci --no-audit --no-fund
+      - name: Web app and Capacitor sync
+        run: npm run ios
+      - name: Native files and extensions
+        # Adds the Swift plugins, widgets, share sheet and keyboard to the Xcode project. No TEAM or profiles are
+        # set, so every target stays unsigned.
+        run: |
+          gem list -i xcodeproj >/dev/null || sudo gem install xcodeproj --no-document
+          ruby scripts/add_targets.rb
+      - name: Build (unsigned)
+        working-directory: ios/App
+        run: |
+          xcodebuild -project App.xcodeproj -scheme App -configuration Release \
+            -destination 'generic/platform=iOS' -derivedDataPath "$RUNNER_TEMP/dd" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" DEVELOPMENT_TEAM="" \
+            MARKETING_VERSION="$MARKETING" CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
+            AOS_SERVER_URL="$AOS_SERVER_URL" \
+            build
+      - name: Package IPA
+        run: |
+          APP="$RUNNER_TEMP/dd/Build/Products/Release-iphoneos/App.app"
+          [ -d "$APP" ] || { echo "No App.app at $APP"; exit 1; }
+          PKG="$RUNNER_TEMP/pkg"
+          mkdir -p "$PKG/Payload"
+          cp -R "$APP" "$PKG/Payload/"
+          IPA="$RUNNER_TEMP/AgenticOS-$VERSION-unsigned.ipa"
+          (cd "$PKG" && zip -qry "$IPA" Payload)
+          ls -la "$IPA"
+          echo "IPA=$IPA" >> "$GITHUB_ENV"
+      - name: Upload to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release view "$TAG" >/dev/null 2>&1 || \
+            gh release create "$TAG" --target "$GITHUB_SHA" --title "$TAG" --generate-notes
+          gh release upload "$TAG" "$IPA" --clobber

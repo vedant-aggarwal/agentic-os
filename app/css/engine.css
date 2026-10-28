@@ -1,0 +1,50 @@
+/* The engine's own chrome (ENGINE, phase 1). Loaded after every screen sheet.
+   · the sync pill: says Offline only when it is true, and when the PC failed to save (js/svc/boot.js)
+   · #screen: the layer the shipping app's sheets open on (app/work, app/modules through window.AOS)
+   · .lg-page: a pushed page that holds one of the shipping app's pages; its content sits in .aos-legacy, where the old
+     design system applies (scoped at runtime by js/svc/legacy.js) and the new one stays out of the way */
+
+/* ── sync pill ── */
+.sync-pill {
+  position: absolute; z-index: 79; left: 50%; top: calc(var(--safe-top, 0px) + var(--s-1)); translate: -50% 0;
+  max-width: calc(100% - 2 * var(--gutter)); min-height: 32px; padding: 0 var(--s-3) 0 var(--s-2);
+  display: inline-flex; align-items: center; gap: var(--s-2); border-radius: var(--r-pill);
+  font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; animation: eng-pill-in .35s var(--spring) both;
+}
+.sync-pill[hidden] { display: none; }
+.sync-pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--needs); flex-shrink: 0; }
+.sync-pill[data-kind="error"]::before { background: var(--fail); }
+.sync-pill[data-kind="demo"]::before { background: var(--ink-3); }
+.sync-pill::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 44px; translate: 0 -50%; }
+@keyframes eng-pill-in { from { opacity: 0; transform: translateY(-8px) scale(.96); } }
+@media (prefers-reduced-motion: reduce) { .sync-pill { animation: none; } }
+
+/* ── the old pages' layer ── */
+#screen.lg-layer { position: absolute; inset: 0; z-index: 62; pointer-events: none; overflow: hidden; }
+#screen.lg-layer > .sheet.open, #screen.lg-layer > .lg-scrim.on { pointer-events: auto; }
+#screen.lg-layer > .lg-scrim { transition: none; }
+/* the new shell's .sheet rules (a CSS transition, a max height, no touch scrolling) must not reach the old sheets:
+   their spring is driven frame by frame from JS */
+#screen.lg-layer > .sheet { transition: none; max-height: none; touch-action: auto; }
+#screen.lg-layer > .sheet .sheet-body { touch-action: pan-y; }
+
+/* ── a pushed page holding an old page ── */
+.lg-page .lg-root { min-height: 100%; }
+.lg-page .lg-root .detail-content { padding-bottom: calc(var(--safe-bottom, 0px) + var(--s-10)); }
+.lg-page .lg-root .large-title { margin-top: var(--s-1); }
+/* the right-hand slot old code fills (or replaces) keeps the shell's place for it */
+.lg-page > .topbar > :last-child { justify-self: end; display: flex; gap: var(--s-2); align-items: center; }
+
+/* ── settings (js/more.js): the server field and the account rows ── */
+.eng-field { display: flex; align-items: center; gap: var(--s-2); min-height: 46px; margin: 0 var(--gutter); padding: 0 var(--s-1) 0 var(--s-4); border-radius: var(--r-pill); background: var(--ctl); box-shadow: var(--ctl-box); }
+.eng-field:focus-within { box-shadow: inset 0 0 0 1.5px var(--field-focus); }
+.eng-field input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font: inherit; font-size: var(--fs-callout); color: var(--ink); padding: var(--s-2) 0; }
+.eng-field input::placeholder { color: var(--ink-3); }
+.eng-note { margin: var(--s-2) var(--gutter) 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.eng-note.warn { color: var(--needs-ink); }
+.eng-note.bad { color: var(--fail-ink); }
+.eng-form { display: grid; gap: var(--s-2); padding: var(--s-3) 0 var(--s-1); }
+.eng-form .btn { margin: var(--s-1) var(--gutter) 0; width: calc(100% - 2 * var(--gutter)); }
+.eng-mono { font-family: var(--mono); font-size: var(--fs-subhead); letter-spacing: .04em; }
+.eng-gap { margin-top: var(--s-4); }

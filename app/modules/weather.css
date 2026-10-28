@@ -1,0 +1,50 @@
+/* ═══ MODULE · WEEK WEATHER ══════════════════════════════════════════════════
+   The page (the headline beside the heaviest day's ring, load per day, odds, changes, standing blocks) and its
+   Today row. Owner: area (d) (app/ui/STRUCTURE.md). JS: app/modules/weather.js. Shared pieces: app/ui/screens/content.css.
+   Design: j15/mockup/final/js/more.js PAGES.weather. Blocks: 1 · SHARED · 2 · OBSIDIAN · 3 · MATTE.
+   Load is time, so its rings wear Today's colour and an over-full day laps itself. Odds are a semantic pill. */
+
+/* ═══ 1 · SHARED ═══════════════════════════════════════════════════════════ */
+.wx-seg { margin-top: var(--s-4); }
+.wx-seg .segmented { height: 40px; }
+
+/* hero: the forecast in one line, the heaviest day's ring beside it */
+.wx-hero { display: flex; align-items: center; gap: var(--s-4); overflow: hidden; --ring-bg: var(--e1); }
+.wx-hero-t { flex: 1; min-width: 0; }
+.wx-headline { margin: var(--s-1) 0 var(--s-2) !important; font-size: var(--fs-title3); line-height: var(--lh-title3); font-weight: var(--w-bold); text-wrap: pretty; font-variant-numeric: tabular-nums; }
+.wx-peak { display: flex; flex-direction: column; align-items: center; gap: var(--s-1); flex-shrink: 0; }
+.wx-peak-n { font-size: var(--fs-fig-3); }
+.wx-peak-n small { font-size: var(--fs-caption); }
+.wx-peak-d { font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--today-ink); }
+
+/* load per day: one ring a day; a full ring is a day booked to every waking hour */
+.wx-load { --ring-bg: var(--e1); }
+.wx-days { display: grid; grid-template-columns: repeat(var(--n, 7), minmax(0, 1fr)); gap: var(--s-1); }
+.wx-day { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
+.wx-day .rg { margin-bottom: var(--s-1); }
+.wx-day b { font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.wx-day .met { font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink); }
+.wx-day.over b, .wx-day.over .met { color: var(--today-ink); }
+.wx-day.past { opacity: .42; }
+.wx-load-f { margin-top: var(--s-3) !important; }
+
+/* odds: the figure at the end of its row */
+.wx-odds { flex-shrink: 0; min-width: 52px; justify-content: center; }
+
+/* changes: numbered, Pencil in at the end; once pencilled, Keep and Remove under the words */
+.wx-n { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; margin-top: 0 !important; background: var(--ctl); box-shadow: var(--ctl-box); font-family: var(--round); font-size: var(--fs-subhead); font-weight: var(--w-fig); color: var(--ink); }
+.wx-n svg { width: 14px; height: 14px; }
+.wx-chg { --sep-left: 56px; }
+/* a change is one sentence with its numbers: it reads in full, never clipped */
+.wx-line { display: block; font-size: var(--fs-body); line-height: var(--lh-body); color: var(--ink); text-wrap: pretty; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.wx-chg .rbody .rmeta { margin-top: var(--s-1); }
+.wx-chg .mp-racts { margin-top: var(--s-2); }
+.wx-chg.kept .wx-line { color: var(--ink-2); }
+.wx-pen .spin { width: 14px; height: 14px; }
+
+/* ═══ 2 · OBSIDIAN ═════════════════════════════════════════════════════════ */
+/* nothing to restate: the rings carry Obsidian's light by themselves */
+
+/* ═══ 3 · MATTE ════════════════════════════════════════════════════════════ */
+:where(:root[data-skin="matte"]) .wx-hero, :where(:root[data-skin="matte"]) .wx-load { --ring-bg: var(--paper); }
+:where(:root[data-skin="matte"]) .wx-n { box-shadow: var(--edge-2); }

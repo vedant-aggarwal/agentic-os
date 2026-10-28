@@ -1,0 +1,84 @@
+/* ═══ SCREEN · MORE ═══════════════════════════════════════════════════════════
+   Owner: area (e) More (the Life card is life.css): Areas, Voice recordings, the module list, App (Appearance, Theme,
+   Keyboard, Settings), the Areas page and the account sheet. Loaded after styles.css.
+   Blocks: 1 · SHARED · 2 · OBSIDIAN · 3 · MATTE. Target: j15/mockup/final/css/screens/more.css.
+   Neutral ground. Life leads as the one card of rings; the modules are a list that ends in each module's figure. */
+
+/* ═══ 1 · SHARED ═══════════════════════════════════════════════════════════ */
+/* Areas: a dot for each of the four areas with the most time this week, two by two */
+.area-icon.mo-areas-tile { display: grid; grid-template-columns: 8px 8px; grid-auto-rows: 8px; gap: var(--s-0); place-content: center; }
+.mo-areas-tile i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+/* a recording still on this phone is the one thing in the list that waits on you */
+.mo-wait { color: var(--needs-ink); font-weight: var(--w-semibold); }
+
+/* modules: one row each. The name and what its figure counts on the left, the figure on the right, one column for all */
+.mo-mods .mo-mod { min-height: 64px; }
+.mo-v { flex-shrink: 0; font-size: var(--fs-headline); line-height: var(--lh-headline); color: var(--ink); white-space: nowrap; }
+.mo-mod .mo-v + .chev { margin-left: calc(var(--s-1) * -1); }
+
+/* the App group: Appearance (the skin) on its own line under its title, then Theme */
+.app-list .mo-skin { flex-wrap: wrap; row-gap: var(--s-2); padding-bottom: var(--s-3); }
+.app-list .mo-skin .skin-seg { flex: 1 0 calc(100% - 44px); margin-left: 44px; }
+.app-list .mo-theme { width: 186px; flex: none; }
+
+/* hours as one stacked bar, 2px gaps between areas, and a legend that never cuts a name (Areas, the weekly review) */
+.stackbar { display: flex; gap: var(--s-0); height: 14px; border-radius: var(--r-pill); overflow: hidden; }
+.stackbar i { display: block; min-width: 4px; }
+.stack-legend { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-4); margin-top: var(--s-3); }
+.stack-legend > span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.stack-legend .sl-n { color: var(--ink-2); }
+.stack-legend b { font-family: var(--round); font-weight: var(--w-fig); font-variant-numeric: tabular-nums; }
+.stack-tot { margin-top: var(--s-3); padding-top: var(--s-3); border-top: var(--hair) solid var(--sep); }
+.stack-tot b { font-family: var(--round); font-size: var(--fs-subhead); font-weight: var(--w-fig); color: var(--ink); }
+.page.detail[data-kind="areas"] .week-card { margin-top: var(--s-4); }
+.page.detail[data-kind="areas"] .sec-label + .area-list { margin-top: 0; }
+
+/* Voice recordings (app/work/voice.js draws the sheet): each recording leads with a play circle that carries the wave,
+   tinted by how it stands (green on the PC, orange waiting on you); its status is the coloured word in the meta line */
+#voiceSheet .vr-item + .vr-item::before { left: 68px; }
+#voiceSheet .vr-row { gap: var(--s-3); padding-top: var(--s-3); padding-bottom: var(--s-3); }
+#voiceSheet .vr-ico { width: 40px; height: 40px; margin-top: 0; border-radius: 50%; background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); }
+#voiceSheet .vr-ico::after { inset: 0; left: auto; top: auto; width: 100%; height: 100%; border-radius: 0; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2'/%3E%3C/svg%3E") center / 19px no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2'/%3E%3C/svg%3E") center / 19px no-repeat; }
+#voiceSheet .vr-ico.s-done { color: var(--done); }
+#voiceSheet .vr-ico:is(.s-failed, .s-interrupted) { color: var(--needs-ink); }
+#voiceSheet .vr-row .wr-title { font-size: var(--fs-callout); line-height: var(--lh-callout); }
+#voiceSheet .vr-row .wr-sub b { font-weight: var(--w-semibold); }
+#voiceSheet .vr-detail { padding: 0 var(--s-4) var(--s-4) 68px; }
+#voiceSheet .vr-text { color: var(--ink-2); font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+#voiceSheet .vr-detail .chips { gap: var(--s-2); }
+#voiceSheet .vr-detail .chip-btn { min-height: 36px; height: 36px; color: var(--ink); }
+#voiceSheet .vr-detail .chip-btn::after { content: ""; position: absolute; inset: -4px 0; }
+#voiceSheet .vr-detail .chip-btn.danger { color: var(--fail-ink); }
+
+/* the account sheet: who is signed in, then groups. A caption names only what a row cannot say for itself */
+.acct-head { display: flex; align-items: center; gap: var(--s-4); padding: var(--s-2) var(--s-4) var(--s-4) var(--s-5); }
+.acct-head .avatar.lg { width: 52px; height: 52px; font-size: var(--fs-title2); background: var(--fill-3); }
+.acct-who { flex: 1; min-width: 0; }
+.acct-who h2, .acct-who p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.acct-who p { margin-top: 2px; }
+#settingsSheet .sheet-close::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; }
+.acct-gap { margin-top: var(--s-5); }
+.acct-sync.ok .tile { color: var(--done); }
+.acct-sync.warn .tile { color: var(--needs-ink); }
+/* a note beside a button may take a second line rather than clip */
+:is(.acct-sync, .acct-invite, .acct-src) .rmeta, #acctBody .rmeta.warn { white-space: normal; }
+#acctBody .rmeta.warn { color: var(--needs-ink); }
+.acct-sync .small-btn { min-width: 96px; }
+.acct-skin .skin-seg { flex: 1; min-width: 0; }
+.acct-theme .segmented { width: 186px; flex: none; }
+.acct-src .segmented { width: 140px; flex: none; }
+.acct-code { font-size: var(--fs-callout); letter-spacing: .04em; }
+.acct-invite .small-btn svg { width: 15px; height: 15px; }
+.acct-out .rtitle, .acct-out .tile { color: var(--fail-ink); }
+#acctBody .pw-form + .lrow::before { content: ""; position: absolute; top: 0; right: 0; left: var(--sep-left, var(--s-4)); height: var(--hair); background: var(--sep); }
+
+/* ═══ 2 · OBSIDIAN ═════════════════════════════════════════════════════════
+   Nothing to restate: Obsidian's More is the shared block. */
+
+/* ═══ 3 · MATTE ════════════════════════════════════════════════════════════ */
+/* hours as a stacked bar with 2px paper gaps, its ends squared like print */
+:where(:root[data-skin="matte"]) .stackbar { border-radius: var(--r-xs); }
+/* the account V is a monogram: the title serif, set on raised stock */
+:where(:root[data-skin="matte"]) .acct-head .avatar.lg { background: var(--ctl); box-shadow: var(--ctl-box); font-size: 26px; font-variation-settings: 'opsz' 36; }
+/* an area glyph is printed on a 15% wash of its own colour */
+:where(:root[data-skin="matte"]) .page.detail[data-kind="areas"] .area-row[data-area] > .area-icon { background: color-mix(in oklab, var(--c) 15%, var(--paper)); box-shadow: none; }

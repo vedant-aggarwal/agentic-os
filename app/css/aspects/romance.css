@@ -1,0 +1,391 @@
+/* ═══ ASPECT · ROMANCE ═══════════════════════════════════════════════════════
+   The Romance app. Owner: the Romance agent. JS: js/aspects/romance.js (+ romance-data, romance-ui, romance-couple).
+   Colours come from --as (css/aspects.css) and the skin tokens; never a raw hex outside an illustration.
+   One accent per screen: --as on the rings, the key figures, a few glyphs and the one primary action. Everything
+   else is ink on stone (Obsidian) or ink on paper (Matte). Content sits on .surface; nothing here is glass.
+   Blocks: 1 shared · 2 OBSIDIAN · 3 MATTE (see css/system.css). */
+
+/* ═══ 1 · SHARED ═══════════════════════════════════════════════════════════ */
+
+/* ── the frame, as Romance needs it: a muted ink for de-emphasised marks, and room under the app's own dock
+   (.stack .page .scroll in system.css outweighs .asp > .scroll in aspects.css, so the last card sat under the dock) ── */
+.asp-romance, [data-aspect="romance"] { --rom-mute: color-mix(in srgb, var(--ink) 28%, transparent); }
+#stack > .page.asp-romance > .scroll { padding-bottom: calc(var(--safe-bottom) + var(--dock-h) + var(--s-10)); }
+
+/* ── the head: a private kicker and a privacy button ── */
+.rom-kick { display: inline-flex; align-items: center; gap: 5px; }
+.rom-kick svg { width: 15px; height: 15px; flex-shrink: 0; }
+.rom-ib {
+  width: var(--hit); height: var(--hit); border-radius: 50%; display: grid; place-items: center; flex-shrink: 0;
+  background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink-2);
+  transition: transform var(--d-press) var(--ease), background-color var(--d-state);
+}
+.rom-ib svg { width: 20px; height: 20px; }
+.rom-ib:active { transform: scale(.92); background: var(--ctl-press); filter: var(--press-filter); }
+
+/* ── cards, labels, rhythm ── */
+.rom-card { margin: 0 var(--gutter); border-radius: var(--r-lg); padding: var(--s-4) var(--s-5) var(--s-5); position: relative; }
+.rom-card + .rom-card { margin-top: var(--s-3); }
+.rom-gap { height: var(--gap-sec); }
+.rom-gap.sm { height: var(--s-3); }
+.rom-card-h { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); margin: 0; }
+.rom-k { display: inline-flex; align-items: center; gap: 5px; margin: 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.rom-k.c-as { color: var(--as-ink); }
+.rom-k svg { width: 14px; height: 14px; flex-shrink: 0; }
+.rom-next-t { margin: var(--s-1) 0 0; font-family: var(--ff-title); font-variation-settings: var(--fv-title); font-size: var(--fs-title3); line-height: var(--lh-title3); font-weight: var(--w-semibold); text-wrap: balance; }
+.rom-card .sub { margin-top: var(--s-1); }
+.rom-row-btns { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); margin-top: var(--s-4); }
+.btn.rom-tint { color: var(--as-ink); }
+.tile.rom-tile { color: var(--as-ink); }
+.hint.rom-hint-top { margin-top: calc(var(--s-2) * -1); padding-top: 0; padding-bottom: var(--s-3); font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.row .rmeta.rom-row-l { margin: 0 0 2px; }
+.rom-pick { color: var(--as-ink); display: grid; place-items: center; }
+.rom-pick svg { width: 20px; height: 20px; }
+.rom-link { color: var(--as-ink); font-weight: var(--w-semibold); min-height: var(--hit); }
+
+/* ── this week's small step: the ring closes, the week strip fills, the streak counts up ── */
+.rom-step-main { display: flex; align-items: flex-start; gap: var(--s-4); margin-top: var(--s-3); }
+.rom-step-txt { flex: 1; min-width: 0; }
+.rom-step-t { margin: 0; font-family: var(--ff-title); font-variation-settings: var(--fv-title); font-size: var(--fs-title2); line-height: var(--lh-title2); font-weight: var(--w-title); text-wrap: balance; }
+.rom-step-why { margin: var(--s-2) 0 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); text-wrap: pretty; }
+.rom-step-ring { margin-top: 2px; }
+.rom-step-ic { display: grid; place-items: center; color: var(--ink-3); }
+.rom-step-ic svg { width: 24px; height: 24px; }
+.rom-step.is-done .rom-step-ic { color: var(--as-ink); }
+.rom-week { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); margin-top: var(--s-5); padding-top: var(--s-4); border-top: var(--hair) solid var(--sep); }
+.rom-dots { display: flex; gap: 6px; }
+.rom-dot { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; box-shadow: inset 0 0 0 2px var(--ink-4); color: var(--on-color); transition: background-color var(--d-state), box-shadow var(--d-state); }
+.rom-dot svg { width: 12px; height: 12px; stroke-width: 3; }
+.rom-dot.done { background: var(--as); box-shadow: none; }
+.rom-dot.quiet { color: var(--ink-3); }
+.rom-dot.quiet svg { width: 10px; }
+.rom-dot.now { box-shadow: inset 0 0 0 2px var(--as); }
+.rom-dot.done.now { box-shadow: none; }
+.rom-dot.pop { animation: rom-pop .5s var(--spring) .32s both; }
+.rom-streak { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; font-size: var(--fs-footnote); color: var(--ink-2); }
+.rom-streak b { display: inline-block; font-size: var(--fs-fig-3); color: var(--as-ink); }
+.rom-streak b.bump { animation: rom-bump .45s var(--spring); }
+.rom-step-acts { margin-top: var(--s-4); }
+.rom-step-acts > .rom-row-btns { margin-top: 0; }
+.rom-step-q { margin: 0 0 var(--s-2); }
+.rom-step-felt { display: flex; align-items: center; gap: 6px; margin: 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.rom-step-felt svg { width: 16px; height: 16px; color: var(--done); flex-shrink: 0; }
+.rom-step-from { display: flex; align-items: center; gap: 6px; margin: var(--s-3) 0 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+.rom-step-from svg { width: 14px; height: 14px; color: var(--as-ink); flex-shrink: 0; }
+.rom-swap { animation: rom-in .32s var(--ease) both; }
+/* compact, at the top of Out there */
+.rom-step-mini { display: flex; align-items: center; gap: var(--s-4); padding: var(--s-4) var(--s-4) var(--s-4) var(--s-5); }
+.rom-step-mini .rom-step-txt { flex: 1; min-width: 0; }
+.rom-step-mini .rom-step-t { margin-top: 2px; font-family: var(--font); font-variation-settings: normal; font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+.rom-step-mini .rom-step-why { margin-top: 2px; font-size: var(--fs-footnote); line-height: var(--lh-footnote); }
+.rom-step-mini .rom-step-ic svg { width: 20px; height: 20px; }
+.rom-step-mini > .btn { flex-shrink: 0; }
+.rom-closing .rom-step-ic svg { animation: rom-pop .5s var(--spring) .42s both; }
+
+/* ── Wyn, as a friend inside the app ── */
+.rom-wyn { display: flex; align-items: flex-start; gap: var(--s-3); }
+.tile.rom-wyn-t { color: var(--as-ink); background: color-mix(in oklch, var(--as) 16%, transparent); box-shadow: none; }
+.rom-wyn-b { flex: 1; min-width: 0; }
+.rom-wyn-h { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-2); margin: 0; }
+.rom-wyn-h b { font-size: var(--fs-subhead); font-weight: var(--w-semibold); }
+.rom-wyn-h span { font-size: var(--fs-footnote); color: var(--ink-3); }
+.rom-wyn-x { margin: var(--s-1) 0 0; font-size: var(--fs-body); line-height: var(--lh-body); text-wrap: pretty; }
+.rom-wyn .rom-row-btns { margin-top: var(--s-3); }
+
+/* ── what he's looking for: prompt cards in his own words ── */
+.rom-rail { display: flex; gap: var(--s-3); overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); padding: 0 var(--gutter) var(--s-1); scrollbar-width: none; }
+.rom-rail::-webkit-scrollbar { display: none; }
+.rom-rail::after { content: ""; flex: 0 0 1px; }
+.rom-pc {
+  flex: 0 0 272px; scroll-snap-align: start; min-height: 188px; border-radius: var(--r-lg); padding: var(--s-4) var(--s-5);
+  display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-2); text-align: left; color: var(--ink);
+  transition: transform var(--d-press) var(--ease);
+}
+.rom-pc:active { transform: var(--press); }
+.rom-pc.full { flex: none; min-height: 0; margin: 0 var(--gutter); }
+.rom-pcs { display: grid; gap: var(--s-3); }
+.rom-pq { margin: 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); color: var(--ink-2); }
+.rom-pa { flex: 1; margin: 0 0 var(--s-1); font-family: var(--ff-title); font-variation-settings: var(--fv-title); font-size: var(--fs-title3); line-height: var(--lh-title3); font-weight: var(--w-semibold); text-wrap: pretty; }
+.rom-pc.full .rom-pa { margin-bottom: var(--s-2); }
+.rom-fb { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 var(--s-3); border-radius: var(--r-pill); background: var(--fill-2); font-size: var(--fs-footnote); font-weight: var(--w-semibold); color: var(--ink-2); white-space: nowrap; }
+.rom-fb svg { width: 14px; height: 14px; color: var(--as-ink); flex-shrink: 0; }
+.rom-fb.great { color: var(--ink); }
+.rom-pc-more { align-items: center; justify-content: center; text-align: center; gap: var(--s-3); flex-basis: 196px; }
+.rom-pc-more .rom-pq { max-width: 150px; }
+.rom-pc-plus { width: var(--hit); height: var(--hit); border-radius: 50%; display: grid; place-items: center; background: var(--fill-2); color: var(--as-ink); }
+.rom-pc-plus svg { width: 20px; height: 20px; }
+/* must-haves and green flags: one line each */
+.group.rom-list .row { --sep-left: 52px; min-height: 48px; }
+.rom-li { width: 22px; flex-shrink: 0; display: grid; place-items: center; color: var(--as-ink); margin-left: 2px; }
+.rom-li svg { width: 18px; height: 18px; }
+.rom-list-add .rtitle { color: var(--as-ink); font-weight: var(--w-semibold); }
+
+/* ── the door to the preview: two open rings ── */
+.rom-door { display: flex; align-items: flex-start; gap: var(--s-4); }
+.rom-pair { width: 58px; height: 36px; flex-shrink: 0; margin-top: 2px; }
+.rom-door-b { flex: 1; min-width: 0; }
+.rom-door .rom-next-t { margin-top: 0; }
+
+/* ── out there: ideas, reps ── */
+.row.rom-idea-r { align-items: flex-start; }
+.row.rom-idea-r > .btn { align-self: center; flex-shrink: 0; }
+.rom-idea-why { display: block; margin-top: var(--s-1); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); white-space: normal; }
+.rom-idea-why.rom-why-ic { display: flex; align-items: flex-start; gap: 6px; }
+.rom-why-ic svg { width: 14px; height: 14px; margin-top: 2px; flex-shrink: 0; color: var(--as-ink); }
+.rom-row-why { display: block; margin-top: 2px; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); white-space: normal; }
+.row.rom-log { align-items: flex-start; gap: var(--s-4); --sep-left: 68px; }
+.rom-log-d { width: 36px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; padding-top: 1px; line-height: 1; }
+.rom-log-d small { font-size: var(--fs-caption); line-height: var(--lh-caption); font-weight: var(--w-semibold); color: var(--ink-3); }
+.rom-log-d b { font-size: var(--fs-fig-3); line-height: 1.1; color: var(--ink); }
+.rom-log-by { display: flex; align-items: center; gap: 5px; margin-top: var(--s-1); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+.rom-log-by svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+/* ── the journal: what Wyn notices, then the notes ── */
+.rom-pat-r { margin-top: var(--s-3); }
+.rom-pat-t { margin: 0; font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+.rom-pat-r .sub { margin-top: 2px; }
+.rom-stats { display: flex; gap: var(--s-5); margin-top: var(--s-4); padding-top: var(--s-4); border-top: var(--hair) solid var(--sep); }
+.rom-stats span { display: flex; align-items: baseline; gap: 5px; font-size: var(--fs-footnote); color: var(--ink-2); }
+.rom-stats b { font-size: var(--fs-fig-3); color: var(--ink); }
+.rom-entries { display: grid; gap: var(--s-3); padding: 0 var(--gutter); }
+.rom-entry { border-radius: var(--r-lg); padding: var(--s-4) var(--s-5); }
+.rom-entry-h { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2); margin: 0; min-height: 24px; }
+.rom-entry-d { font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.rom-entry-p { margin: var(--s-3) 0 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--as-ink); }
+.rom-entry-t { margin: var(--s-2) 0 0; font-size: var(--fs-body); line-height: var(--lh-body); text-wrap: pretty; }
+.rom-by { display: flex; align-items: flex-start; gap: 6px; margin: var(--s-3) 0 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+.rom-by svg { width: 14px; height: 14px; margin-top: 2px; flex-shrink: 0; }
+
+/* ── Face ID: private by default. The lock covers the content, never the way back ── */
+.asp-romance .adock { transition: opacity .3s var(--ease); }
+.asp-romance.rom-locked .adock { opacity: 0; pointer-events: none; }
+.asp-romance.rom-locked > .scroll { overflow: hidden; }
+.asp-romance.rom-locked .tb-title { opacity: 0 !important; }
+.rom-lock {
+  position: absolute; inset: 0; z-index: 10; display: grid; place-items: center; text-align: center;   /* over the content, under the top bar */
+  padding: calc(var(--safe-top) + var(--topbar-h)) var(--s-8) calc(var(--safe-bottom) + var(--s-16));
+  background: var(--e0-bg); transition: opacity .3s var(--ease);
+}
+.rom-lock.out { opacity: 0; pointer-events: none; }
+.rom-lock-in { max-width: 300px; display: flex; flex-direction: column; align-items: center; }
+.fid { width: 76px; height: 76px; margin-bottom: var(--s-6); color: var(--ink-2); overflow: visible; transition: color .2s var(--ease); }
+.rom-lock .fid-c, .rom-lock .fid-f { transform-box: view-box; transform-origin: 50% 50%; }
+.fid-k { stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0; }
+.rom-lock.scan .fid { color: var(--as-ink); }
+.rom-lock.scan .fid-c { animation: rom-fid-scan .62s var(--ease) both; }
+.rom-lock.scan .fid-f { animation: rom-fid-face .62s ease-in-out both; }
+.rom-lock.ok .fid-f { animation: none; opacity: 0; transition: opacity .12s; }
+.rom-lock.ok .fid-k { opacity: 1; stroke-dashoffset: 0; transition: stroke-dashoffset .34s var(--ease); }
+.rom-lock-t { margin: 0; font-family: var(--ff-title); font-variation-settings: var(--fv-title); font-size: var(--fs-title2); line-height: var(--lh-title2); font-weight: var(--w-title); }
+.rom-lock-s { margin: var(--s-2) 0 var(--s-6); font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); text-wrap: balance; }
+.btn.rom-unlock { min-width: 232px; }
+.asp-sec.rom-rise { animation: rom-rise .46s var(--ease) both; }
+
+/* ── people: a monogram on the app's colour ── */
+.rom-mono {
+  width: var(--hit); height: var(--hit); border-radius: 50%; flex-shrink: 0; display: grid; place-items: center;
+  background: color-mix(in oklch, var(--as) 20%, transparent); color: var(--as-ink);
+  font-family: var(--ff-mono-g); font-weight: var(--w-mono-g); font-variation-settings: var(--fv-mono-g); font-size: var(--fs-headline); line-height: 1;
+}
+.rom-mono.sm { width: 30px; height: 30px; font-size: var(--fs-footnote); }
+.rom-mono.me { background: var(--fill-2); color: var(--ink); }
+.rom-mono.xl { width: 96px; height: 96px; font-size: 40px; }
+
+/* ══ the sample preview ════════════════════════════════════════════════ */
+/* the label every preview screen carries: dashed, like a template, never mistaken for his data */
+.rom-banner {
+  display: flex; align-items: center; gap: var(--s-3); margin: 0 var(--gutter) var(--s-4); padding: var(--s-2) var(--s-2) var(--s-2) var(--s-4);
+  border-radius: var(--r-md); border: 1px dashed var(--ink-4); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2);
+}
+.rom-banner span { flex: 1; min-width: 0; }
+.rom-banner .btn { flex-shrink: 0; }
+
+/* together: the day count in a ring that closes on every hundredth day */
+.rom-tg { padding-bottom: 0; }
+.rom-tg-top { display: flex; align-items: center; gap: var(--s-5); padding: var(--s-1) 0 var(--s-4); }
+.rom-tg-txt { flex: 1; min-width: 0; }
+.rom-tg-since { margin: 2px 0; font-family: var(--ff-title); font-variation-settings: var(--fv-title); font-size: var(--fs-title3); line-height: var(--lh-title3); font-weight: var(--w-semibold); }
+.rom-ring-in { display: flex; flex-direction: column; align-items: center; line-height: 1; }
+.rom-ring-in b { font-size: var(--fs-fig-2); color: var(--ink); }
+.rom-ring-in small { margin-top: 3px; font-size: var(--fs-caption); font-weight: var(--w-semibold); color: var(--ink-2); }
+.row.rom-tg-who { width: calc(100% + 2 * var(--s-5)); margin: 0 calc(var(--s-5) * -1); padding: var(--s-3) var(--s-5); border-top: var(--hair) solid var(--sep); border-radius: 0 0 var(--r-lg) var(--r-lg); }
+
+/* today's question: theirs stays sealed until you answer */
+.rom-q-streak { color: var(--ink-2); }
+.rom-q-streak svg { color: var(--as-ink); }
+.rom-qq { margin: var(--s-3) 0 var(--s-4); font-family: var(--ff-title); font-variation-settings: var(--fv-title); font-size: var(--fs-title3); line-height: var(--lh-title3); font-weight: var(--w-semibold); text-wrap: balance; }
+.rom-ans { position: relative; display: flex; align-items: flex-start; gap: var(--s-3); padding: var(--s-3); border-radius: var(--r-md); background: var(--fill-1); }
+.rom-ans + .rom-ans { margin-top: var(--s-2); }
+.rom-ans-b { flex: 1; min-width: 0; }
+.rom-ans-who { margin: 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.rom-ans-t { margin: 2px 0 0; font-size: var(--fs-body); line-height: var(--lh-body); text-wrap: pretty; }
+.rom-seal { display: grid; gap: 7px; padding: var(--s-2) var(--s-6) var(--s-1) 0; }
+.rom-seal i { display: block; height: 9px; border-radius: 5px; background: var(--fill-3); }
+.rom-seal i:nth-child(1) { width: 94%; } .rom-seal i:nth-child(2) { width: 76%; } .rom-seal i:nth-child(3) { width: 42%; }
+.rom-seal-lock { position: absolute; top: var(--s-3); right: var(--s-3); color: var(--ink-3); }
+.rom-seal-lock svg { width: 16px; height: 16px; }
+.rom-q-next { margin: var(--s-3) 0 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+.rom-revealed .rom-ans.them .rom-ans-t { animation: rom-reveal .62s var(--ease) .12s both; }
+.rom-revealed .rom-ans:not(.them) { animation: rom-in .3s var(--ease) both; }
+
+.rom-acts-g .check { --c-check: var(--ink-3); }
+
+/* dates */
+.rom-next-rh { display: flex; align-items: center; gap: var(--s-3); margin-top: var(--s-4); }
+.rom-next-rh .foot { min-width: 0; }
+.chips.rom-tags { flex-wrap: nowrap; overflow-x: auto; padding: 0 var(--gutter) var(--s-3); scrollbar-width: none; }
+.chips.rom-tags::-webkit-scrollbar { display: none; }
+.rom-tags .chip { flex-shrink: 0; }
+.rom-ideas { display: grid; gap: var(--s-3); padding: 0 var(--gutter); }
+.rom-idea { display: flex; align-items: flex-start; gap: var(--s-3); border-radius: var(--r-lg); padding: var(--s-4) var(--s-4) var(--s-4) var(--s-5); }
+.rom-idea-b { flex: 1; min-width: 0; }
+.rom-idea-t { margin: 0; font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+.rom-idea-m { margin: 2px 0 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.rom-idea-w { display: flex; align-items: flex-start; gap: 6px; margin: var(--s-2) 0 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+.rom-idea-w svg { width: 14px; height: 14px; margin-top: 2px; color: var(--as-ink); flex-shrink: 0; }
+.rom-idea > .btn { flex-shrink: 0; }
+
+/* check-in: the Sunday ritual, the trend, repair */
+.rom-due-steps { list-style: none; margin: var(--s-3) 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-2) var(--s-3); }
+.rom-due-steps li { display: flex; align-items: center; gap: var(--s-2); font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.rom-due-n { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; background: var(--fill-2); font-family: var(--round); font-size: var(--fs-footnote); font-weight: var(--w-fig); color: var(--ink-2); }
+.rom-trend .seg { margin-bottom: var(--s-4); }
+.rom-trend-read { display: flex; align-items: baseline; gap: 6px; margin: 0; }
+.rom-trend-read b { font-size: var(--fs-fig-2); color: var(--ink); }
+.rom-trend-read .u { font-size: var(--fs-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.rom-trend-w { margin-left: auto; font-size: var(--fs-footnote); color: var(--ink-2); }
+.rom-chart { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: var(--s-2); margin-top: var(--s-3); }
+.rom-yl { position: relative; }
+.rom-yl span { position: absolute; right: 0; transform: translateY(-50%); font-family: var(--round); font-size: var(--fs-caption); font-weight: var(--w-fig); line-height: 1; color: var(--ink-3); }
+.rom-plot { position: relative; }
+.rom-plot svg { display: block; width: 100%; height: auto; overflow: visible; }
+.rom-plot .g line { stroke: var(--sep); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.rom-plot .ar { fill: color-mix(in srgb, var(--as) 12%, transparent); }
+.rom-plot .ln { fill: none; stroke: var(--as); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.rom-plot .pt { fill: var(--as); stroke: var(--e1); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.rom-hits { position: absolute; inset: -6px 0; }
+.rom-hits button { position: absolute; top: 0; bottom: 0; width: var(--hit); transform: translateX(-50%); border-radius: var(--r-sm); }
+.rom-hits button:active { background: var(--fill-1); }
+.rom-xl { position: relative; height: var(--lh-caption); margin: var(--s-2) 0 0 calc(14px + var(--s-2)); font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); }
+.rom-xl span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
+.rom-xl span.first { transform: none; }
+.rom-xl span.last { transform: translateX(-100%); }
+.rom-trend-x { margin: var(--s-3) 0 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.rom-fade { animation: swap .24s var(--ease); }
+.rom-mend { display: flex; align-items: flex-start; gap: var(--s-4); }
+.rom-mend-b { flex: 1; min-width: 0; }
+.rom-mend .rom-next-t { margin-top: 0; }
+.group.rom-repairs { margin-top: var(--s-3); }
+.rom-repair-p { display: block; margin-top: 6px; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink); white-space: normal; }
+.rom-repair-p b { font-weight: var(--w-semibold); color: var(--ink-2); }
+.rom-seg-wrap { padding-bottom: var(--s-4); }
+
+/* the partner page: Contacts' head, then the shared person anatomy */
+.rom-pp-head { display: flex; flex-direction: column; align-items: center; text-align: center; padding: var(--s-2) var(--gutter) var(--s-5); }
+.rom-pp-head .title1 { margin-top: var(--s-3); }
+.rom-pp-head .sub { margin-top: 2px; }
+.rom-pp-sample { display: inline-flex; align-items: center; gap: 6px; margin: var(--s-3) 0 0; padding: 4px var(--s-3); border-radius: var(--r-pill); border: 1px dashed var(--ink-4); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.rom-pp-sample svg { width: 14px; height: 14px; }
+.rom-pp-acts { display: flex; gap: var(--s-3); width: 100%; margin-top: var(--s-5); }
+.rom-pp-a {
+  flex: 1; min-height: 64px; border-radius: var(--r-md); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  background: var(--ctl); box-shadow: var(--ctl-box); font-size: var(--fs-footnote); font-weight: var(--w-semibold); color: var(--as-ink);
+  transition: transform var(--d-press) var(--ease), background-color var(--d-state);
+}
+.rom-pp-a svg { width: 21px; height: 21px; }
+.rom-pp-a:active { transform: var(--press); background: var(--ctl-press); filter: var(--press-filter); }
+.rom-pp-warm .rom-dots { margin-top: var(--s-4); }
+.rom-pp-warm .rom-next-t { margin-top: var(--s-1); }
+.rom-lang { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 6px var(--s-3); }
+.rom-lang + .rom-lang { margin-top: var(--s-3); }
+.rom-lang-l { font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.rom-lang-l b { color: var(--ink); font-weight: var(--w-semibold); }
+.rom-lang-v { font-size: var(--fs-fig-4); color: var(--ink); }
+.rom-lang-v small { font-size: var(--fs-caption); }
+.rom-lang .bar { grid-column: 1 / -1; }
+.rom-langs-me { margin: var(--s-4) 0 0; padding-top: var(--s-3); border-top: var(--hair) solid var(--sep); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.rom-pp-end { padding-top: var(--gap-sec); }
+
+/* ── sheets ── */
+.rom-sheet .sheet-body { padding-bottom: var(--s-4); }
+.rom-sheet-foot { display: flex; gap: var(--s-2); flex-shrink: 0; padding: var(--s-3) var(--s-4) calc(var(--safe-bottom) + var(--s-2)); }
+.rom-sheet-foot .btn.block { flex: 1; width: auto; }
+.rom-sheet-foot .btn.rom-ib { width: 50px; height: 50px; }
+.rom-sheet-end { padding-top: var(--s-5); }
+.rom-cmp-seg { padding-bottom: var(--s-4); }
+.rom-cmp-l { margin: var(--s-5) 0 var(--s-2); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.rom-cmp-l:first-child { margin-top: 0; }
+.rom-feels { margin-bottom: var(--s-4); }
+.rom-cmp-prompt { margin: 0 0 var(--s-2); font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); color: var(--as-ink); }
+.rom-ta { display: block; border-radius: var(--r-md); background: var(--ctl); box-shadow: var(--ctl-box); padding: var(--s-3) var(--s-4); transition: box-shadow var(--d-state); }
+.rom-ta:focus-within { box-shadow: inset 0 0 0 1.5px var(--field-focus); }
+.rom-ta textarea { display: block; width: 100%; border: 0; outline: 0; background: none; resize: none; padding: 0; font-size: var(--fs-body); line-height: var(--lh-body); color: var(--ink); }
+.rom-ta textarea::placeholder { color: var(--ink-3); }
+.rom-ta.sm textarea { min-height: 44px; }
+.rom-ta + .rom-ta { margin-top: var(--s-2); }
+.rom-cmp-foot { display: flex; align-items: flex-start; gap: var(--s-2); margin: var(--s-5) 0 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+.rom-cmp-foot svg { width: 14px; height: 14px; margin-top: 2px; flex-shrink: 0; }
+.rom-nudge { animation: rom-shake .32s var(--ease); }
+.hint.rom-hint { padding: var(--s-3) var(--s-1) 0; }
+.rom-pq-sheet { margin: 0 0 var(--s-3); font-size: var(--fs-headline); line-height: var(--lh-headline); color: var(--ink); }
+.rom-qq-sheet { margin-top: 0; }
+.rom-fbox { margin-top: var(--s-4); padding: var(--s-4); border-radius: var(--r-md); background: var(--fill-1); }
+.rom-fbox .rom-fb { margin: 0; }
+.rom-fbx { margin: var(--s-2) 0 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink); text-wrap: pretty; }
+.rom-fbx.rom-reading { display: flex; align-items: center; gap: var(--s-2); margin: 0; color: var(--ink-2); }
+.rom-plan-n { display: flex; align-items: flex-start; gap: var(--s-2); margin: var(--s-5) 0 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.rom-plan-n svg { width: 16px; height: 16px; margin-top: 2px; color: var(--as-ink); flex-shrink: 0; }
+.sheet .rom-chips-row { margin-bottom: var(--s-2); }
+
+/* a guided flow: the check-in and the repair */
+.rom-flow-in { padding-top: var(--s-2); }
+.rom-flow .steps { margin-bottom: var(--s-4); }
+.rom-flow-n { margin: 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.rom-flow-t { margin: var(--s-1) 0 0; font-family: var(--ff-title); font-variation-settings: var(--fv-title); font-size: var(--fs-title1); line-height: var(--lh-title1); font-weight: var(--w-title); }
+.rom-flow-a { margin: var(--s-2) 0 var(--s-5); font-size: var(--fs-body); line-height: var(--lh-body); color: var(--ink-2); text-wrap: pretty; }
+.rom-flow-chips { margin-bottom: var(--s-2); }
+.sheet .group.rom-rates { margin: 0; }
+.row.rom-rate { min-height: 56px; padding-right: var(--s-2); }
+.rom-rate-dots { display: flex; flex-shrink: 0; }
+.rom-rate-dots button { width: var(--hit); height: var(--hit); display: grid; place-items: center; }
+.rom-rate-dots span { width: 24px; height: 24px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--ink-4); transition: background-color var(--d-state), box-shadow var(--d-state), transform var(--d-press) var(--spring); }
+.rom-rate-dots button.on span { background: var(--as); box-shadow: none; }
+.rom-rate-dots button:active span { transform: scale(.85); }
+.btn.rom-flow-alt { margin-top: var(--s-2); }
+
+/* ── motion: once, on purpose ── */
+@keyframes rom-rise { from { opacity: 0; transform: translateY(12px); } }
+@keyframes rom-in { from { opacity: 0; transform: translateY(6px); } }
+@keyframes rom-pop { 0% { transform: scale(.4); opacity: 0; } 60% { transform: scale(1.14); opacity: 1; } 100% { transform: none; } }
+@keyframes rom-bump { 0% { transform: none; } 40% { transform: scale(1.28); } 100% { transform: none; } }
+@keyframes rom-reveal { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes rom-shake { 25% { translate: -6px 0; } 50% { translate: 5px 0; } 75% { translate: -3px 0; } }
+@keyframes rom-fid-scan { 0% { transform: none; } 42% { transform: scale(.88); } 100% { transform: none; } }
+@keyframes rom-fid-face { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+@media (prefers-reduced-motion: reduce) {
+  .asp-sec.rom-rise, .rom-swap, .rom-revealed .rom-ans:not(.them) { animation: swap .15s linear both; }
+  .rom-revealed .rom-ans.them .rom-ans-t { animation: swap .15s linear both; }
+  .rom-dot.pop, .rom-closing .rom-step-ic svg, .rom-streak b.bump, .rom-nudge { animation: none; }
+}
+
+/* ═══ 2 · OBSIDIAN ═════════════════════════════════════════════════════════ */
+/* Obsidian is all tokens here: the step ring and the together ring carry the only light on these screens.
+   In light, the deep romance pink takes white words (dark ones fall to 3.4:1), as Obsidian does for Today's pink. */
+:where(:root[data-skin="obsidian"][data-theme="light"]) :is(.asp-romance, .sheet[data-aspect="romance"]) .btn.primary { color: var(--on-deep); }
+
+/* ═══ 3 · MATTE ════════════════════════════════════════════════════════════ */
+/* printed stock: the journal and his answers are set in the serif, the tints are the pigment thinned */
+:where(:root[data-skin="matte"]) .rom-entry-t, :where(:root[data-skin="matte"]) .rom-wyn-x { font-family: var(--serif); font-variation-settings: 'opsz' 16; }
+:where(:root[data-skin="matte"]) .rom-mono { background: color-mix(in oklab, var(--as) 22%, transparent); }
+:where(:root[data-skin="matte"]) .rom-mono.me { background: var(--raised); }
+:where(:root[data-skin="matte"]) .tile.rom-wyn-t { background: color-mix(in oklab, var(--as) 20%, transparent); }
+:where(:root[data-skin="matte"]) .rom-dot.done { background: var(--grain), var(--as); }
+:where(:root[data-skin="matte"]) .rom-plot .pt { stroke: var(--paper); }
+:where(:root[data-skin="matte"]) .rom-banner, :where(:root[data-skin="matte"]) .rom-pp-sample { border-color: var(--ink-4); }
+
+/* ── v2 (real data): remove a must-have or green flag; Face ID said no ── */
+.rom-li-x { width: 44px; height: 44px; margin-right: -10px; display: grid; place-items: center; flex-shrink: 0; color: var(--ink-3); background: none; border: 0; border-radius: 50%; }
+.rom-li-x svg { width: 16px; height: 16px; }
+.rom-li-x:active { background: var(--fill-2); color: var(--ink-1); }
+.rom-lock.rom-no .rom-lock-in { animation: rom-shake 360ms var(--ease, ease) both; }
+@media (prefers-reduced-motion: reduce) { .rom-lock.rom-no .rom-lock-in { animation: none; } }

@@ -1,0 +1,21 @@
+{
+  "description": "Wyn: register the session, wait for her prompts (an asyncRewake listener wakes the session), and send each turn's final reply back.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/wyn.sh\" hello", "timeout": 15 },
+          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/wyn.sh\" listen", "asyncRewake": true, "timeout": 86400 }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/wyn.sh\" reply", "timeout": 15 },
+          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/wyn.sh\" listen", "asyncRewake": true, "timeout": 86400 }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,51 @@
+/* ═══ MODULE · RUNBOOKS ═══════════════════════════════════════════════════════
+   One list: a ready book runs from its row and opens in place to its steps. The Today card is a row of the brief.
+   Owner: area (d). JS: app/modules/runbooks.js. Frame: app/ui/screens/content.css (.mp-*). Design: mockup more.css (runbooks).
+   Blocks: 1 · SHARED · 2 · OBSIDIAN · 3 · MATTE. The page's container carries the page margin. */
+
+/* ═══ 1 · SHARED ═══════════════════════════════════════════════════════════ */
+.rbk-list { margin-top: var(--s-4); }
+.rbk-dry { margin: var(--s-4) 0 0; }
+.rbk-dry b { color: var(--ink); font-weight: var(--w-semibold); }
+.rbk-empty { margin-top: var(--s-4); }
+.rbk { position: relative; }
+.rbk + .rbk::before { content: ""; position: absolute; z-index: 1; top: 0; right: 0; left: 60px; height: var(--hair); background: var(--sep); }
+/* the row: the words open the book, the button at the end runs it (or marks it ready) */
+.rbk-top { padding: 0 var(--s-4) 0 0; gap: var(--s-2); }
+.rbk-top:has(.rbk-hit:active) { background: var(--row-press); }
+.rbk-hit { flex: 1; min-width: 0; align-self: stretch; display: flex; align-items: center; gap: var(--s-3); min-height: 64px; padding: var(--s-3) 0 var(--s-3) var(--s-4); text-align: left; color: var(--ink); }
+.rbk-hit .rbody { flex: 1; min-width: 0; }
+.rbk-hit .rmeta { gap: var(--s-2); margin-top: 2px; }
+.rbk-caret { flex-shrink: 0; margin-right: var(--s-1); color: var(--ink-3); transition: transform .35s var(--spring), color var(--d-state); }
+.rbk-caret svg { display: block; width: 16px; height: 16px; }
+.rbk.open .rbk-caret { transform: rotate(180deg); color: var(--ink); }
+.rbk-top > .btn { flex-shrink: 0; }
+.rbk-top > .btn svg { width: 14px; height: 14px; }
+.rbk-top > .btn .spin, .rbk-foot .btn .spin, .rbk-card .btn .spin { width: 14px; height: 14px; }
+/* the steps: in order, a command set into the surface, a step that failed before says so */
+.rbk-more { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .4s var(--ease); }
+.rbk-more > div { overflow: hidden; padding: 0 var(--s-4) 0 60px; }
+.rbk.open .rbk-more { grid-template-rows: 1fr; }
+.rbk.open .rbk-more > div { padding-bottom: var(--s-4); }
+.rbk-steps { margin: 0; padding: 0 0 0 var(--s-5); display: flex; flex-direction: column; gap: var(--s-2); }
+.rbk-steps li { font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink); }
+.rbk-steps li::marker { font-family: var(--round); font-weight: var(--w-fig); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.rbk-st { overflow-wrap: anywhere; }
+.rbk-fail { display: block; margin-top: 2px; font-size: var(--fs-footnote); line-height: var(--lh-footnote); }
+.rbk-cmd { display: block; margin-top: var(--s-1); padding: 6px var(--s-3); border-radius: var(--r-sm); background: var(--inlay); box-shadow: var(--inlay-box); font-family: var(--mono); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink); overflow-wrap: anywhere; word-break: break-word; }
+.rbk-note { display: block; margin-top: 2px; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.rbk-steps li.failed .rbk-note { color: var(--fail-ink); }
+.rbk-none, .rbk-last { margin: var(--s-2) 0 0; }
+.rbk-steps + .rbk-last { margin-top: var(--s-3); }
+.rbk-foot { display: flex; justify-content: flex-end; margin-top: var(--s-3); }
+
+@media (prefers-reduced-motion: reduce) {
+  .rbk-more, .rbk-caret { transition: none; }
+}
+
+/* ═══ 2 · OBSIDIAN ═════════════════════════════════════════════════════════ */
+/* nothing to restate: Obsidian's runbooks are the shared block */
+
+/* ═══ 3 · MATTE ════════════════════════════════════════════════════════════ */
+/* a command is set in the paper's own raised stock, without the edge */
+:where(:root[data-skin="matte"]) .rbk-cmd { box-shadow: none; }

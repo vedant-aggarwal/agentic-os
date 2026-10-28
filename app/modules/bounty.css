@@ -1,0 +1,42 @@
+/* ═══ MODULE · BOUNTY BOARD ═══════════════════════════════════════════════════
+   Your hourly value, the open bounties with their payoff, and the payroll of the runners that work for you.
+   Owner: area (d). JS: app/modules/bounty.js. Frame: app/ui/screens/content.css (.mp-*). Design: mockup more.css (bounty).
+   Blocks: 1 · SHARED · 2 · OBSIDIAN · 3 · MATTE. The page's container carries the page margin. */
+
+/* ═══ 1 · SHARED ═══════════════════════════════════════════════════════════ */
+/* the rate: the one figure, or the field that sets it */
+.bt-rate .mp-big small { font-size: .42em; }
+.bt-rate .mp-big + .foot { margin-top: var(--s-2); }
+.bt-rateadd { margin-top: var(--s-2); }
+.bt-rupee { padding-left: var(--s-4); }
+.bt-cur { flex-shrink: 0; font-family: var(--round); font-size: var(--fs-headline); font-weight: var(--w-fig); color: var(--ink-2); }
+.bt-rupee input { font-variant-numeric: tabular-nums; }
+.bt-rupee input::-webkit-inner-spin-button, .bt-rupee input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.mp-card p.bt-rate-foot { margin-top: var(--s-2); }
+.bt-rate .btn .spin { width: 14px; height: 14px; }
+.bt-dry { margin: var(--s-4) 0 0; }
+.bt-dry b { color: var(--ink); font-weight: var(--w-semibold); }
+
+/* a bounty: what recurs and what it costs you, its payoff at the end, Take and Dismiss under the words */
+.bt-row { --sep-left: var(--s-4); }
+.bt-row .mp-why { margin-top: var(--s-1); }
+.bt-pay { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; margin-top: 1px; text-align: right; }
+.bt-v { font-size: var(--fs-fig-3); line-height: var(--lh-title3); color: var(--ink); }
+.bt-pay small { font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-2); }
+.bt-norate { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+.bt-taken { margin: var(--s-2) 0 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.bt-done .rtitle, .bt-done .bt-v { color: var(--ink-2); }
+.bt-row .mp-racts .btn .spin { width: 14px; height: 14px; }
+
+/* payroll: retire proposals first, then one row per runner with what it was worth */
+.bt-props + .bt-runners { margin-top: var(--s-3); }
+.bt-prop { --sep-left: var(--s-4); }
+.btn.bt-retire { color: var(--fail-ink); }
+.bt-runner { --sep-left: var(--s-4); }
+.bt-rv { font-size: var(--fs-headline); }
+
+/* ═══ 2 · OBSIDIAN ═════════════════════════════════════════════════════════ */
+/* nothing to restate: Obsidian's board is the shared block */
+
+/* ═══ 3 · MATTE ════════════════════════════════════════════════════════════ */
+/* nothing to restate: Matte prints the figures in its own rounded weight through the shared tokens */

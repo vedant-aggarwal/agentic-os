@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f2f3f7" />
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000" />
+<meta name="color-scheme" content="light dark" />
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
+<title>Your window · Northwind Studio</title>
+<style>
+/* The client window: one public page per client, same tokens as the app (app/DESIGN.md), no sign-in. */
+:root {
+  --bg: #f2f3f7; --surface: #ffffff; --label: #111216; --label-2: rgb(60 60 67 / .62); --label-3: rgb(60 60 67 / .3);
+  --sep: rgb(60 60 67 / .14); --fill: rgb(118 118 128 / .12); --fill-2: rgb(118 118 128 / .18); --ink: #111216; --on-ink: #fff;
+  --done: #2e9e52; --danger: #de3b3d; --glow-a: #7c5cff; --glow-b: #2bb39a;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #000; --surface: #1c1c1e; --label: #f5f5f7; --label-2: rgb(235 235 245 / .6); --label-3: rgb(235 235 245 / .3);
+    --sep: rgb(84 84 88 / .5); --fill: rgb(118 118 128 / .24); --fill-2: rgb(118 118 128 / .32); --ink: #f5f5f7; --on-ink: #000; }
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; min-height: 100%; }
+body { background: var(--bg); color: var(--label); font: 16px/1.4 var(--font); -webkit-font-smoothing: antialiased;
+  padding: max(20px, env(safe-area-inset-top)) 16px max(32px, env(safe-area-inset-bottom)); overflow-x: hidden; position: relative; }
+body::before { content: ""; position: fixed; inset: -20% -20% auto; height: 50vh; pointer-events: none; z-index: 0;
+  background: radial-gradient(40% 50% at 20% 30%, color-mix(in oklab, var(--glow-a) 22%, transparent), transparent 70%),
+    radial-gradient(35% 45% at 75% 20%, color-mix(in oklab, var(--glow-b) 16%, transparent), transparent 70%); filter: blur(30px); }
+main { position: relative; z-index: 1; width: min(100%, 560px); margin: 0 auto; }
+.kicker { font: 600 13px/18px var(--font); color: var(--label-2); letter-spacing: .01em; }
+h1 { font-size: 30px; line-height: 36px; letter-spacing: -.024em; font-weight: 700; margin: 4px 0 6px; text-wrap: balance; }
+.sub { color: var(--label-2); margin: 0 0 6px; font-size: 15px; }
+.stamp { font: 500 12px/16px var(--font); color: var(--label-3); font-variant-numeric: tabular-nums; margin: 0 0 18px; }
+section { margin-top: 18px; }
+h2 { font-size: 20px; line-height: 25px; letter-spacing: -.02em; font-weight: 700; margin: 0 0 2px; display: flex; align-items: baseline; gap: 8px; }
+h2 small { font: 500 13px/18px var(--font); color: var(--label-2); }
+.lead { font-size: 14px; color: var(--label-2); margin: 0 0 10px; }
+.card { background: color-mix(in oklab, var(--surface) 92%, transparent); border-radius: 18px; box-shadow: 0 0 0 .5px var(--sep), 0 1px 2px rgb(0 0 0 / .04); overflow: hidden; }
+.row { position: relative; display: flex; gap: 12px; align-items: flex-start; padding: 13px 16px; }
+.row + .row::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; height: .5px; background: var(--sep); }
+.mark { flex: none; width: 22px; height: 22px; border-radius: 11px; display: grid; place-items: center; margin-top: 1px; }
+.mark.done { background: var(--done); color: #fff; }
+.mark.next { box-shadow: inset 0 0 0 1.5px var(--label-3); }
+.mark.next.doing { box-shadow: inset 0 0 0 1.5px var(--ink); background: color-mix(in oklab, var(--ink) 10%, transparent); }
+.mark svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.text { flex: 1; min-width: 0; }
+.title { font: 500 16px/21px var(--font); letter-spacing: -.012em; overflow-wrap: anywhere; }
+.meta { margin-top: 3px; font: 500 13px/17px var(--font); color: var(--label-2); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.meta a { color: var(--label); text-decoration: underline; text-decoration-color: var(--label-3); text-underline-offset: 3px; word-break: break-all; }
+.meta a + a::before { content: " · "; color: var(--label-3); text-decoration: none; display: inline-block; }
+.meta .late { color: var(--danger); }
+.empty { padding: 16px; color: var(--label-2); font-size: 15px; }
+/* decisions: pencilled until answered, then solid */
+.q { padding: 14px 16px 16px; }
+.q + .q::before { content: ""; display: block; height: .5px; background: var(--sep); margin: -14px -16px 14px; }
+.q .title { font-weight: 600; }
+.opts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.opt { min-height: 44px; padding: 0 16px; border: 0; border-radius: 14px; background: var(--fill); color: var(--label); font: 600 15px/1 var(--font);
+  cursor: pointer; transition: transform .1s ease-out, opacity .15s; }
+.opt:active { transform: scale(.97); }
+.opt:disabled { opacity: .5; cursor: default; }
+.other { display: flex; gap: 8px; margin-top: 10px; }
+.other input { flex: 1; min-width: 0; min-height: 44px; padding: 0 14px; border: 0; border-radius: 14px; background: var(--fill); color: inherit; font: inherit; outline: none; }
+.other input:focus { box-shadow: 0 0 0 2px var(--ink); }
+.other button { min-height: 44px; padding: 0 16px; border: 0; border-radius: 14px; background: var(--ink); color: var(--on-ink); font: 600 15px/1 var(--font); cursor: pointer; }
+.other button:disabled { opacity: .5; }
+.answered { margin-top: 10px; display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 12px; background: color-mix(in oklab, var(--done) 14%, transparent);
+  color: var(--label); font: 500 14px/18px var(--font); }
+.answered b { color: var(--done); }
+.err { color: var(--danger); font-size: 14px; margin-top: 8px; }
+.pending::after { content: "Waiting for your answer"; display: block; margin-top: 6px; font: 500 12px/16px var(--font); color: var(--label-3); }
+.gone { padding: 24px 0; }
+.gone h1 { font-size: 24px; line-height: 30px; }
+footer { margin-top: 28px; font: 500 12px/16px var(--font); color: var(--label-3); text-align: center; }
+footer b { color: var(--label-2); font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { .opt, .other button { transition: none; } }
+</style>
+</head>
+<body>
+<main id="app"><p class="empty">Loading your window…</p></main>
+<script>
+const token = (location.pathname.match(/^\/c\/([A-Za-z0-9_-]+)$/) || [])[1];
+const API = `/api/v1/mod/clients/public/${token}`;
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const IST = { timeZone: 'Asia/Kolkata' };
+const day = (iso) => iso ? new Date(iso).toLocaleDateString('en-IN', { ...IST, day: 'numeric', month: 'short' }) : '';
+const dueText = (d) => {
+  if (!d) return 'No date yet';
+  const today = new Date().toLocaleDateString('en-CA', IST);
+  if (d < today) return `<span class="late">Was due ${day(d + 'T00:00:00+05:30')}</span>`;
+  if (d === today) return 'Due today';
+  return `Due ${day(d + 'T00:00:00+05:30')}`;
+};
+const host = (u) => { try { return new URL(u).host.replace(/^www\./, ''); } catch { return u; } };
+const CHECK = '<svg viewBox="0 0 20 20"><path d="M4.5 10.5l3.5 3.5 7.5-8"/></svg>';
+const app = document.getElementById('app');
+let page = null, busy = new Set();
+
+function render() {
+  const p = page;
+  const shipped = p.shipped.length ? p.shipped.map((t) => `<div class="row"><span class="mark done">${CHECK}</span><div class="text"><div class="title">${esc(t.title)}</div>
+    <div class="meta">${esc(day(t.doneAt))}${t.project && p.client.projects.length > 1 ? ` · ${esc(t.project)}` : ''}${t.evidence?.text ? ` · ${esc(t.evidence.text)}` : ''}${(t.evidence?.links ?? []).map((l) => ` <a href="${esc(l)}" target="_blank" rel="noopener">${esc(host(l))}</a>`).join('')}</div></div></div>`).join('')
+    : '<p class="empty">Nothing finished in the last two weeks yet.</p>';
+  const next = p.next.length ? p.next.map((t) => `<div class="row"><span class="mark next${t.doing ? ' doing' : ''}"></span><div class="text"><div class="title">${esc(t.title)}</div>
+    <div class="meta">${t.doing ? 'In progress · ' : ''}${dueText(t.due)}${t.project && p.client.projects.length > 1 ? ` · ${esc(t.project)}` : ''}</div></div></div>`).join('')
+    : '<p class="empty">Nothing lined up right now.</p>';
+  const decisions = p.decisions.length ? p.decisions.map((d) => `<div class="q" data-id="${d.id}"><div class="title">${esc(d.question)}</div>
+    <div class="opts">${d.options.map((o) => `<button class="opt" data-answer="${esc(o)}" ${busy.has(d.id) ? 'disabled' : ''}>${esc(o)}</button>`).join('')}</div>
+    <form class="other"><input name="answer" placeholder="${d.options.length ? 'Something else…' : 'Your answer…'}" maxlength="500" autocomplete="off" /><button type="submit" ${busy.has(d.id) ? 'disabled' : ''}>Send</button></form><div class="err" hidden></div></div>`).join('')
+    : '<p class="empty">Nothing is waiting on you.</p>';
+  const answered = p.answered.length ? `<section><h2>Answered <small>${p.answered.length}</small></h2><div class="card">${p.answered.map((d) => `<div class="row"><span class="mark done">${CHECK}</span><div class="text"><div class="title">${esc(d.question)}</div><div class="meta">You said <b>${esc(d.answer)}</b> · ${esc(day(d.answeredAt))}</div></div></div>`).join('')}</div></section>` : '';
+  const projects = p.client.projects.filter((x) => x !== p.client.name);
+  app.innerHTML = `<header><p class="kicker">Northwind Studio · your window</p><h1>${esc(p.client.name)}</h1><p class="sub">${projects.length ? `${esc(projects.join(', '))}: your` : 'Your'} work with Northwind Studio, live from Alex's desk.</p>
+    <p class="stamp">Updated ${esc(new Date(p.updatedAt).toLocaleString('en-IN', { ...IST, day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }))}</p></header>
+  <section><h2>Decisions <small>${p.decisions.length ? `${p.decisions.length} waiting on you` : 'none waiting'}</small></h2><p class="lead">Tap an answer and it reaches Alex straight away.</p><div class="card">${decisions}</div></section>
+  <section><h2>Shipped <small>last 14 days</small></h2><div class="card">${shipped}</div></section>
+  <section><h2>Next</h2><div class="card">${next}</div></section>${answered}
+  <footer>Made by <b>Northwind Studio</b> · this page is private to you; keep the link to yourself.</footer>`;
+}
+async function load() {
+  if (!token) { app.innerHTML = '<div class="gone"><h1>No page here.</h1><p class="sub">Ask Alex for your link.</p></div>'; return; }
+  try {
+    const r = await fetch(API, { cache: 'no-store' });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || `Could not load (${r.status}).`);
+    page = j;
+    render();
+  } catch (e) { app.innerHTML = `<div class="gone"><h1>${esc(e.message)}</h1><p class="sub">Alex can send you a fresh link.</p></div>`; }
+}
+async function answer(id, text, box) {
+  if (busy.has(id)) return;
+  busy.add(id); render();
+  try {
+    const r = await fetch(`${API}/decisions/${id}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ answer: text }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || 'Could not send that.');
+    busy.delete(id);
+    page.decisions = page.decisions.filter((d) => d.id !== id);
+    page.answered.unshift({ id, question: box.querySelector('.title').textContent, answer: text, answeredAt: j.decision?.answeredAt ?? new Date().toISOString() });
+    render();
+  } catch (e) {
+    busy.delete(id); render();
+    const b = app.querySelector(`.q[data-id="${id}"] .err`);
+    if (b) { b.textContent = e.message; b.hidden = false; }
+  }
+}
+app.addEventListener('click', (e) => {
+  const b = e.target.closest('.opt');
+  if (!b) return;
+  const box = b.closest('.q');
+  answer(Number(box.dataset.id), b.dataset.answer, box);
+});
+app.addEventListener('submit', (e) => {
+  if (!e.target.matches('.other')) return;
+  e.preventDefault();
+  const box = e.target.closest('.q');
+  const text = e.target.answer.value.trim();
+  if (text) answer(Number(box.dataset.id), text, box);
+});
+load();
+setInterval(() => { if (document.visibilityState === 'visible' && !busy.size) load(); }, 120_000);
+</script>
+</body>
+</html>

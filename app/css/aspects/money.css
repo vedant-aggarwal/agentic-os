@@ -1,0 +1,489 @@
+/* ═══ ASPECT · MONEY ═══════════════════════════════════════════════════════
+   The Money app. Owner: the Money agent. JS: js/aspects/money.js (+ money-data, money-ui, money-add, money-flows).
+   Every class is prefixed mon-. Colour comes from --as (css/aspects.css) and the skin tokens; never a raw hex.
+   One accent per screen: the app's green marks what's left, today, and the one primary action. Orange is only
+   "needs you" (over budget, a leak, a question). Categories are glyphs, not colours.
+   Blocks: 1 shared · 2 OBSIDIAN · 3 MATTE (see css/system.css). */
+
+/* ═══ 1 · SHARED ═══════════════════════════════════════════════════════════ */
+
+/* figures: the ₹ sits on the baseline, smaller and quieter than the number */
+.mon-c { font-size: .52em; font-weight: var(--w-semibold); color: var(--ink-2); margin-right: .04em; }
+.mon-big { font-size: var(--fs-fig-hero); font-weight: var(--w-fig-l); line-height: .95; margin: var(--s-1) 0 0; color: var(--ink); white-space: nowrap; }
+.mon-fig1 { font-size: var(--fs-fig-1); font-weight: var(--w-fig-l); line-height: 1; margin: var(--s-1) 0 0; white-space: nowrap; }
+.mon-fig2 { font-size: var(--fs-fig-2); font-weight: var(--w-fig); line-height: 1.05; white-space: nowrap; }
+.mon-big.is-over, .mon-fig1.is-over { color: var(--needs-ink); }
+.mon-big.is-over .mon-c, .mon-fig1.is-over .mon-c { color: var(--needs-ink); }
+.mon-hk { margin: 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); color: var(--ink-2); }
+.mon-hsub { margin: var(--s-2) 0 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.mon-hsub b { color: var(--ink); font-weight: var(--w-semibold); }
+.mon-hsub b.c-as { color: var(--as-ink); }
+.mon-hsub b.c-needs { color: var(--needs-ink); }
+.mon-label { margin: var(--s-4) var(--gutter) var(--s-2); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.mon-wrap { white-space: normal !important; }
+
+/* the streak, in the top right of Today: Duolingo's counter, in the app's colour */
+.mon-streak { height: var(--hit); padding: 0 var(--s-4) 0 var(--s-3); border-radius: var(--r-pill); display: inline-flex; align-items: center; gap: var(--s-1); background: var(--ctl); box-shadow: var(--ctl-box); transition: transform var(--d-press) var(--ease); }
+.mon-streak:active { transform: scale(.94); }
+.mon-streak svg { width: 20px; height: 20px; color: var(--as-ink); }
+.mon-streak .met { font-size: var(--fs-fig-3); }
+.mon-streak.at-risk svg { color: var(--needs-ink); }
+.mon-headbtn { height: var(--hit); padding: 0 var(--s-4); font-size: var(--fs-subhead); }
+
+/* ── Today's hero: what's left today, the last seven days, the month in one line ── */
+.mon-hero { margin: 0 var(--gutter); border-radius: var(--r-lg); overflow: hidden; --ring-bg: var(--e1); }
+.mon-hero-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--s-3); padding: var(--s-4) var(--s-4) var(--s-2); }
+.mon-hero-txt { min-width: 0; }
+.mon-dayring { margin-right: var(--s-1); }
+/* the week: each day is a column as tall as that day's own budget; what was spent fills it. Today wears the colour */
+.mon-week { padding: var(--s-2) var(--s-3) 0; }
+.mon-wk-cols { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--s-1); }
+.mon-wd { display: flex; flex-direction: column; align-items: center; gap: var(--s-1); min-height: var(--hit); padding: var(--s-2) 0 var(--s-1); border-radius: var(--r-md); transition: background-color var(--d-state); }
+.mon-wd:active { background: var(--fill-1); }
+.mon-wd.is-on { background: var(--fill-2); }
+.mon-wd-t { position: relative; display: block; width: 12px; height: 44px; border-radius: var(--r-track); background: var(--fill-2); overflow: hidden; }
+.mon-wd-t i { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--h) * 100%); border-radius: var(--r-track); background: color-mix(in oklch, var(--ink-3) 62%, transparent); }
+.mon-wd.is-today .mon-wd-t i { background: var(--as); }
+.mon-wd.is-over .mon-wd-t i { background: var(--needs); }
+.mon-wd-l { font-size: var(--fs-caption); line-height: var(--lh-caption); font-weight: var(--w-semibold); color: var(--ink-3); }
+.mon-wd.is-today .mon-wd-l { color: var(--ink); }
+.mon-wk-read { display: flex; align-items: flex-start; gap: var(--s-2); margin: var(--s-2) var(--s-1) var(--s-3); min-height: 20px; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.mon-wk-read b { color: var(--ink); font-weight: var(--w-semibold); }
+.mon-wk-read svg { width: 17px; height: 17px; flex-shrink: 0; margin-top: 1px; color: var(--as-ink); }
+/* the month, as one line at the foot: a small ring of what's left, with the tick at the time left */
+.mon-hero-foot { min-height: 60px; gap: var(--s-3); border-radius: 0; }
+.mon-hero-foot::after { content: ""; position: absolute; top: 0; left: var(--s-4); right: var(--s-4); height: var(--hair); background: var(--sep); }
+.mon-hero-foot .rtitle { font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); }
+
+/* ── the agent inside Money: what she did or noticed, with at most two answers ── */
+.mon-wyn { margin: var(--s-4) var(--gutter) 0; padding: var(--s-3) var(--s-4) var(--s-4); border-radius: var(--r-lg); }
+.mon-wyn-h { display: flex; align-items: center; gap: var(--s-2); font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.mon-wyn-h b { font-weight: var(--w-semibold); }
+.mon-orb { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); }
+.mon-orb svg { width: 17px; height: 17px; }
+.mon-wyn-at { margin-left: auto; font-size: var(--fs-footnote); color: var(--ink-3); }
+.mon-wyn-t { margin: var(--s-2) 0 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink); text-wrap: pretty; }
+.mon-wyn-t b { font-weight: var(--w-semibold); }
+.mon-wyn-acts { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-3); }
+.mon-wyn-acts .btn { height: var(--hit); padding: 0 var(--s-4); font-size: var(--fs-subhead); }
+.sheet .mon-wyn, .peek .mon-wyn { background: var(--inlay); box-shadow: var(--inlay-box); }
+
+/* ── rows: a transaction, an amount, who logged it ── */
+.mon-txg, .mon-cats, .mon-goals, .mon-goalrow, .mon-injg, .mon-fundg { --ring-bg: var(--e1); }
+/* who logged it sits under the amount: the agent's work, visible on every row without crowding the title */
+.mon-src { display: inline-flex; align-items: center; gap: 3px; font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); white-space: nowrap; }
+.mon-src svg { width: 12px; height: 12px; flex-shrink: 0; }
+.row .rend.mon-rend { flex-direction: column; align-items: flex-end; justify-content: center; gap: 2px; text-align: right; }
+.mon-rend small { font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); white-space: nowrap; }
+.mon-rend .pill { height: 22px; padding: 0 var(--s-2); font-size: var(--fs-caption); }
+.mon-amt { font-size: var(--fs-body); line-height: var(--lh-body); font-weight: var(--w-semibold); color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mon-amt.c-as { color: var(--as-ink); }
+.mon-amt-soft { color: var(--ink-2); font-weight: var(--w-regular); }
+.mon-in-tile { background: color-mix(in oklch, var(--as) 16%, transparent); color: var(--as-ink); box-shadow: none; }
+.mon-mono { font-family: var(--ff-mono-g); font-weight: var(--w-mono-g); font-variation-settings: var(--fv-mono-g); font-size: var(--fs-headline); background: color-mix(in oklch, var(--as) 16%, transparent); color: var(--as-ink); box-shadow: none; }
+.mon-empty { min-height: 60px; }
+.mon-file .mon-fake-btn { flex-shrink: 0; pointer-events: none; }
+.mon-row-in { animation: mon-in .36s var(--ease) both, mon-flash 1.6s var(--ease) both; }
+@keyframes mon-in { from { opacity: 0; transform: translateY(-6px); } }
+@keyframes mon-flash { from { background-color: color-mix(in oklch, var(--as) 14%, transparent); } to { background-color: transparent; } }
+
+/* coming up: a date block, what it is, the amount */
+.mon-up { min-height: 60px; }
+.mon-up-d { width: 40px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
+.mon-up-d small { font-size: var(--fs-caption); font-weight: var(--w-semibold); color: var(--ink-3); }
+.mon-up-d b { font-family: var(--round); font-size: var(--fs-fig-3); font-weight: var(--w-fig); color: var(--ink); }
+.mon-up-d.is-long b { font-size: var(--fs-footnote); line-height: 18px; white-space: nowrap; }
+.mon-upg .row { --sep-left: 68px; }
+
+/* a horizontal rail of chips (ask the agent, filters, categories) */
+.mon-rail { display: flex; gap: var(--s-2); overflow-x: auto; padding: 0 var(--gutter) var(--s-1); scrollbar-width: none; overscroll-behavior-x: contain; }
+.mon-rail::-webkit-scrollbar { display: none; }
+.mon-rail .chip { flex-shrink: 0; }
+.mon-rail .chip svg { width: 15px; height: 15px; color: var(--as-ink); }
+.mon-rail .chip.on svg { color: inherit; }
+.mon-tools-g { margin-top: var(--s-6); }
+
+/* ── Budgets: the month's ring with its time tick ── */
+.mon-mhero { margin: 0 var(--gutter); border-radius: var(--r-lg); padding: var(--s-4); --ring-bg: var(--e1); }
+.mon-mh-top { display: flex; align-items: center; gap: var(--s-5); }
+.mon-mh-txt { min-width: 0; }
+.mon-mh-day { margin: var(--s-2) 0 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.mon-mh-day b { color: var(--ink); font-weight: var(--w-semibold); font-variant-numeric: tabular-nums; }
+.mon-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: var(--s-4); padding-top: var(--s-3); border-top: var(--hair) solid var(--sep); }
+.mon-stats > div { display: flex; flex-direction: column; gap: var(--s-1); min-width: 0; }
+.mon-stats > div + div { padding-left: var(--s-3); border-left: var(--hair) solid var(--sep); }
+.mon-stats small { font-size: var(--fs-caption); line-height: var(--lh-caption); font-weight: var(--w-semibold); color: var(--ink-2); white-space: nowrap; }
+.mon-stats .met { font-size: var(--fs-fig-3); white-space: nowrap; }
+.mon-legend { display: flex; align-items: center; gap: var(--s-2); margin: var(--s-3) 0 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+.mon-tick { display: block; width: 2px; height: 12px; border-radius: 1px; background: var(--ink); flex-shrink: 0; }
+.mon-how { margin-top: var(--s-6); }
+.mon-how b { color: var(--ink); font-weight: var(--w-semibold); }
+
+/* ── Flow: kept this month, in and out ── */
+.mon-kept { margin: 0 var(--gutter); border-radius: var(--r-lg); padding: var(--s-4) var(--s-4) var(--s-3); }
+.mon-kept-top { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: end; gap: var(--s-5); }
+.mon-io { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: var(--s-2); row-gap: var(--s-1); font-size: var(--fs-footnote); line-height: var(--lh-footnote); }
+.mon-io p { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: var(--s-2); margin: 0; color: var(--ink-2); }
+.mon-io p b { color: var(--ink); font-weight: var(--w-semibold); }
+.mon-io-bar { grid-column: 1 / -1; display: block; height: 6px; border-radius: var(--r-track); background: var(--fill-1); overflow: hidden; margin-bottom: var(--s-1); }
+.mon-io-bar i { display: block; height: 100%; width: calc(var(--w) * 100%); border-radius: inherit; background: color-mix(in oklch, var(--ink-3) 62%, transparent); }
+.mon-io-bar i.is-in { background: var(--as); }
+/* six months of what was kept: October in the colour, the others quiet */
+.mon-kchart { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--s-1); margin-top: var(--s-4); }
+.mon-kc { display: flex; flex-direction: column; align-items: center; gap: var(--s-1); min-height: var(--hit); padding: var(--s-1) 0; border-radius: var(--r-md); }
+.mon-kc:active { background: var(--fill-1); }
+.mon-kc.is-on { background: var(--fill-2); }
+.mon-kc-v { min-height: var(--lh-caption); font-size: var(--fs-caption); line-height: var(--lh-caption); font-weight: var(--w-semibold); color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.mon-kc-t { position: relative; display: flex; align-items: flex-end; width: 22px; height: 72px; }
+.mon-kc-t::after { content: ""; position: absolute; left: -14px; right: -14px; bottom: -1px; height: var(--hair); background: var(--sep); }
+.mon-kc-t i { display: block; width: 100%; height: calc(var(--h) * 100%); min-height: 3px; border-radius: 4px 4px 0 0; background: color-mix(in oklch, var(--ink-3) 48%, transparent); }
+.mon-kc.is-now .mon-kc-t i { background: var(--as); }
+.mon-kc.is-neg .mon-kc-t i { background: var(--needs); }
+.mon-kc-l { font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); }
+.mon-kc.is-now .mon-kc-l { color: var(--ink); font-weight: var(--w-semibold); }
+.mon-kread { margin: var(--s-2) var(--s-1) 0; min-height: 40px; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); text-wrap: pretty; }
+
+/* leaks: a running total of what could stay with you, then each leak */
+.mon-leak-sum { min-height: 72px; gap: var(--s-3); }
+.mon-leak-sum .rbody { display: flex; flex-direction: column; gap: 2px; }
+.mon-leak-sum .rmeta { white-space: normal; }
+.mon-leak-tile { width: var(--hit); height: var(--hit); border-radius: var(--r-md); background: color-mix(in oklch, var(--needs) 16%, transparent); color: var(--needs-ink); box-shadow: none; }
+.mon-leak-tile svg { width: 21px; height: 21px; }
+.mon-leak.is-closed .rtitle { color: var(--ink-3); text-decoration: line-through; text-decoration-color: var(--ink-4); }
+/* injections: each source, its share of what came in, and her read on it */
+.mon-inj { align-items: flex-start; padding-top: var(--s-3); padding-bottom: var(--s-3); }
+.mon-inj .tile { margin-top: 2px; }
+.mon-inj-h { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3); }
+.mon-inj-h .rtitle { min-width: 0; }
+.mon-share { display: block; height: 4px; margin: var(--s-2) 0; border-radius: var(--r-track); background: var(--fill-2); overflow: hidden; }
+.mon-share i { display: block; height: 100%; width: calc(var(--w) * 100%); border-radius: inherit; background: var(--as); }
+.mon-inj-read { display: block; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); text-wrap: pretty; }
+.mon-goalrow { margin-top: var(--s-3); }
+
+/* where it went: one series, one colour; the value sits at the bar's tip */
+.mon-where-seg { margin-bottom: var(--s-3); }
+.mon-where { margin: 0 var(--gutter); }
+.mon-bars { display: flex; flex-direction: column; padding: var(--s-2) var(--s-4); border-radius: var(--r-lg); background: var(--e1-bg); box-shadow: var(--e1-box); }
+.mon-bar { display: grid; grid-template-columns: 132px minmax(0, 1fr) 74px; align-items: center; gap: var(--s-3); min-height: var(--hit); text-align: left; }
+.mon-bar + .mon-bar { border-top: var(--hair) solid var(--sep); }
+button.mon-bar:active { opacity: .7; }
+.mon-bar-l { display: flex; align-items: center; gap: var(--s-2); min-width: 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.mon-bar-l svg { width: 17px; height: 17px; flex-shrink: 0; color: var(--ink-2); }
+.mon-bar-l span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mon-bar-l small { font-size: var(--fs-caption); color: var(--ink-3); flex-shrink: 0; }
+.mon-bar-t { display: block; height: 8px; border-radius: var(--r-track); background: var(--fill-1); overflow: hidden; }
+.mon-bar-t i { display: block; height: 100%; width: calc(var(--w) * 100%); min-width: 4px; border-radius: inherit; background: var(--as); }
+.mon-bar > b { font-size: var(--fs-subhead); font-weight: var(--w-semibold); text-align: right; white-space: nowrap; }
+/* the days: October as a calendar, shaded by what each day cost */
+.mon-cal { padding: var(--s-3) var(--s-3) var(--s-3); border-radius: var(--r-lg); background: var(--e1-bg); box-shadow: var(--e1-box); }
+.mon-cal-h { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--s-1); margin-bottom: var(--s-1); }
+.mon-cal-h span { text-align: center; font-size: var(--fs-caption); line-height: var(--lh-caption); font-weight: var(--w-semibold); color: var(--ink-3); }
+.mon-cal-g { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--s-1); }
+.mon-cd { height: var(--hit); border-radius: var(--r-sm); display: grid; place-items: center; font-size: var(--fs-footnote); font-weight: var(--w-semibold); font-variant-numeric: tabular-nums; color: var(--ink-2);
+  background: color-mix(in oklch, var(--as) calc(6% + var(--l) * 74%), var(--fill-1)); transition: transform var(--d-press) var(--ease); }
+.mon-cd:active { transform: scale(.92); }
+.mon-cd.is-hi { color: var(--as-on, var(--on-color)); }
+.mon-cd.is-pad { background: none; }
+.mon-cd.is-fut { background: none; color: var(--ink-3); opacity: .55; }
+.mon-cd.is-today { box-shadow: inset 0 0 0 2px var(--ink); color: var(--ink); }
+.mon-cd.is-today.is-hi { color: var(--on-color); }
+.mon-cd.is-on { box-shadow: inset 0 0 0 2px var(--as-ink); }
+.mon-cal-key { display: flex; align-items: center; justify-content: flex-end; gap: var(--s-1); margin: var(--s-3) var(--s-1) 0; font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); }
+.mon-cal-key i { width: 14px; height: 14px; border-radius: 4px; }
+.mon-cal-key i:nth-of-type(1) { background: color-mix(in oklch, var(--as) 8%, var(--fill-1)); }
+.mon-cal-key i:nth-of-type(2) { background: color-mix(in oklch, var(--as) 30%, var(--fill-1)); }
+.mon-cal-key i:nth-of-type(3) { background: color-mix(in oklch, var(--as) 54%, var(--fill-1)); }
+.mon-cal-key i:nth-of-type(4) { background: color-mix(in oklch, var(--as) 80%, var(--fill-1)); }
+.mon-cal-key span:first-child { margin-right: var(--s-1); }
+.mon-cal-key span:last-child { margin-left: var(--s-1); }
+.mon-cal-day .sh { padding-left: 0; padding-right: 0; }
+.mon-cal-day .group { margin: 0; }
+.mon-report-g { margin-top: var(--s-6); }
+
+/* ── Net worth: one honest number and its line ── */
+.mon-worth { margin: 0 var(--gutter); border-radius: var(--r-lg); padding: var(--s-4) var(--s-4) var(--s-3); --ring-bg: var(--e1); }
+.mon-wchart { position: relative; height: 132px; margin: var(--s-4) calc(var(--s-1) * -1) 0; touch-action: pan-y; cursor: ew-resize; border-radius: var(--r-sm); }
+.mon-wchart:focus-visible { outline-offset: 4px; }
+.mon-wchart svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.mon-wgrid line { stroke: var(--sep); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.mon-warea { fill: color-mix(in oklch, var(--as) 12%, transparent); }
+.mon-wline { fill: none; stroke: var(--as); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.mon-wdot { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--as); box-shadow: 0 0 0 2px var(--e1); opacity: 0; transition: opacity var(--d-state); pointer-events: none; }
+.mon-wdot.is-now, .mon-wdot.is-on { opacity: 1; }
+.mon-wchart.is-scrub .mon-wdot.is-now:not(.is-on) { opacity: 0; }
+.mon-wx { position: absolute; top: 0; bottom: 0; width: 1px; margin-left: -.5px; background: var(--ink-3); opacity: 0; transition: opacity var(--d-press); pointer-events: none; }
+.mon-wchart.is-scrub .mon-wx { opacity: 1; }
+.mon-wlabels { position: relative; height: 18px; margin: var(--s-2) calc(var(--s-1) * -1) 0; }
+.mon-wlabels span { position: absolute; top: 0; transform: translateX(-50%); font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); }
+.mon-wlabels span:first-child { transform: none; }
+.mon-wlabels span.is-now { transform: translateX(-100%); color: var(--ink); font-weight: var(--w-semibold); }
+/* two stat tiles side by side */
+.mon-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3); margin: var(--s-3) var(--gutter) 0; }
+.mon-tiles-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.mon-tile { display: flex; flex-direction: column; gap: var(--s-1); padding: var(--s-3) var(--s-4) var(--s-4); border-radius: var(--r-lg); text-align: left; min-width: 0; }
+.mon-tile small { font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.mon-tile .met { font-size: var(--fs-fig-2); white-space: nowrap; }
+.mon-tile .met .u { font-size: .5em; }
+.mon-tile > span { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); text-wrap: pretty; }
+.mon-tiles-3 .mon-tile { padding: var(--s-3); }
+.mon-tiles-3 .mon-tile .met { font-size: var(--fs-fig-2); }
+.sheet .mon-tile { background: var(--inlay); box-shadow: var(--inlay-box); }
+.sheet .mon-tiles { margin-top: var(--s-1); }
+/* what you have, by how fast you can spend it (an ordered ramp of the one colour), minus what you owe */
+.mon-comp { margin: var(--s-3) var(--gutter) 0; padding: var(--s-4); border-radius: var(--r-lg); }
+.mon-comp-h { display: flex; justify-content: space-between; gap: var(--s-3); margin: 0 0 var(--s-2); font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); }
+.mon-comp-h + .mon-stack { margin-bottom: var(--s-3); }
+.mon-comp-h:not(:first-child) { margin-top: var(--s-4); }
+.mon-stack { display: flex; gap: 2px; height: 10px; border-radius: var(--r-track); overflow: hidden; }
+.mon-stack i { display: block; flex: var(--w) 1 0; min-width: 3px; border-radius: 2px; }
+.mon-stack i.s0, .mon-comp-key i.s0 { background: var(--as); }
+.mon-stack i.s1, .mon-comp-key i.s1 { background: color-mix(in oklch, var(--as) 64%, var(--e1)); }
+.mon-stack i.s2, .mon-comp-key i.s2 { background: color-mix(in oklch, var(--as) 40%, var(--e1)); }
+.mon-stack i.s3, .mon-comp-key i.s3 { background: color-mix(in oklch, var(--as) 22%, var(--e1)); }
+.mon-stack.is-owe { background: var(--fill-1); }
+.mon-stack.is-owe i { flex: 0 0 calc(var(--w) * 100%); background: color-mix(in oklch, var(--ink-3) 70%, transparent); }
+.mon-comp-key { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-2); }
+.mon-comp-key span { display: flex; align-items: center; gap: var(--s-2); min-width: 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.mon-comp-key i { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.mon-comp-key b { margin-left: auto; color: var(--ink); font-weight: var(--w-semibold); }
+.mon-comp-eq { margin: var(--s-4) 0 0; padding-top: var(--s-3); border-top: var(--hair) solid var(--sep); font-size: var(--fs-subhead); color: var(--ink-2); text-align: right; }
+.mon-comp-eq b { color: var(--ink); font-weight: var(--w-semibold); }
+.mon-brain-g { margin-top: var(--s-6); }
+
+/* ── pages one level down ── */
+.mon-page .scroll { padding-bottom: calc(var(--safe-bottom) + var(--s-12)); }
+.mon-cathero .mon-weeks { margin-top: var(--s-4); }
+.mon-weeks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-2); padding-top: var(--s-3); border-top: var(--hair) solid var(--sep); }
+.mon-wk { display: flex; flex-direction: column; align-items: center; gap: var(--s-1); }
+.mon-wk > b { min-height: var(--lh-caption); font-size: var(--fs-caption); line-height: var(--lh-caption); font-weight: var(--w-semibold); color: var(--ink-2); white-space: nowrap; }
+.mon-wk-t { display: flex; align-items: flex-end; width: 22px; height: 56px; }
+.mon-wk-t i { display: block; width: 100%; height: calc(var(--h) * 100%); min-height: 2px; border-radius: 4px 4px 0 0; background: color-mix(in oklch, var(--ink-3) 48%, transparent); }
+.mon-wk.is-now .mon-wk-t i { background: var(--as); }
+.mon-wk.is-exp .mon-wk-t i { background: color-mix(in oklch, var(--as) 26%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in oklch, var(--as) 70%, transparent); }
+.mon-wk.is-exp > b { color: var(--ink-3); }
+.mon-wk small { font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); white-space: nowrap; }
+.mon-pay .mon-wk:not(.is-exp) .mon-wk-t i { background: var(--as); }
+.mon-srchero { margin: 0 var(--gutter); border-radius: var(--r-lg); padding: var(--s-4); }
+.mon-srchero .mon-weeks { margin-top: var(--s-4); }
+.mon-search { margin-bottom: var(--s-3); }
+.mon-search input[type="search"] { font-size: var(--fs-body); }
+.mon-search input::-webkit-search-cancel-button { display: none; }
+.mon-filters { margin-bottom: var(--s-1); }
+.mon-dayh { align-items: center; }
+.mon-dayh .sh-count { margin-left: auto; font-size: var(--fs-footnote); }
+.mon-kept-dot { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: color-mix(in oklch, var(--as) 18%, transparent); color: var(--as-ink); }
+.mon-kept-dot svg { width: 12px; height: 12px; }
+.mon-over-dot { font-size: var(--fs-footnote); font-weight: var(--w-semibold); }
+.mon-edit-sum { margin: 0 var(--gutter); padding: var(--s-4); border-radius: var(--r-lg); }
+.mon-mini-step { display: flex; align-items: center; gap: var(--s-1); flex-shrink: 0; }
+.mon-mini-step b { min-width: 64px; text-align: center; font-size: var(--fs-subhead); font-weight: var(--w-semibold); }
+.mon-step { width: var(--hit); height: var(--hit); border-radius: 50%; display: grid; place-items: center; background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); transition: transform var(--d-press) var(--ease); }
+.mon-step:active { transform: scale(.9); background: var(--ctl-press); }
+.mon-step svg { width: 18px; height: 18px; }
+.mon-edit-g { margin-top: var(--s-4); }
+.mon-edit-g .row { min-height: 60px; }
+.mon-edit-acts { margin-top: var(--s-5); }
+
+/* ── sheets ── */
+.mon-sheet-fig { margin: var(--s-1) var(--gutter) var(--s-4); }
+.mon-sheet-acts { display: flex; flex-direction: column; gap: var(--s-2); margin-top: var(--s-4); }
+.mon-stepper { display: flex; align-items: center; justify-content: center; gap: var(--s-6); padding: var(--s-4) 0 var(--s-2); }
+.mon-stepper .mon-fig1 { margin: 0; min-width: 170px; text-align: center; }
+.mon-effect { margin: 0 var(--gutter); text-align: center; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.mon-effect b { color: var(--ink); font-weight: var(--w-semibold); }
+.mon-presets { justify-content: center; padding: var(--s-4) var(--gutter) 0; }
+.mon-editsheet .hint { text-align: center; padding: var(--s-3) var(--gutter) var(--s-4); }
+
+/* the keypad: amount first, its effect on today right under it, the category grid above the keys (Buddy's order) */
+.mon-add .sheet-body { display: flex; flex-direction: column; padding-bottom: var(--s-3); }
+.mon-add-head { gap: var(--s-2); padding-left: var(--s-4); }
+.mon-type { width: 188px; margin-right: auto; }
+.mon-amt-in { display: flex; align-items: baseline; justify-content: center; padding: var(--s-2) var(--gutter) 0; font-family: var(--round); font-weight: var(--w-fig-l); font-size: 60px; line-height: 1.05; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
+.mon-amt-in.is-long { font-size: 46px; }
+.mon-amt-in .mon-c { font-size: .46em; margin-right: .06em; }
+.mon-amt-in .is-empty { color: var(--ink-3); }
+.mon-impact { min-height: var(--lh-subhead); margin: var(--s-2) var(--gutter) 0; text-align: center; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.mon-impact b { color: var(--ink); font-weight: var(--w-semibold); }
+.mon-note { margin: var(--s-3) var(--gutter) 0; }
+.mon-note input { font-size: var(--fs-body); }
+.mon-cgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-1); padding: var(--s-3) var(--s-3) 0; }
+.mon-cpick { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s-1); min-height: 64px; padding: var(--s-1) 2px; border-radius: var(--r-md); font-size: var(--fs-caption); line-height: var(--lh-caption); font-weight: var(--w-semibold); color: var(--ink-2); transition: background-color var(--d-state), transform var(--d-press) var(--ease); }
+.mon-cpick:active { transform: scale(.94); }
+.mon-cpick > span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mon-cpick .tile { width: 36px; height: 36px; border-radius: var(--r-md); }
+.mon-cpick .tile svg { width: 19px; height: 19px; }
+.mon-cpick.on { background: var(--fill-2); color: var(--ink); }
+.mon-cpick.on .tile { background: color-mix(in oklch, var(--as) 22%, transparent); color: var(--as-ink); box-shadow: inset 0 0 0 1.5px color-mix(in oklch, var(--as) 70%, transparent); }
+.mon-opts { display: flex; gap: var(--s-2); padding: var(--s-3) var(--gutter) 0; overflow-x: auto; scrollbar-width: none; }
+.mon-opts::-webkit-scrollbar { display: none; }
+.mon-opts .chip { flex-shrink: 0; }
+.mon-opts .chip svg { width: 15px; height: 15px; }
+.mon-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-2); padding: var(--s-4) var(--gutter) var(--s-3); }
+.mon-key { height: 52px; border-radius: var(--r-md); display: grid; place-items: center; font-size: var(--fs-title2); font-weight: var(--w-regular); font-variant-numeric: tabular-nums; background: var(--inlay); box-shadow: var(--inlay-box); color: var(--ink); transition: transform 90ms var(--ease), background-color 90ms; }
+.mon-key:active, .mon-key.is-hit { background: var(--fill-3); transform: scale(.96); }
+.mon-key svg { width: 26px; height: 26px; }
+.btn.block.mon-save { margin: 0 var(--gutter); width: auto; }
+.mon-add .sheet-head .sheet-close svg { width: 16px; height: 16px; }
+.mon-add .sheet-head .sheet-close[data-act="mon-add-scan"] svg { width: 18px; height: 18px; }
+
+/* one transaction */
+.mon-tx-head .tile.big { width: var(--hit); height: var(--hit); }
+.mon-tx-head .tile.big svg { width: 22px; height: 22px; }
+.mon-tx-fig { padding: var(--s-1) var(--gutter) 0; }
+.mon-tx-fig .mon-fig1 { margin: 0; }
+.mon-how { margin: var(--s-4) var(--gutter) 0; }
+.mon-how-l { display: flex; align-items: flex-start; gap: var(--s-2); margin: 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink); }
+.mon-how-l > svg { width: 17px; height: 17px; flex-shrink: 0; margin-top: 2px; color: var(--as-ink); }
+.mon-how-l .mon-src { font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--as-ink); font-weight: var(--w-semibold); }
+.mon-how-l .mon-src svg { width: 15px; height: 15px; }
+.mon-raw { margin-top: var(--s-3); padding: var(--s-3) var(--s-4); border-radius: var(--r-md); background: var(--inlay); box-shadow: var(--inlay-box); }
+.mon-raw-k { display: flex; align-items: center; gap: var(--s-2); margin: 0 0 var(--s-2); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.mon-raw-k svg { width: 14px; height: 14px; flex-shrink: 0; }
+.mon-raw-t { margin: 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink); overflow-wrap: anywhere; }
+.mon-item { display: flex; justify-content: space-between; gap: var(--s-3); margin: var(--s-1) 0 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.mon-item b { font-weight: var(--w-semibold); }
+.mon-catchips { padding-bottom: var(--s-2); }
+.mon-tx-g { margin-top: var(--s-3); }
+.mon-tx-note .rbody { display: flex; flex-direction: column; gap: 2px; }
+.mon-tx-note input { width: 100%; border: 0; outline: 0; background: none; font-size: var(--fs-body); line-height: var(--lh-body); padding: 0; color: var(--ink); }
+.mon-tx-note input::placeholder { color: var(--ink-3); }
+.mon-tx-acts { margin-top: var(--s-4); }
+.mon-del { color: var(--fail-ink); }
+.mon-del svg { width: 17px; height: 17px; }
+.mon-items .row { min-height: 52px; }
+.mon-itemrow .check { pointer-events: none; }
+.mon-items .check.done { background: var(--as); border-color: var(--as); }
+.mon-items .check.done svg, .mon-new .check.done svg { stroke: var(--as-on, var(--on-color)); }
+.mon-receipt .mon-impact { margin: var(--s-3) var(--gutter) var(--s-3); }
+.mon-receipt .tile.big { width: var(--hit); height: var(--hit); }
+
+/* save the streak */
+.mon-saver-b { display: flex; flex-direction: column; align-items: center; text-align: center; padding: var(--s-2) 0 var(--s-2); }
+.mon-saver-ic { position: relative; display: grid; place-items: center; width: 88px; height: 88px; border-radius: 50%; background: color-mix(in oklch, var(--as) 16%, transparent); color: var(--as-ink); }
+.mon-saver-ic svg { width: 40px; height: 40px; }
+.mon-saver-ic b { position: absolute; right: -4px; bottom: -2px; min-width: 32px; height: 32px; padding: 0 var(--s-2); border-radius: var(--r-pill); display: grid; place-items: center; background: var(--ink); color: var(--e1); font-size: var(--fs-fig-4); }
+.mon-saver-t { margin: var(--s-4) var(--s-6) 0; font-size: var(--fs-body); line-height: var(--lh-body); text-wrap: balance; }
+.mon-saver-acts { width: 100%; display: flex; flex-direction: column; gap: var(--s-2); margin-top: var(--s-4); }
+
+/* the statement: she reads it page by page; counts land as she goes */
+.mon-read { padding: var(--s-2) var(--gutter) var(--s-2); }
+.mon-pages { display: flex; justify-content: center; gap: var(--s-3); padding: var(--s-3) 0 var(--s-4); }
+.mon-pg { position: relative; width: 58px; height: 76px; padding: 12px 9px; border-radius: 8px; display: flex; flex-direction: column; gap: 6px; background: var(--inlay); box-shadow: var(--inlay-box); transition: box-shadow var(--d-state), transform var(--d-move) var(--spring); }
+.mon-pg i { display: block; height: 3px; border-radius: 2px; background: var(--fill-3); }
+.mon-pg i:nth-child(2n) { width: 70%; }
+.mon-pg.is-on { transform: translateY(-4px); box-shadow: inset 0 0 0 1.5px var(--as), var(--inlay-box); }
+.mon-pg.is-on i { background: color-mix(in oklch, var(--as) 50%, var(--fill-3)); }
+.mon-pg.is-done i { background: color-mix(in oklch, var(--as) 35%, var(--fill-2)); }
+.mon-read-t { display: flex; align-items: center; justify-content: center; gap: var(--s-2); margin: 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); color: var(--ink); }
+.mon-read-t > svg { width: 18px; height: 18px; color: var(--as-ink); }
+.mon-read-bar { display: block; height: 4px; margin: var(--s-3) 0 var(--s-4); border-radius: var(--r-track); background: var(--fill-2); overflow: hidden; }
+.mon-read-bar i { display: block; height: 100%; background: var(--as); transform: scaleX(0); transform-origin: left; border-radius: inherit; }
+.mon-read-n { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-2); }
+.mon-read-n p { display: flex; flex-direction: column; align-items: center; gap: var(--s-1); margin: 0; text-align: center; }
+.mon-read-n .met { font-size: var(--fs-fig-2); }
+.mon-read-n span { font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-2); }
+.mon-read-go { margin-top: var(--s-5); padding: 0; }
+.mon-import .mon-pdf .mon-fake-btn { pointer-events: none; }
+/* the review: what's new needs a look; what matched is set aside; one row asks */
+.mon-review .scroll { padding-bottom: 0; }
+.mon-new { position: relative; }
+.mon-new + .mon-new::before { content: ""; position: absolute; top: 0; left: var(--s-4); right: 0; height: var(--hair); background: var(--sep); }
+.mon-new .row { padding-bottom: var(--s-1); }
+.mon-new .row::before { display: none; }
+.mon-new.is-off .rtitle, .mon-new.is-off .mon-amt { color: var(--ink-3); }
+.mon-new .check { --c-check: var(--ink-3); }
+.mon-new .check.done { background: var(--as); border-color: var(--as); }
+.mon-why { margin: 0; padding: 0 var(--s-4) 0 60px; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.mon-new-opts { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); padding: var(--s-2) var(--s-4) var(--s-3) 60px; }
+.mon-new-opts .chip svg { width: 14px; height: 14px; }
+.mon-new-opts .chip svg:last-child { width: 12px; height: 12px; color: var(--ink-3); }
+.mon-new-opts .pill svg { width: 13px; height: 13px; }
+.mon-new-c { font-size: var(--fs-footnote); color: var(--ink-3); }
+.mon-hint-pad { padding-top: 0; }
+.mon-hint-top { margin-top: calc(var(--s-1) * -1); padding-bottom: var(--s-3); }
+.mon-review-pad { height: calc(var(--safe-bottom) + 112px); }
+.mon-review-bar { position: absolute; z-index: 25; left: var(--s-3); right: var(--s-3); bottom: var(--safe-bottom); height: var(--dock-h); border-radius: var(--r-pill); display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); padding: 0 var(--s-1) 0 var(--s-5); }
+.mon-rb-t { display: flex; flex-direction: column; min-width: 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.mon-rb-t b { font-weight: var(--w-semibold); }
+.mon-rb-t small { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.mon-review-bar .btn { height: 52px; padding: 0 var(--s-6); }
+
+/* leaks: steps, and thirty days of use */
+.mon-steps { margin: 0 var(--gutter); padding: var(--s-3) var(--s-4) var(--s-3) calc(var(--s-4) + 18px); border-radius: var(--r-md); background: var(--inlay); box-shadow: var(--inlay-box); font-size: var(--fs-subhead); line-height: 24px; }
+.mon-steps li::marker { color: var(--ink-3); font-weight: var(--w-semibold); }
+.mon-usage { margin: var(--s-1) var(--gutter) 0; padding: var(--s-4); border-radius: var(--r-md); background: var(--inlay); box-shadow: var(--inlay-box); }
+.mon-dots { display: grid; grid-template-columns: repeat(30, minmax(0, 1fr)); gap: 3px; margin-top: var(--s-3); }
+.mon-dots i { display: block; height: 22px; border-radius: 3px; background: var(--fill-3); }
+.mon-dots i.is-on { background: var(--as); }
+.mon-usage-n { display: flex; align-items: baseline; gap: var(--s-2); margin: var(--s-3) 0 0; font-size: var(--fs-subhead); color: var(--ink-2); }
+.mon-usage-n .met { font-size: var(--fs-fig-2); color: var(--ink); }
+.mon-leaksheet .group { margin-top: var(--s-1); }
+
+/* the streak sheet: the week as marks, October as a calendar */
+.mon-sweek { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--s-1); padding: var(--s-2) var(--s-4) 0; }
+.mon-sd { display: flex; flex-direction: column; align-items: center; gap: var(--s-1); }
+.mon-sd i { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: var(--fill-2); color: var(--ink-3); }
+.mon-sd i svg { width: 17px; height: 17px; }
+.mon-sd.is-ok i { background: color-mix(in oklch, var(--as) 20%, transparent); color: var(--as-ink); }
+.mon-sd.is-today i { background: none; box-shadow: inset 0 0 0 2px var(--as); color: var(--as-ink); }
+.mon-sd.is-today.is-miss i { box-shadow: inset 0 0 0 2px var(--needs); color: var(--needs-ink); }
+.mon-sd.is-miss:not(.is-today) i { color: var(--needs-ink); }
+.mon-sd small { font-size: var(--fs-caption); line-height: var(--lh-caption); font-weight: var(--w-semibold); color: var(--ink-3); }
+.mon-sd.is-today small { color: var(--ink); }
+.mon-sbest { margin: var(--s-4) var(--gutter) 0; text-align: center; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.mon-scal { margin: var(--s-4) var(--gutter) 0; padding: var(--s-3); border-radius: var(--r-md); background: var(--inlay); box-shadow: var(--inlay-box); }
+.mon-scal-g { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
+.mon-sc { position: relative; height: 34px; display: grid; place-items: center; font-size: var(--fs-footnote); font-weight: var(--w-semibold); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.mon-sc span { position: relative; z-index: 1; }
+.mon-sc::before { content: ""; position: absolute; width: 28px; height: 28px; border-radius: 50%; }
+.mon-sc.is-kept::before { background: color-mix(in oklch, var(--as) 20%, transparent); }
+.mon-sc.is-kept { color: var(--as-ink); }
+.mon-sc.is-over::before { background: color-mix(in oklch, var(--needs) 18%, transparent); }
+.mon-sc.is-over { color: var(--needs-ink); }
+.mon-sc.is-today::before { background: none; box-shadow: inset 0 0 0 2px var(--as); }
+.mon-sc.is-today { color: var(--ink); }
+.mon-sc.is-today.is-over::before { box-shadow: inset 0 0 0 2px var(--needs); }
+.mon-sc.is-fut { color: var(--ink-3); opacity: .6; }
+.mon-sprefs { margin-top: var(--s-4); }
+.mon-sprefs .row { min-height: 60px; }
+.mon-streaksheet .hint { padding-bottom: var(--s-3); }
+.mon-toolg .row { align-items: flex-start; padding-top: var(--s-3); padding-bottom: var(--s-3); }
+.mon-toolg .rbody { display: flex; flex-direction: column; gap: 2px; }
+.mon-toolg .pill { flex-shrink: 0; margin-top: 2px; }
+.mon-rep { margin-top: var(--s-4); }
+
+/* v2 · real data: first-run setup, empty rows with one way forward, the statement while the PC reads it, inputs */
+.mon-setup { padding: var(--s-5) var(--gutter) var(--s-4); }
+.mon-setup .mon-hsub { margin-top: var(--s-2); max-width: 34ch; }
+.mon-setup .pad { padding: var(--s-4) 0 0; }
+.mon-empty { gap: var(--s-3); padding-top: var(--s-3); padding-bottom: var(--s-3); }
+.mon-empty .rbody { display: flex; flex-direction: column; gap: 2px; }
+.mon-empty .btn { flex-shrink: 0; }
+.mon-read.is-wait .mon-pg.is-on { animation: mon-read-lift 1.4s var(--ease) infinite; }
+@keyframes mon-read-lift { 50% { transform: translateY(-7px); } }
+.mon-read .hint { text-align: center; }
+.mon-paste textarea { width: 100%; min-height: 180px; resize: vertical; font-family: var(--ff-mono-g, ui-monospace, monospace); font-size: var(--fs-footnote); line-height: 1.5; background: transparent; border: 0; color: var(--ink); outline: none; }
+.mon-paste { align-items: flex-start; margin: 0 var(--gutter); }
+.mon-import .field, .mon-leaksheet .field, .sheet[data-aspect="money"] .sheet-body > .field { margin: var(--s-2) var(--gutter); }
+.mon-bal input, .sheet[data-aspect="money"] input[inputmode="decimal"] { font-variant-numeric: tabular-nums; }
+.mon-file-pick { cursor: pointer; }
+.mon-fund-ring { display: grid; place-items: center; padding: var(--s-3) 0 var(--s-4); }
+.mon-wchart.is-empty { cursor: default; opacity: .5; }
+.mon-wfirst { margin: var(--s-2) 0 0; text-align: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mon-row-in { animation: none; }
+  .mon-pg { transition: none; }
+  .mon-read.is-wait .mon-pg.is-on { animation: none; }
+}
+
+/* ═══ 2 · OBSIDIAN ═════════════════════════════════════════════════════════ */
+/* the keypad's keys are set into the sheet's glass: a faint fill, no edge */
+:where(:root[data-skin="obsidian"]) .mon-key { background: var(--fill-1); }
+
+/* ═══ 3 · MATTE ════════════════════════════════════════════════════════════ */
+/* printed stock: the chosen category steps up like every chosen thing in Matte, ink on cream is too loud for a grid */
+:where(:root[data-skin="matte"]) .mon-cpick.on { background: var(--raised); }
+:where(:root[data-skin="matte"]) .mon-cd.is-hi { color: var(--as-on, var(--on-color)); }
+:where(:root[data-skin="matte"]) .mon-wd-t, :where(:root[data-skin="matte"]) .mon-bar-t, :where(:root[data-skin="matte"]) .mon-share { background: color-mix(in oklab, var(--as) 12%, transparent); }
+:where(:root[data-skin="matte"]) .mon-streak svg { color: var(--as-ink); }

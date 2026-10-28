@@ -1,0 +1,64 @@
+/* ═══ MODULE · THE CABINET ════════════════════════════════════════════════════
+   The page (the sitting's state, the plan per area, conflicts, blocks, transcript) and its Today row.
+   Owner: area (d) (app/ui/STRUCTURE.md). JS: app/modules/cabinet.js. Shared pieces: app/ui/screens/content.css.
+   Design: j15/mockup/final/js/more.js PAGES.cabinet and css/screens/more.css. Blocks: 1 · SHARED · 2 · OBSIDIAN · 3 · MATTE.
+   A pencilled block says so in a status word and carries Keep and Remove; colour is the areas' own, as dots. */
+
+/* ═══ 1 · SHARED ═══════════════════════════════════════════════════════════ */
+/* the state card: what the sitting did, the referee's summary under it */
+/* the referee's summary: four lines here, the whole of it in the transcript's last turn */
+.cb-sum { margin-top: var(--s-2) !important; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.cb-sitting { display: flex; align-items: center; gap: var(--s-2); }
+.cb-sitting .spin { width: 16px; height: 16px; --c: var(--ink-2); }
+
+/* the plan: an area's hours at the end of its row, in figures */
+.cb-ask .mp-v { margin-top: 1px; font-size: var(--fs-fig-3); line-height: var(--lh-title3); }
+
+/* conflicts: the question, who asked, then each option as a choice with what it costs */
+.cb-conf { position: relative; padding: var(--s-3) var(--s-4) var(--s-4); }
+.cb-conf + .cb-conf::before { content: ""; position: absolute; top: 0; right: 0; left: var(--s-4); height: var(--hair); background: var(--sep); }
+.cb-q { margin: 0; font-size: var(--fs-body); line-height: var(--lh-body); color: var(--ink); text-wrap: pretty; }
+.cb-who { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-3); margin: var(--s-1) 0 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.cb-who span { display: inline-flex; align-items: center; gap: 6px; }
+.cb-opts { display: flex; flex-direction: column; gap: var(--s-2); margin-top: var(--s-3); }
+.cb-opt {
+  display: flex; flex-direction: column; gap: 2px; width: 100%; min-height: var(--hit); padding: var(--s-2) var(--s-3); border-radius: var(--r-md);
+  background: var(--inlay); box-shadow: var(--inlay-box); text-align: left; color: var(--ink);
+  transition: transform var(--d-press) var(--ease), filter var(--d-press);
+}
+.cb-opt:active { transform: var(--press); filter: var(--press-filter); }
+.cb-opt:disabled { opacity: var(--off); }
+.cb-opt-l { font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); }
+.cb-opt-c { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.cb-conf.done .cb-q { color: var(--ink-2); }
+.cb-chosen { display: flex; align-items: center; gap: 6px; margin: var(--s-1) 0 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); color: var(--done); }
+.cb-chosen svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+/* blocks: the area's dot, the block and why, then Keep and Remove under the words while it is pencilled in */
+.cb-block .rmeta { margin-top: var(--s-1); }
+.cb-block .mp-racts { margin-top: var(--s-2); }
+
+/* the transcript: a row that opens to every turn */
+.cb-tx { margin-top: var(--gap-sec); }
+.cb-tx > summary .rmeta { margin-top: 2px; }
+.cb-turns { display: flex; flex-direction: column; gap: var(--s-4); padding: var(--s-1) var(--s-4) var(--s-4); }
+.cb-turn { padding-top: var(--s-3); border-top: var(--hair) solid var(--sep); }
+.cb-turn-who { display: flex; align-items: center; gap: 6px; margin: 0 0 var(--s-1); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.cb-turn-who b { color: var(--ink); font-weight: var(--w-semibold); }
+.cb-turn-t { margin: 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink); text-wrap: pretty; overflow-wrap: anywhere; }
+.cb-tlab { margin: var(--s-3) 0 var(--s-1); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-3); }
+.cb-list { margin: 0; padding-left: var(--s-4); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.cb-list li + li { margin-top: 2px; }
+
+/* the Today row: the words open the page, the button at the end sits now */
+.cb-card { padding: 0 var(--s-4) 0 0; gap: var(--s-2); }
+.cb-card-main { flex: 1; min-width: 0; align-self: stretch; display: flex; align-items: flex-start; gap: var(--s-3); min-height: 52px; padding: var(--s-2) 0 var(--s-2) var(--s-4); text-align: left; color: var(--ink); }
+.cb-card:has(.cb-card-main:active) { background: var(--row-press); }
+.mcard > .spin { width: 16px; height: 16px; --c: var(--ink-2); }
+
+/* ═══ 2 · OBSIDIAN ═════════════════════════════════════════════════════════ */
+/* nothing to restate: Obsidian's Cabinet is the shared block */
+
+/* ═══ 3 · MATTE ════════════════════════════════════════════════════════════ */
+/* an option is printed on raised stock with its edge, like every Matte control */
+:where(:root[data-skin="matte"]) .cb-opt { box-shadow: var(--edge-2); }

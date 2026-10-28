@@ -1,0 +1,6 @@
+{
+  "name": "wyn",
+  "description": "Lets Wyn, Vedant's assistant in Agentic OS, hand this session a prompt and get the reply back. Works in Claude app, terminal and background sessions on this PC.",
+  "version": "0.1.1",
+  "keywords": ["wyn", "agentic-os", "hooks"]
+}

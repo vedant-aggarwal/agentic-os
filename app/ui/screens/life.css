@@ -1,0 +1,193 @@
+/* ═══ SCREEN · LIFE ═══════════════════════════════════════════════════════════
+   Owner: area (e) Life (the pushed Life page: wheel, goals, map, a goal's page, the weekly review, the score sheet) and
+   the Life card at the top of More. Loaded after styles.css. Blocks: 1 · SHARED · 2 · OBSIDIAN · 3 · MATTE.
+   Target: j15/mockup/final/css/screens/life.css.
+   Life is violet. The wheel is nine rings round your average; goals are rings with a time tick. The three families
+   are told apart by place and name, not by colour. */
+
+/* ═══ 1 · SHARED ═══════════════════════════════════════════════════════════ */
+/* the Life card: one small ring per aspect around the wheel's average, then what the wheel says */
+.life-card { display: flex; align-items: center; gap: var(--s-4); width: 100%; margin-top: var(--s-3); padding: var(--s-4) var(--s-3) var(--s-4) var(--s-4); border-radius: var(--r-xl); text-align: left; color: var(--ink); --ring-bg: var(--e1); transition: transform var(--d-press) var(--ease); }
+.life-card:active { transform: scale(.985); }
+.lfm-wheel { position: relative; width: 120px; height: 120px; flex-shrink: 0; }
+.lfm-r { position: absolute; translate: -50% -50%; }
+.lfm-mid { position: absolute; left: 50%; top: 50%; translate: -50% -50%; display: flex; flex-direction: column; align-items: center; line-height: 1; }
+.lfm-mid b { font-size: var(--fs-fig-3); }
+.lfm-mid small { margin-top: 3px; font-size: var(--fs-caption); font-weight: var(--w-semibold); color: var(--ink-3); }
+.lfm-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.lfm-t { margin-bottom: var(--s-1); font-size: var(--fs-title2); line-height: var(--lh-title2); font-weight: var(--w-bold); }
+.lfm-l { font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.lfm-l .met { margin-right: 2px; font-size: var(--fs-fig-3); color: var(--life-ink); }
+.lfm-s { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.lfm-x { margin-top: var(--s-1); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+.life-card .chev { align-self: center; }
+
+/* the page: title and when it was scored, one row for the weekly review, then the three views */
+.lf-scored { margin-top: var(--s-1); }
+.lf-rvg { margin-top: var(--s-4); }
+.lf-segwrap { margin: var(--s-4) 0 var(--s-3); }
+.lf-seg { height: 40px; }
+.lf-view.lf-swap { animation: lf-swap .32s var(--ease) both; }
+@keyframes lf-swap { from { opacity: 0; transform: translateY(8px); } }
+.lf-view .hz { margin-top: 0; }
+#modLife > [data-mod-card]:not(:empty) { margin-top: var(--gap-sec); }
+
+/* the hero of each view: the wheel, the map, a goal's ring */
+.lf-card { position: relative; padding: var(--s-4); border-radius: var(--r-xl); background: var(--e1-bg); box-shadow: var(--e1-box); --ring-bg: var(--e1); }
+.lf-insight { margin: 0 0 var(--s-2); font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.lf-insight b { color: var(--ink); font-weight: var(--w-semibold); }
+
+/* the wheel of rings: each aspect is a ring out of 10 you can tap; the rest dim and the middle says how it stands */
+.lw { position: relative; width: 100%; max-width: 330px; aspect-ratio: 1; margin: 0 auto; }
+.lw-r { position: absolute; translate: -50% -50%; border-radius: 50%; transition: opacity var(--d-state) var(--ease), transform var(--d-press) var(--ease); }
+.lw-r:active { transform: scale(.94); }
+.lw-r.dim { opacity: .38; }
+.lw-in { display: flex; flex-direction: column; align-items: center; line-height: 1; }
+.lw-in b { font-size: var(--fs-fig-2); }
+.lw-in small { margin-top: var(--s-0); font-size: var(--fs-caption); font-weight: var(--w-semibold); color: var(--ink-2); }
+.lw-mid { position: absolute; left: 50%; top: 50%; translate: -50% -50%; display: flex; flex-direction: column; align-items: center; gap: var(--s-1); max-width: 132px; text-align: center; pointer-events: none; }
+.lw-mid b { font-size: var(--fs-fig-1); font-weight: var(--w-fig-l); }
+.lw-mid small { font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+/* compare: the tick on each ring is the score on the chosen date; one row says so and picks the date */
+.lf-cmp { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-2) var(--s-3); margin: var(--s-3) 0 0; }
+.lf-cmp-l { display: inline-flex; align-items: center; gap: var(--s-2); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.lf-cmp-chips { gap: var(--s-2); }
+.lf-tick { display: inline-block; width: 3px; height: 13px; border-radius: 2px; flex-shrink: 0; background: var(--ink); }
+.lf-score-btn { margin-top: var(--s-4); }
+.lf-card .btn svg { width: 18px; height: 18px; }
+
+/* growth: one list per family; a row is the name, its line over time, the score and how far it moved */
+.lf-fams { display: flex; flex-direction: column; }
+.lf-fam { margin: var(--s-4) var(--s-1) var(--s-2); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.lf-fam:first-child { margin-top: 0; }
+.lf-grow { gap: var(--s-4); min-height: 48px; padding-top: var(--s-2); padding-bottom: var(--s-2); }
+.lf-grow.sel { background: color-mix(in srgb, var(--life) 12%, transparent); }
+.lf-gname { flex: 1; min-width: 0; font-size: var(--fs-body); line-height: var(--lh-body); }
+.lf-spark { flex-shrink: 0; width: 64px; height: 24px; overflow: visible; }
+.lf-spark path { fill: none; stroke: var(--life); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.lf-spark circle { fill: var(--life); stroke: var(--e1); stroke-width: 2; }
+.lf-gscore { width: 26px; text-align: right; font-size: var(--fs-fig-3); }
+.lf-delta { min-width: 42px; justify-content: center; }
+
+/* goals: one list per horizon; each goal is its pace ring and three lines */
+.lf-lead { margin: 0; }
+.lf-hsh { align-items: baseline; }
+.lf-hsub { margin-left: auto; font-family: var(--font); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-regular); color: var(--ink-3); white-space: nowrap; }
+.lf-goal { align-items: center; gap: var(--s-3); padding-top: var(--s-3); padding-bottom: var(--s-3); --sep-left: 84px; --ring-bg: var(--e1); }
+.lf-pct { font-size: var(--fs-subhead); }
+.lf-pct small { margin-left: 0; font-size: var(--fs-caption); }
+.lf-gbody { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.lf-gtop { display: flex; align-items: center; gap: var(--s-2); min-width: 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.lf-garea { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* the verdict is a coloured word: green on pace, orange behind */
+.lf-verdict { margin-left: auto; flex-shrink: 0; font-weight: var(--w-semibold); color: var(--c); }
+.lf-gtitle { font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+.lf-gfoot { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.lf-empty { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); min-height: 52px; padding: var(--s-2) var(--s-2) var(--s-2) var(--s-4); border-radius: var(--r-lg); background: var(--e1-bg); box-shadow: var(--e1-box); color: var(--ink-2); font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+
+/* a goal's page: the ring, the two numbers it is made of, and the dates it runs between */
+.lf-ghead { padding-bottom: var(--s-4); }
+.lf-gdtitle { margin-top: var(--s-1); text-wrap: balance; }
+.lf-gbig { display: grid; grid-template-columns: auto 1fr; gap: var(--s-4) var(--s-5); align-items: center; padding: var(--s-5) var(--s-4) var(--s-4); }
+.lf-bigring .lf-pct { font-size: var(--fs-fig-1); font-weight: var(--w-fig-l); }
+.lf-bigring .lf-pct small { font-size: var(--fs-fig-4); }
+.lf-gbig-side { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-3); min-width: 0; }
+.lf-gstat { display: flex; flex-direction: column; gap: 2px; }
+.lf-gstat .met { font-size: var(--fs-fig-2); }
+.lf-gstat .met small { font-size: var(--fs-subhead); }
+.lf-gstat > span { display: inline-flex; align-items: center; gap: var(--s-2); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.lf-gbig-note { grid-column: 1 / -1; padding-top: var(--s-3); border-top: var(--hair) solid var(--sep); }
+
+/* the map: aspects as pills round you, what feeds each outside it; a tap says what a mark is and what it feeds */
+.lf-mapcard { padding: var(--s-4) var(--s-3); }
+.lf-mapcard .lf-insight { padding: 0 var(--s-1); }
+.lf-map { display: block; width: 100%; height: auto; overflow: visible; }
+.lf-ring { fill: none; stroke: var(--sep); stroke-width: 1; }
+.lf-ml { stroke: var(--fill-3); stroke-width: 1; }
+.lf-ml2 { stroke: var(--life); stroke-opacity: .32; stroke-width: 1.2; }
+.lf-mn { cursor: pointer; outline: none; }
+.lf-ring-out { stroke: var(--e1); stroke-width: 2; }
+.lf-goalnode { fill: var(--e1); stroke: var(--life-ink); stroke-width: 2.2; }
+.lf-pillbg { fill: var(--life); }
+.lf-hit { fill: transparent; stroke: none; }
+g.lf-asp.sel .lf-pillbg, g.lf-asp:focus-visible .lf-pillbg, g.lf-mark.sel > :not(.lf-hit), g.lf-mark:focus-visible > :not(.lf-hit) { stroke: var(--ink); stroke-width: 2.4; }
+g.lf-youg.sel .lf-you, g.lf-youg:focus-visible .lf-you { stroke: var(--life); stroke-width: 3; }
+/* map labels are in SVG units: the map renders at about 0.9×, so 13.5 lands just above the 12px floor */
+.lf-mlab { font-family: var(--font); font-size: 13.5px; font-weight: var(--w-semibold); fill: var(--ink); pointer-events: none; }
+.lf-msc { font-family: var(--round); font-size: 14px; font-weight: var(--w-fig); font-variant-numeric: tabular-nums; fill: var(--life-ink); }
+.lf-you { fill: var(--ink); }
+.lf-you-t { font-family: var(--font); font-size: 13.5px; font-weight: var(--w-bold); fill: var(--e0); pointer-events: none; }
+.lf-key { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--s-2) var(--s-4); margin: var(--s-2) 0 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.lf-key span { display: inline-flex; align-items: center; gap: var(--s-2); }
+.lf-key i { display: inline-block; width: 10px; height: 10px; border-radius: var(--s-0); }
+.lf-key i.o { border-radius: 50%; background: var(--ink-2); }
+.lf-key i.dia { width: 9px; height: 9px; border-radius: 1px; border: 2px solid var(--life-ink); transform: rotate(45deg); }
+.lf-key i.sq { border-radius: 3px; background: var(--ink-2); }
+.lf-key i.sc { width: 24px; height: 12px; border-radius: var(--r-xs); background: linear-gradient(90deg, color-mix(in srgb, var(--life) 28%, transparent) 0 33%, color-mix(in srgb, var(--life) 62%, transparent) 33% 66%, var(--life) 66%); }
+.lf-nodeslot { margin-top: var(--s-3); }
+.lf-maphint { text-align: center; }
+.lf-node { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: var(--s-4); border-radius: var(--r-lg); background: var(--e1-bg); box-shadow: var(--e1-box); }
+.lf-node p { margin: 0; }
+.lf-node-k { font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.lf-node-t { margin-bottom: var(--s-1); }
+.lf-node .small-btn, .lf-node-chips { margin-top: var(--s-2); }
+.lf-nodeslot > .add-row { margin-top: var(--s-3); }
+
+/* weekly review: what got done ticks green, the moves are numbered with a switch each */
+.lf-rv-hours.week-card { margin-top: 0; }
+.lf-done { align-items: flex-start; }
+.lf-ck { width: 24px; height: 24px; margin-top: 1px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; background: var(--done); color: var(--on-color); }
+.lf-ck svg { width: 13px; height: 13px; }
+.lf-more .rtitle { font-size: var(--fs-subhead); color: var(--ink-2); }
+.lf-move { align-items: flex-start; padding-top: var(--s-3); padding-bottom: var(--s-3); }
+.lf-mv-n { width: 28px; height: 28px; margin-top: 1px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); font-family: var(--round); font-size: var(--fs-subhead); font-weight: var(--w-fig); }
+.lf-why { display: block; margin-top: 2px; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.lf-move .switch { margin-top: 2px; }
+.lf-move .switch::before { content: ""; position: absolute; inset: -7px -4px; }
+.lf-mv-acts { display: flex; flex-direction: column; gap: var(--s-3); margin-top: var(--s-4); }
+.lf-mv-err { margin-top: 0; }
+.lf-think .spin { --c: var(--ink-2); }
+.lf-nudge { margin-top: var(--s-6); }
+.lf-nudge .rmeta { white-space: normal; }
+.lf-rv-foot { margin-top: var(--s-3); text-align: center; color: var(--ink-3); }
+:is(.page.detail[data-kind="review"], .lf-node) .small-btn > svg { width: 15px; height: 15px; flex: none; }
+
+/* the score sheet: one list, nine rows. A name, the slider, the number it reads */
+.lf-score-head { display: flex; align-items: flex-start; gap: var(--s-3); padding-right: var(--s-4); }
+.lf-score-head .sh-text { flex: 1; min-width: 0; }
+#scoreSheet .sheet-close::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; }
+#scoreBody.score-body { padding: var(--s-1) var(--s-4) 60px; }
+.lf-sl { gap: var(--s-3); min-height: 52px; padding-top: var(--s-1); padding-bottom: var(--s-1); cursor: pointer; }
+.lf-sl-name { width: 74px; flex-shrink: 0; font-size: var(--fs-body); line-height: var(--lh-body); }
+.lf-sl-v { width: 24px; flex-shrink: 0; text-align: right; font-family: var(--round); font-size: var(--fs-fig-3); font-weight: var(--w-fig); color: var(--life-ink); font-variant-numeric: tabular-nums; }
+.lf-sl input[type=range] { -webkit-appearance: none; appearance: none; flex: 1; min-width: 0; height: var(--hit); margin: 0; background: none; touch-action: manipulation; cursor: pointer; accent-color: var(--life); }
+.lf-sl input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--life) 0 var(--p), color-mix(in srgb, var(--life) 22%, transparent) var(--p) 100%); }
+.lf-sl input[type=range]::-moz-range-track { height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--life) 22%, transparent); }
+.lf-sl input[type=range]::-moz-range-progress { height: 6px; border-radius: 3px; background: var(--life); }
+.lf-sl input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 26px; height: 26px; margin-top: -10px; border-radius: 50%; background: var(--knob); box-shadow: var(--knob-shadow); }
+.lf-sl input[type=range]::-moz-range-thumb { width: 26px; height: 26px; border: 0; border-radius: 50%; background: var(--knob); box-shadow: var(--knob-shadow); }
+.lf-sl input[type=range]:focus-visible { outline: none; }
+.lf-sl:focus-within { box-shadow: inset 0 0 0 2px var(--focus); border-radius: var(--r-sm); }
+.lf-sl-save { margin-top: var(--s-4); }
+
+@media (prefers-reduced-motion: reduce) {
+  .lf-view.lf-swap { animation: none; }
+  .lw-r { transition: opacity 150ms linear; }
+}
+
+/* ═══ 2 · OBSIDIAN ═════════════════════════════════════════════════════════
+   Nothing to restate: Obsidian's Life is the shared block. The wheel's light blooms on its own (skins/obsidian.css). */
+
+/* ═══ 3 · MATTE ════════════════════════════════════════════════════════════ */
+/* the card on More: the wheel in miniature beside printed lines, under a serif masthead */
+:where(:root[data-skin="matte"]) .lfm-t { margin-bottom: 2px; font-family: var(--ff-title); font-size: var(--fs-title1); line-height: var(--lh-title1); font-weight: var(--w-title); font-variation-settings: var(--fv-title); }
+:where(:root[data-skin="matte"]) .life-card, :where(:root[data-skin="matte"]) .lf-card, :where(:root[data-skin="matte"]) .lf-goal { --ring-bg: var(--paper); }
+/* a goal's page title is a title like any page's: set in the serif */
+:where(:root[data-skin="matte"]) .lf-gdtitle { font-family: var(--ff-title); font-size: var(--fs-title1); line-height: var(--lh-title1); font-weight: var(--w-title); font-variation-settings: var(--fv-title); }
+:where(:root[data-skin="matte"]) .lf-key i { border-radius: 3px; }
+:where(:root[data-skin="matte"]) .lf-key i.o { border-radius: 50%; }
+/* the score sheet's sliders: a pigment track and a cream knob on raised stock */
+:where(:root[data-skin="matte"]) .lf-sl input[type=range]::-webkit-slider-runnable-track { background: linear-gradient(90deg, var(--life) 0 var(--p), color-mix(in oklab, var(--life) 20%, transparent) var(--p) 100%); }
+:where(:root[data-skin="matte"]) .lf-sl input[type=range]::-moz-range-track { background: color-mix(in oklab, var(--life) 20%, transparent); }
+:where(:root[data-skin="matte"]) .lf-sl input[type=range]::-webkit-slider-thumb { box-shadow: 0 2px 8px rgba(0, 0, 0, .35), 0 0 0 .5px rgba(0, 0, 0, .1); }
+:where(:root[data-skin="matte"]) .lf-sl input[type=range]::-moz-range-thumb { box-shadow: 0 2px 8px rgba(0, 0, 0, .35); }

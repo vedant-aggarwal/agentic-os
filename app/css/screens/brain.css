@@ -1,0 +1,301 @@
+/* ═══ SCREEN · BRAIN ══════════════════════════════════════════════════════════
+   The Brain at the centre of the wheel: search and ask, the inbox, what the agent filed today, people, folders by aspect,
+   notes, person files, search by time and place, the graph. Owner: the Life hub + Brain + Capture agent. JS: js/brain.js,
+   js/brain-graph.js. Blocks: 1 shared · 2 OBSIDIAN · 3 MATTE. A calm library: type first, aspect colour only as tiles,
+   dots and the graph's nodes. A folder, a note or a person's file wears its aspect's colour (--as) in its kicker. */
+
+/* ═══ 1 · SHARED ═══════════════════════════════════════════════════════════ */
+.br-head { padding-bottom: var(--s-3); }
+.br-page .phead .kicker { margin: 0 0 var(--s-1); }
+.br-searchrow { display: flex; align-items: center; gap: var(--s-2); }
+.br-search { flex: 1; min-width: 0; min-height: 50px; padding: 0 var(--s-4); border-radius: var(--r-pill); display: flex; align-items: center; gap: var(--s-2); text-align: left; background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink-3); font-size: var(--fs-body); transition: transform var(--d-press) var(--ease), background-color var(--d-press); }
+.br-search svg { width: 19px; height: 19px; flex-shrink: 0; }
+.br-search:active { transform: var(--press); background: var(--ctl-press); }
+.br-voice { width: 50px; height: 50px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); }
+.br-voice svg { width: 21px; height: 21px; }
+.br-voice:active { transform: scale(.92); }
+.br-asks { margin-top: var(--s-3); }
+
+/* inbox: what came in and isn't filed; Wyn's suggestion under each, one tap to file */
+.br-in { gap: var(--s-2); padding-right: var(--s-3); align-items: center; }
+.br-in-open { flex: 1; min-width: 0; display: flex; align-items: flex-start; gap: var(--s-3); text-align: left; padding: var(--s-1) 0; border-radius: var(--r-sm); }
+.br-in-open:active { opacity: .7; }
+.br-in .rbody { display: flex; flex-direction: column; gap: 2px; }
+.br-in .rtitle { font-size: var(--fs-callout); line-height: var(--lh-callout); }
+.br-to { display: flex; align-items: flex-start; gap: 6px; margin-top: 2px; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.br-to svg { width: 13px; height: 13px; flex-shrink: 0; margin-top: 2px; }
+.br-file { flex-shrink: 0; }
+.br-thumb { width: 34px; height: 48px; border-radius: 7px; flex-shrink: 0; display: grid; place-items: center; position: relative; overflow: hidden; }
+.br-thumb.reel { background: #4a1c22; color: #fff; }
+.br-thumb.reel svg { width: 14px; height: 14px; }
+.br-thumb.shot { background: var(--ctl); box-shadow: inset 0 0 0 1px var(--sep); align-content: start; gap: 4px; padding-top: 9px; }
+.br-thumb.shot i { display: block; width: 18px; height: 3px; border-radius: 2px; background: var(--ink-4); }
+.br-thumb.shot i:first-child { width: 12px; height: 12px; border-radius: 50%; margin-bottom: 2px; background: color-mix(in srgb, var(--done) 60%, transparent); }
+.br-share { --sep-left: 60px; }
+.br-share .tile svg { width: 18px; height: 18px; }
+.br-in-empty .tile svg { color: var(--done); }
+
+/* what Wyn filed today: a timeline, newest first */
+.br-day { padding: var(--s-1) 0 0; }
+.br-tl { position: relative; display: grid; grid-template-columns: 46px 14px minmax(0, 1fr); align-items: start; column-gap: var(--s-3); width: 100%; min-height: 56px; padding: var(--s-2) var(--s-4) var(--s-2) var(--s-4); text-align: left; }
+.br-tl:active { background: var(--row-press); }
+.br-tl::before { content: ""; position: absolute; left: calc(var(--s-4) + 46px + var(--s-3) + 6px); top: 0; bottom: 0; width: 2px; background: var(--sep); }
+.br-tl:first-child::before { top: 18px; }
+.br-tl-t { padding-top: 2px; font-size: var(--fs-fig-4); color: var(--ink-2); }
+.br-tl-dot { position: relative; z-index: 1; width: 14px; height: 14px; margin-top: 3px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 3px var(--e1); }
+.br-tl-b { display: flex; flex-direction: column; min-width: 0; }
+.br-tl-n { font-size: var(--fs-callout); line-height: var(--lh-callout); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.br-tl-m { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.br-more .rtitle { font-size: var(--fs-subhead); color: var(--ink-2); }
+.br-more-n { font-size: var(--fs-fig-4); color: var(--ink-3); }
+
+/* people: a card each, and a way to add someone */
+.br-people { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-2); margin: 0 var(--gutter); }
+.br-person { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 132px; padding: var(--s-3) var(--s-3) var(--s-3); border-radius: var(--r-lg); text-align: left; transition: transform var(--d-press) var(--ease); }
+.br-person:active { transform: var(--press); }
+.br-mono { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; margin-bottom: var(--s-2); background: color-mix(in oklch, var(--c) 32%, transparent); color: var(--ink); font-family: var(--ff-mono-g); font-weight: var(--w-mono-g); font-variation-settings: var(--fv-mono-g); font-size: var(--fs-headline); }
+.br-mono.sm { width: 32px; height: 32px; margin: 0; font-size: var(--fs-subhead); }
+.br-mono.xl { width: 76px; height: 76px; margin: 0 0 var(--s-3); font-size: var(--fs-title1); }
+.br-mono.add { background: var(--fill-2); color: var(--ink-2); }
+.br-mono.add svg { width: 18px; height: 18px; }
+.br-p-n { font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+.br-p-r { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.br-p-l { margin-top: auto; padding-top: var(--s-1); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+.br-add { grid-column: 1 / -1; flex-direction: row; align-items: center; gap: var(--s-3); min-height: 64px; background: var(--ctl); box-shadow: var(--ctl-box); }
+.br-add .br-mono { margin: 0; }
+.br-add .br-p-r { -webkit-line-clamp: 1; }
+.br-add-t { display: flex; flex-direction: column; min-width: 0; }
+
+/* folders: three rows, one per family, a tile each */
+.br-fam { margin: var(--s-1) calc(var(--gutter) + var(--s-1)) var(--s-2); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-3); }
+.br-fam + .br-folders + .br-fam { margin-top: var(--s-3); }
+.br-folders { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-2); margin: 0 var(--gutter); }
+.br-folder { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 104px; padding: var(--s-3); border-radius: var(--r-lg); text-align: left; transition: transform var(--d-press) var(--ease); }
+.br-folder:active { transform: var(--press); }
+.br-folder .asp-tile { margin-bottom: var(--s-2); }
+.br-f-n { font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); }
+.br-f-c { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); white-space: nowrap; }
+.br-f-c .met { font-size: var(--fs-fig-4); color: var(--ink); }
+.br-f-c svg { width: 13px; height: 13px; }
+
+/* the graph, small on the home and whole on its own page */
+.br-graphcard { position: relative; display: flex; flex-direction: column; align-items: stretch; width: calc(100% - 2 * var(--gutter)); margin: 0 var(--gutter); padding: var(--s-3) var(--s-4) var(--s-4); border-radius: var(--r-xl); text-align: left; transition: transform var(--d-press) var(--ease); }
+.br-graphcard:active { transform: scale(.985); }
+.br-graphcard .br-g { height: 190px; }
+.br-graphcard > .chev { position: absolute; right: var(--s-4); bottom: var(--s-5); }
+.br-gc-b { display: flex; flex-direction: column; margin-top: var(--s-2); }
+.br-gc-t { font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+.br-gc-s { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.br-g { display: block; width: 100%; height: auto; overflow: visible; }
+.br-g-l { stroke: var(--ink-4); stroke-width: 1; vector-effect: non-scaling-stroke; transition: opacity var(--d-state) var(--ease), stroke var(--d-state); }
+.br-g-l.on { stroke: var(--c, var(--ink)); stroke-width: 1.8; }
+.br-g-l.off { opacity: .22; }
+.br-g-n { transition: opacity var(--d-state) var(--ease); }
+.br-g-n.off { opacity: .18; }
+.br-g-hub circle { fill: var(--e1); stroke: var(--sep); stroke-width: 1; }
+.br-g-hubg circle, .br-g-hubg path { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-linecap: round; }
+.br-g-folder circle { fill: var(--c); stroke: var(--e0); stroke-width: 2.5; }
+.br-g-folder text { font-family: var(--font); font-size: 12px; font-weight: var(--w-semibold); fill: var(--ink-2); }
+.br-g-person circle { fill: color-mix(in oklch, var(--c) 34%, var(--e0)); stroke: var(--c); stroke-width: 1.5; }
+.br-g-mono { font-family: var(--ff-mono-g); font-size: 12px; font-weight: var(--w-mono-g); fill: var(--ink); }
+.br-g-goal circle { fill: var(--e0); stroke: var(--c); stroke-width: 2; }
+.br-g-note circle { fill: var(--c); fill-opacity: .82; }
+.br-g-n.sel circle:first-child { stroke: var(--ink); stroke-width: 2.4; }
+.br-g-nl { font-family: var(--font); font-size: 12px; font-weight: var(--w-semibold); fill: var(--ink); paint-order: stroke; stroke: var(--e0); stroke-width: 3px; stroke-linejoin: round; }
+.br-g-hit { fill: transparent; pointer-events: all; cursor: pointer; outline: none; }
+.br-g.mini .br-g-folder circle { stroke: var(--e1); }
+.br-g.mini .br-g-goal circle, .br-g.mini .br-g-hub circle { fill: var(--e1); }
+.br-graphwrap { margin: var(--s-2) var(--s-2) 0; }
+.br-gfilt { margin-top: var(--s-1); }
+.br-gcard-slot { margin: var(--s-3) var(--gutter) 0; }
+.br-ghint { text-align: center; }
+.br-gcard { display: flex; flex-direction: column; gap: var(--s-3); padding: var(--s-3) var(--s-3) var(--s-3) var(--s-4); border-radius: var(--r-lg); animation: rise-in .3s var(--ease) both; }
+.br-gcard-h { display: flex; align-items: center; gap: var(--s-3); }
+.br-gcard-h > .dot { width: 10px; height: 10px; }
+.br-gcard-l { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.br-gcard-l .dot { width: 7px; height: 7px; }
+.br-gcard-more { align-self: center; font-size: var(--fs-footnote); color: var(--ink-3); }
+.br-gcard-b { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.br-gcard-t { font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.br-gcard-s { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+
+/* note rows: a kind glyph, the title, one line of it, where it lives and who filed it */
+.br-note { align-items: flex-start; --sep-left: 60px; }
+.br-note .tile { margin-top: 2px; }
+.br-kind { color: var(--ink-2); }
+.br-kind svg { width: 17px; height: 17px; }
+.br-snip { display: block; margin-top: 2px; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.br-meta { display: flex; align-items: center; gap: 5px; margin-top: 3px; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.br-meta .dot { width: 7px; height: 7px; }
+.br-subs { margin-bottom: var(--s-1); }
+.br-subs .n { font-family: var(--round); font-weight: var(--w-fig); color: var(--ink-3); }
+.br-subs .chip.on .n { color: inherit; opacity: .7; }
+.br-open { margin-top: var(--s-6); }
+
+/* a note: where it lives, who filed it and from where, the text, what it ties to */
+.br-note-head .br-crumb { display: inline-flex; align-items: center; min-height: 32px; margin: 0 0 var(--s-1); }
+.br-by { display: flex; align-items: flex-start; gap: var(--s-3); margin: var(--s-3) 0 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.br-by-a { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); font-family: var(--ff-mono-g); font-weight: var(--w-mono-g); font-size: var(--fs-subhead); }
+.br-by-a svg { width: 15px; height: 15px; }
+.br-body { position: relative; margin: 0 var(--gutter); padding: var(--s-4) var(--s-4) var(--s-3); border-radius: var(--r-lg); }
+.br-body p { margin: 0 0 var(--s-3); font-size: var(--fs-body); line-height: 1.5; text-wrap: pretty; }
+.br-kindtag { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 var(--s-3); border-radius: var(--r-pill); background: var(--fill-2); font-size: var(--fs-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.br-kindtag svg { width: 13px; height: 13px; }
+.br-ring { width: 32px; display: grid; place-items: center; flex-shrink: 0; --ring-bg: var(--e1); }
+.br-actions { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-5); }
+
+/* a person's file */
+.br-phead { display: flex; flex-direction: column; align-items: center; padding: var(--s-2) var(--gutter) 0; text-align: center; }
+.br-phead .sub { margin-top: 2px; }
+.br-last { display: flex; align-items: baseline; gap: var(--s-2); margin: var(--s-3) 0 0; font-size: var(--fs-footnote); color: var(--ink-2); }
+.br-last b { font-size: var(--fs-subhead); font-weight: var(--w-semibold); color: var(--ink); }
+.br-phead-a { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--s-2); margin-top: var(--s-4); }
+.br-phead-a .btn svg { color: var(--as-ink); }
+.br-fact { gap: var(--s-3); min-height: 50px; }
+.br-fact-k { width: 42%; flex-shrink: 0; font-size: var(--fs-subhead); color: var(--ink-2); }
+.br-fact-v { flex: 1; min-width: 0; font-size: var(--fs-body); }
+.br-fact-add { margin-left: auto; }
+.br-fact-add svg { width: 14px; height: 14px; }
+.br-mo { align-items: flex-start; --sep-left: 40px; }
+.br-mo-dot { width: 10px; height: 10px; margin: 6px 4px 0 2px; border-radius: 50%; flex-shrink: 0; background: var(--as); }
+.br-mo.later .br-mo-dot { background: transparent; box-shadow: inset 0 0 0 2px var(--as); }
+.br-prow .rbody .rmeta + .rmeta { color: var(--ink-3); }
+
+/* search: the question, when and where, Wyn's answer with its sources, the notes */
+.br-qrow { margin-top: var(--s-1); }
+.br-q { min-height: 50px; }
+.br-q input { font-size: var(--fs-body); min-height: var(--hit); }
+.br-q input::-webkit-search-cancel-button { -webkit-appearance: none; }
+.br-filt { margin-top: var(--s-3); }
+.br-filt + .br-filt { margin-top: var(--s-2); }
+.br-answer { margin: var(--s-4) var(--gutter) 0; padding: var(--s-4); border-radius: var(--r-lg); animation: rise-in .35s var(--ease) both; }
+.br-ans-k { display: flex; align-items: center; gap: var(--s-2); margin: 0; font-size: var(--fs-subhead); font-weight: var(--w-semibold); }
+.br-ans-k svg { width: 15px; height: 15px; }
+.br-ans-k small { margin-left: auto; font-size: var(--fs-footnote); font-weight: var(--w-regular); color: var(--ink-3); }
+.br-ans { margin: var(--s-2) 0 var(--s-3); font-size: var(--fs-callout); line-height: 1.45; text-wrap: pretty; }
+.br-src { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.br-src-c { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 var(--s-3) 0 var(--s-1); border-radius: var(--r-pill); background: var(--fill-2); font-size: var(--fs-footnote); color: var(--ink-2); white-space: nowrap; }
+.br-src-c b { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--fill-3); color: var(--ink); font-size: var(--fs-caption); }
+/* the day as a strip: every save at its time, Wyn's filled and yours hollow */
+.br-strip { margin: var(--s-3) var(--gutter) 0; padding: var(--s-4) var(--s-4) var(--s-3); border-radius: var(--r-lg); }
+.br-strip-l { position: relative; height: 52px; margin: 0 6px; }
+.br-strip-l::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px; margin-top: -1px; border-radius: 1px; background: var(--sep); }
+.br-strip-d { position: absolute; top: 50%; width: 12px; height: 12px; margin: calc(-6px + var(--dy, 0px)) 0 0 -6px; border-radius: 50%; background: var(--c, var(--ink-2)); box-shadow: 0 0 0 2px var(--e1); }
+.br-strip-d.you { background: var(--e1); box-shadow: inset 0 0 0 2.5px var(--c, var(--ink-2)), 0 0 0 2px var(--e1); }
+.br-strip-now { position: absolute; top: 2px; bottom: 2px; width: 2px; margin-left: -1px; border-radius: 1px; background: var(--today); }
+.br-strip-x { display: flex; justify-content: space-between; margin-top: var(--s-1); font-family: var(--round); font-size: var(--fs-caption); font-weight: var(--w-fig); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.br-strip-k { display: flex; gap: var(--s-4); margin: var(--s-2) 0 0; font-size: var(--fs-footnote); color: var(--ink-2); }
+.br-strip-k span { display: inline-flex; align-items: center; gap: 6px; }
+.br-strip-k .br-strip-d { position: static; margin: 0; --c: var(--ink-2); }
+
+/* the private folder */
+.br-private { display: flex; flex-direction: column; align-items: center; gap: var(--s-3); padding: var(--s-12) var(--s-8) 0; text-align: center; }
+.br-lock { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in oklch, var(--as) 20%, transparent); color: var(--as-ink); }
+.br-lock svg { width: 28px; height: 28px; }
+.br-private .btn { margin-top: var(--s-3); }
+
+/* sheets: move a note, add a person, add a fact */
+.br-movegrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-2); padding-top: var(--s-1); }
+.br-mv { display: flex; flex-direction: column; align-items: center; gap: var(--s-2); min-height: 84px; padding: var(--s-3) var(--s-2); border-radius: var(--r-lg); background: var(--inlay); box-shadow: var(--inlay-box); font-size: var(--fs-subhead); font-weight: var(--w-semibold); }
+.br-mv.on { background: var(--sel); box-shadow: var(--sel-edge); }
+.br-addp { display: flex; flex-direction: column; gap: var(--s-3); padding-top: var(--s-1); }
+.br-addp .field input { font-size: var(--fs-callout); min-height: var(--hit); }
+
+/* v2 · the live Brain ─────────────────────────────────────────────────────────────────────────────────────────── */
+/* filter rows: one line each that scrolls sideways, so the results start high on the screen */
+.br-filt, .br-gfilt, .br-vkinds { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; scroll-padding-inline: var(--gutter); -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--gutter), #000 calc(100% - var(--gutter)), transparent 100%); mask-image: linear-gradient(90deg, transparent 0, #000 var(--gutter), #000 calc(100% - var(--gutter)), transparent 100%); }
+.br-filt::-webkit-scrollbar, .br-gfilt::-webkit-scrollbar, .br-vkinds::-webkit-scrollbar { display: none; }
+.br-filt > .chip, .br-gfilt > .chip, .br-vkinds > .chip { flex-shrink: 0; }
+/* search hits: the words he typed, marked in the answer's notes */
+.br-hl { background: color-mix(in oklch, var(--today) 30%, transparent); color: inherit; border-radius: 3px; padding: 0 1px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.br-snip .br-hl { background: color-mix(in oklch, var(--today) 24%, transparent); }
+.br-mode, .br-off { margin-left: auto; font-size: var(--fs-footnote); color: var(--ink-3); }
+.br-answer.local { opacity: .92; }
+.br-src-c { position: relative; cursor: pointer; transition: transform var(--d-press) var(--ease); }
+.br-src-c::after { content: ""; position: absolute; inset: -8px -3px; }   /* a finger-sized target round a small chip */
+.br-src-c:active { transform: scale(.95); }
+.br-src-c:focus-visible, .br-wl:focus-visible, .br-vans-t:focus-visible { outline: 2px solid var(--focus, var(--ink)); outline-offset: 2px; }
+/* the vault's answer: its own card, a book glyph, the note it came from, the evidence */
+.br-vans { margin-top: var(--s-3); }
+.br-vans-t { display: flex; align-items: center; gap: var(--s-1); margin: var(--s-2) 0 0; font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); text-align: left; }
+.br-vans-t .chev, .br-vans-t svg { width: 15px; height: 15px; color: var(--ink-3); flex-shrink: 0; }
+.br-evid { color: var(--ink-2); font-size: var(--fs-subhead); line-height: 1.5; }
+.br-wait .br-skel { margin-top: var(--s-3); }
+/* vault rows: the same row as a note, a ring for a dot (the vault is the outer library) */
+.br-vrow { align-items: flex-start; --sep-left: 60px; }
+.br-vrow .tile { margin-top: 2px; }
+.br-vk { background: transparent; box-shadow: inset 0 0 0 1.5px var(--sep); }
+.br-vdot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; box-shadow: inset 0 0 0 1.5px var(--ink-3); }
+.br-vkick { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); }
+.br-vdoms { margin-top: var(--s-1); }
+.br-vdoms .n, .br-vkinds .n { font-family: var(--round); font-weight: var(--w-fig); color: var(--ink-3); }
+.br-vrecent { margin-top: var(--s-3); }
+.br-vsum { margin: 0 0 var(--s-3); font-size: var(--fs-callout); line-height: 1.45; color: var(--ink-2); text-wrap: pretty; }
+.br-by-a.vault { background: transparent; box-shadow: inset 0 0 0 1.5px var(--sep); color: var(--ink-2); }
+/* a vault note's body: headings, lists and [[links]] that open the note they name */
+.br-md { padding-bottom: var(--s-4); }
+.br-md h3 { margin: var(--s-4) 0 var(--s-2); font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+.br-md h3:first-child { margin-top: 0; }
+.br-md p { margin: 0 0 var(--s-3); }
+.br-md ul { margin: 0 0 var(--s-3); padding-left: 1.1em; font-size: var(--fs-body); line-height: 1.5; }
+.br-md li + li { margin-top: 4px; }
+.br-md code { font-family: var(--ff-mono, ui-monospace, monospace); font-size: .88em; padding: 1px 5px; border-radius: 5px; background: var(--fill-2); overflow-wrap: anywhere; }
+.br-md blockquote { margin: 0 0 var(--s-3); padding-left: var(--s-3); border-left: 2px solid var(--sep); color: var(--ink-2); }
+.br-wl { display: inline; padding: 0 2px; border-radius: 4px; font: inherit; color: var(--blue, var(--ink)); text-decoration: underline; text-decoration-color: color-mix(in oklch, currentColor 40%, transparent); text-underline-offset: 3px; text-align: left; }
+.br-wl:active { background: var(--fill-2); }
+/* the agent filed it on her own: say so, and offer to put it back */
+.br-auto { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); margin-bottom: var(--s-3); }
+.br-auto > span { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-footnote); color: var(--ink-2); }
+.br-auto svg { width: 14px; height: 14px; flex-shrink: 0; }
+.br-del { color: var(--red, var(--ink-2)); }
+.br-why { display: flex; gap: var(--s-2); margin: 0 0 var(--s-3); font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.br-why svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 3px; }
+.br-sug { margin-bottom: var(--s-3); }
+.br-sug .chip svg { width: 13px; height: 13px; }
+.br-sheet-foot { display: flex; justify-content: flex-end; margin-top: var(--s-3); }
+.br-linkp .br-fam { margin: var(--s-3) 0 var(--s-2); }
+.br-linkp .br-fam:first-child { margin-top: 0; }
+.br-day-empty .tile svg, .br-in-empty .tile svg { width: 17px; height: 17px; }
+.br-folder.locked .br-f-c { color: var(--ink-3); }
+.br-private-app { margin-top: 0; }
+/* loading: quiet bars where the vault's answer will be */
+.br-loading { display: flex; flex-direction: column; gap: var(--s-3); padding-top: var(--s-4); }
+.br-skel { display: block; height: 12px; border-radius: 6px; background: var(--fill-2); animation: br-shimmer 1.4s var(--ease) infinite; }
+.br-skel.w60 { width: 60%; } .br-skel.w70 { width: 70%; } .br-skel.w80 { width: 80%; } .br-skel.w90 { width: 90%; }
+@keyframes br-shimmer { 50% { opacity: .45; } }
+/* the living graph: a small one on the home card (taps open the big one), a tall one on its page */
+.br-gc-host { position: relative; display: block; height: 196px; margin: 0 calc(-1 * var(--s-2)); border-radius: var(--r-lg); overflow: hidden; }
+.br-gc-host canvas { pointer-events: none; }
+.br-ghost { position: relative; height: min(62vh, 520px); min-height: 360px; border-radius: var(--r-xl); overflow: hidden; background: var(--e0); box-shadow: inset 0 0 0 1px var(--sep); touch-action: none; }
+.br-graphwrap { margin: var(--s-2) var(--gutter) 0; }
+/* the browser's stand-in for Face ID: press and hold the lock */
+.br-hold { display: flex; flex-direction: column; align-items: center; gap: var(--s-3); padding-top: var(--s-2); padding-bottom: var(--s-4); }
+.br-hold-b { position: relative; width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; background: var(--ctl); box-shadow: var(--ctl-box); touch-action: none; -webkit-user-select: none; user-select: none; transition: transform .2s var(--ease); }
+.br-hold-b.on { transform: scale(.94); }
+.br-hold-b svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.br-hold-t, .br-hold-p { fill: none; stroke-width: 3.5; }
+.br-hold-t { stroke: var(--sep); }
+.br-hold-p { stroke: var(--as, var(--ink)); stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 100; }
+.br-hold-i { position: relative; color: var(--ink); }
+.br-hold-i svg { position: static; width: 30px; height: 30px; transform: none; }
+@media (prefers-reduced-motion: reduce) { .br-skel { animation: none; } .br-hold-b { transition: none; } }
+
+/* ═══ 2 · OBSIDIAN ═════════════════════════════════════════════════════════ */
+:where(:root[data-skin="obsidian"]) .br-thumb.reel { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12); }
+
+/* ═══ 3 · MATTE ════════════════════════════════════════════════════════════
+   The library in print: cards are paper, the graph's ground is the page, names on the person file take the serif. */
+:where(:root[data-skin="matte"]) .br-tl-dot, :where(:root[data-skin="matte"]) .br-strip-d { box-shadow: 0 0 0 3px var(--paper); }
+:where(:root[data-skin="matte"]) .br-strip-d.you { background: var(--paper); box-shadow: inset 0 0 0 2.5px var(--c, var(--ink-2)), 0 0 0 2px var(--paper); }
+:where(:root[data-skin="matte"]) .br-g-folder circle { stroke: var(--bg); }
+:where(:root[data-skin="matte"]) .br-g-person circle { fill: color-mix(in oklab, var(--c) 34%, var(--bg)); }
+:where(:root[data-skin="matte"]) .br-g-goal circle, :where(:root[data-skin="matte"]) .br-g-hub circle { fill: var(--bg); }
+:where(:root[data-skin="matte"]) .br-g-nl { stroke: var(--bg); }
+:where(:root[data-skin="matte"]) .br-g.mini .br-g-folder circle { stroke: var(--paper); }
+:where(:root[data-skin="matte"]) .br-g.mini .br-g-goal circle, :where(:root[data-skin="matte"]) .br-g.mini .br-g-hub circle { fill: var(--paper); }
+:where(:root[data-skin="matte"]) .br-mono { background: color-mix(in oklab, var(--c) 28%, transparent); }
+:where(:root[data-skin="matte"]) .br-p-n, :where(:root[data-skin="matte"]) .br-gc-t { font-family: var(--ff-title); font-weight: var(--w-title); font-variation-settings: var(--fv-title); }
+:where(:root[data-skin="matte"]) .br-src-c b { background: var(--surface-3); }
+:where(:root[data-skin="matte"]) .br-mv.on { background: var(--ink); color: var(--on-color); box-shadow: none; }
+:where(:root[data-skin="matte"]) .br-ghost { background: var(--paper); }
+:where(:root[data-skin="matte"]) .br-hl { background: color-mix(in oklab, var(--today) 26%, transparent); }

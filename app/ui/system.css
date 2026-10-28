@@ -1,0 +1,662 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   AGENTIC OS · the shared design system of the phone app. One app, two skins: Obsidian (default) and Matte.
+   Ported from the approved mockup (j15/mockup/final). app/ui/STRUCTURE.md is the map; read it first.
+
+   LOAD ORDER (index.html; the order is part of the design)
+     ui/system.css          structural tokens, the token contract, base, type roles, materials and every
+                            shared component: page shell, top bar, lists, controls, rings, dock, sheets,
+                            peek, toast, the skin control. Owned by the foundation.
+     ui/skins/obsidian.css  Obsidian: tokens (dark, light), glass rims, ring paint, light and bloom.
+     ui/skins/matte.css     Matte: Literata, tokens (dark, light), opaque stock, ring paint, ink texture, ink-in.
+     styles.css             the screens app.js draws (Today, Tasks, Life, Wyn, the sheets' insides).
+     work/work.css          Jobs: board, job chat, projects, ideas, voice.
+     ui/screens/*.css       one file per Phase 2 area; blocks 1 · SHARED, 2 · OBSIDIAN, 3 · MATTE.
+     modules/*.css          appended by each module through AOS.css(), after everything above.
+
+   HOW SKINS ARE SCOPED
+     The skin is an attribute on <html>: data-skin="obsidian" | "matte". index.html sets it before the first
+     paint from ?skin=, else localStorage (aos-skin), else Obsidian; ui/ui.js switches it.
+     · Skin tokens:  :root[data-skin="x"] { --token: value }       (beats the defaults in :root below)
+     · Skin rules:   :where(:root[data-skin="x"]) .selector { … }  :where() adds no specificity, so a skin
+       rule weighs what the shared rule it amends weighs and wins by coming later.
+     · Theme: data-theme="dark" | "light" on <html>, always explicit (index.html resolves Auto from the OS
+       before first paint and ui/ui.js follows the OS while the choice is Auto). Skins scope light as
+       :root[data-skin="x"][data-theme="light"].
+     · Keyframes: shared ones keep plain names (rot, swap, beat); a skin's own start obs- or mat-.
+
+   THE TOKEN CONTRACT: every skin defines
+     ink        --ink --ink-2 --ink-3 --ink-4 --on-color --on-ink --on-deep --island
+     domains    --{today|jobs|clients|content|life} plus -a, -b (ring ends), -ink (text-safe tint), -fill (the
+                fill of that domain's one primary action); --content-2
+     semantics  --needs --needs-ink --done --warn --fail --fail-ink
+     materials  E0 ground   --e0 --e0-bg --e0-veil
+                E1 surface  --e1 (solid, for knockouts) --e1-bg --e1-box          everything you read
+                E2 chrome   --e2 --e2-box --e2-blur                               what floats: bars, +, top buttons
+                E3 overlay  --e3 --e3-bg --e3-box --e3-blur                       sheets, peek, menus, toast
+                controls    --ctl --ctl-box --ctl-press --row-press
+                inlay       --inlay --inlay-box                                   an area set into a surface or sheet
+                fills       --fill-1 --fill-2 --fill-3 --sep --scrim --peek-veil --peek-blur --veil-blur --veil-mask
+     states     --sel --sel-edge (the lens: tab bar, segmented) · --pick --pick-fg --pick-edge (a chosen chip)
+                --press --press-filter --off --focus --field-focus --knob --knob-shadow
+     frame      --page-shadow --push-dim
+     motion     --draw --ease-draw --count-ease (spring | ink)
+
+   NAMES THAT ALREADY MEANT SOMETHING HERE (the real app's class wins; the mockup's component lives under it)
+     mockup .seg (control) → .segmented with <button>s and a .seg-thumb   (.seg is the Day/Week button)
+     mockup .row           → .lrow inside a .group                       (.row is the task row)
+     mockup .chip (choice) → .chip-btn                                   (.chip is a static parse chip)
+     mockup .check         → .check > i (the task check)                 mockup .field → .ifield
+     mockup .scroll        → .scroller (+ .tab-content)                  mockup .topbar → .navbar
+     mockup .tab-lens      → .tab-pill · .tbadge → .tab-badge · .capture → .capture-btn · .live → .live-dot
+     mockup .grab          → .grabber · .sheet-close is new here         mockup .pages/.stack → .page + .page.detail
+   Content containers (.tab-content, .settings-body, .item-body) carry the page margin; groups and section
+   headers inside them have no side margins of their own (the mockup put the margin on each group).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600..900&family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap');
+
+@property --rp { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --cp { syntax: '<number>'; inherits: false; initial-value: 0; }
+
+/* ═══ 1 · STRUCTURAL TOKENS ═══════════════════════════════════════════════ */
+:root {
+  /* 1.1 families. SF on iPhone; Geist, Nunito and Geist Mono stand in on desktop previews only */
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Geist", system-ui, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Geist", system-ui, sans-serif;
+  --round: ui-rounded, "SF Pro Rounded", "Nunito", -apple-system, system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Geist Mono", Menlo, Consolas, monospace;
+  /* titles and monograms: their face, weight and optical size (skin) */
+  --ff-title: var(--font-display); --w-display: 700; --w-title: 700; --fv-display: normal; --fv-title: normal; --ls-display: 0;
+  --ff-mono-g: var(--round); --w-mono-g: 700; --fv-mono-g: normal;
+
+  /* 1.2 spacing: a 4pt grid on an 8pt rhythm, named by multiples of 4. s-0 is for hairline gaps only */
+  --s-0: 2px; --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px;
+  --s-8: 32px; --s-10: 40px; --s-12: 48px; --s-16: 64px;
+  --gutter: var(--s-4);              /* page margin (skin) */
+  --gap-sec: var(--s-6);             /* the rhythm between sections (skin) */
+  --hit: 44px;                       /* smallest touch target */
+  --tl-gutter: 58px;                 /* Today's timeline: the hour column (was --gutter before the port) */
+
+  /* 1.3 type roles: size / line height. Weights are 400, 600, 700 */
+  --fs-display: 34px;  --lh-display: 41px;    /* large titles (skin) */
+  --fs-title1: 28px;   --lh-title1: 34px;
+  --fs-title2: 22px;   --lh-title2: 28px;
+  --fs-title3: 20px;   --lh-title3: 25px;     /* section headers */
+  --fs-headline: 17px; --lh-headline: 22px;   /* semibold row titles */
+  --fs-body: 17px;     --lh-body: 22px;
+  --fs-callout: 16px;  --lh-callout: 21px;    /* inputs, bubbles */
+  --fs-subhead: 15px;  --lh-subhead: 20px;
+  --fs-footnote: 13px; --lh-footnote: 18px;   /* meta */
+  --fs-caption: 12px;  --lh-caption: 16px;    /* the floor: nothing smaller */
+  --w-regular: 400; --w-semibold: 600; --w-bold: 700;
+  /* figures: SF Rounded, tabular. Large figures may go lighter so they read at the same weight (skin) */
+  --fs-fig-hero: 64px; --fs-fig-1: 44px; --fs-fig-2: 28px; --fs-fig-3: 20px; --fs-fig-4: 15px;
+  --w-fig-l: 600; --w-fig: 700;
+  --fs-prompt: 30px; --lh-prompt: 39px; --fs-countdown: 108px;
+
+  /* 1.4 radii. Inner radius = outer radius − padding, so nested corners stay concentric */
+  --r-xs: 6px; --r-sm: 10px; --r-md: 14px; --r-lg: 20px; --r-xl: 26px; --r-sheet: 38px; --r-pill: 999px;
+  --r-track: var(--r-pill);          /* bars, strips, rails (skin) */
+  --hair: .5px;                      /* hairline rules (skin) */
+
+  /* 1.5 motion shared by every skin. The ring draw is the skin's own (--draw, --ease-draw) */
+  --ease: cubic-bezier(.22, 1, .36, 1);          /* settle */
+  --ease-move: cubic-bezier(.32, .72, 0, 1);     /* pages and sheets */
+  --spring: cubic-bezier(.2, .9, .25, 1);        /* small things that land */
+  --d-press: 120ms; --d-state: 220ms; --d-move: 480ms; --d-skin: 240ms;
+
+  /* 1.6 areas (live agentos colours, AOS.areas): only ever 8px dots, 3px rails and 15% washes */
+  --a-none: #8e8e93;
+
+  /* 1.7 layout. --sat / --sab are the safe areas (styles.css: the desktop frame, or env() on a phone) */
+  --safe-top: var(--sat, 14px);
+  --safe-bottom: var(--sab, 12px);
+  --topbar-h: 52px;
+  --dock-h: 62px;
+  --acc-h: 44px;
+
+  /* names the screens already use, mapped onto the contract (the legacy bridge: styles.css, work.css and
+     every module stylesheet read these, so they follow the skin without edits) */
+  --bg: var(--e0); --surface: var(--e1);
+  --label: var(--ink); --label-2: var(--ink-2); --label-3: var(--ink-3);
+  --fill: var(--fill-1); --separator: var(--sep);
+  --glass: var(--e2); --glass-edge: transparent;
+  --shadow-float: var(--e2-box); --shadow-lift: var(--e3-box);
+  --danger: var(--fail-ink); --defer: var(--needs);
+  --ease-out: var(--ease); --ease-drawer: var(--ease-move);
+  --tint-mix: 15%; --tint-mix-past: 8%; --text-mix: 45%;
+  --orange: var(--needs); --red: var(--fail-ink); --green: var(--done); --blue: var(--ink);
+}
+:root[data-theme="light"] { --text-mix: 62%; }
+
+/* ═══ 2 · BASE ════════════════════════════════════════════════════════════ */
+/* fields take the app's face (a rule that only sets a size keeps it); every text field is set at 16px or more */
+input, textarea, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus, var(--ink)); outline-offset: 2px; }
+.vh { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.num { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--mono); font-size: .86em; }
+.rnd { font-family: var(--round); font-weight: var(--w-fig); font-variant-numeric: tabular-nums; }
+/* the figure face: SF Rounded, tabular, so counting numbers never jitter */
+.met { font-family: var(--round); font-weight: var(--w-fig); font-variant-numeric: tabular-nums; line-height: 1; }
+.met small, .met .u { font-family: var(--round); font-weight: var(--w-semibold); font-size: .5em; color: var(--ink-2); margin-left: .1em; }
+.c-today { color: var(--today-ink); }
+.c-jobs { color: var(--jobs-ink); }
+.c-clients { color: var(--clients-ink); }
+.c-content { color: var(--content-ink); }
+.c-life { color: var(--life-ink); }
+.c-needs { color: var(--needs-ink) !important; }
+.c-fail { color: var(--fail-ink) !important; }
+.c-done { color: var(--done) !important; }
+/* a glyph each skin drew for itself (ui/icons.js both()): the default skin's shows, a skin may swap in its own */
+svg .ig-matte { display: none; }
+
+/* ═══ 3 · TYPE ROLES ══════════════════════════════════════════════════════ */
+.display, .lt, .large-title { font-family: var(--ff-title); font-size: var(--fs-display); line-height: var(--lh-display); font-weight: var(--w-display); font-variation-settings: var(--fv-display); letter-spacing: var(--ls-display); margin: 0; }
+.title1 { font-family: var(--ff-title); font-size: var(--fs-title1); line-height: var(--lh-title1); font-weight: var(--w-title); font-variation-settings: var(--fv-title); margin: 0; }
+.title2, .t1 { font-size: var(--fs-title2); line-height: var(--lh-title2); font-weight: var(--w-bold); margin: 0; }
+.title3 { font-size: var(--fs-title3); line-height: var(--lh-title3); font-weight: var(--w-semibold); margin: 0; }
+.headline, .t2 { font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); margin: 0; }
+.body { font-size: var(--fs-body); line-height: var(--lh-body); margin: 0; }
+.callout { font-size: var(--fs-callout); line-height: var(--lh-callout); margin: 0; }
+.subhead, .sub { font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); margin: 0; }
+.footnote, .foot { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); margin: 0; }
+.caption, .cap { font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); }
+.kicker { font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); color: var(--ink-2); }
+.sub b, .foot b { color: var(--ink); font-weight: var(--w-semibold); }
+
+/* ═══ 4 · MATERIALS ═══════════════════════════════════════════════════════
+   Levels, not looks. A skin decides what each is made of (Obsidian: stone and glass; Matte: matte stock).
+     .surface  E1: everything you read (cards, panels). .group and .note are surfaces too
+     .chrome   E2: what floats over content. The real app's older name for it is .glass (dock, composer, pills)
+     .overlay  E3: what is modal or passing (sheets, peek, menus, toast, banners). .sheet is an overlay */
+.surface, .group, .note { background: var(--e1-bg); box-shadow: var(--e1-box); }
+.chrome, .glass {
+  isolation: isolate;
+  background: var(--e2);
+  -webkit-backdrop-filter: var(--e2-blur); backdrop-filter: var(--e2-blur);
+  box-shadow: var(--e2-box);
+}
+.chrome { position: relative; }
+.overlay {
+  position: relative; isolation: isolate;
+  background: var(--e3-bg);
+  -webkit-backdrop-filter: var(--e3-blur); backdrop-filter: var(--e3-blur);
+  box-shadow: var(--e3-box);
+}
+
+/* ═══ 5 · PAGE SHELL: tab pages, pushed pages, the top bar ════════════════
+   A tab page is <section class="page" data-tab> > .root > .navbar + .scroller > .tab-content.
+   Pushed pages (AOS.push) are .page.detail inside their tab's page; the page below slides under a shade. */
+.page, .page > .root { position: absolute; inset: 0; }
+.page { overflow: hidden; }
+.page.detail { z-index: 5; background: var(--e0-bg); box-shadow: var(--page-shadow); will-change: transform; }
+.push-shade { position: absolute; inset: 0; z-index: 4; background: rgba(0, 0, 0, calc(1 - var(--push-dim, .7))); opacity: 0; pointer-events: none; }
+.scroller {
+  position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden;
+  overscroll-behavior: contain; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  padding-top: calc(var(--safe-top) + var(--topbar-h));
+}
+.scroller::-webkit-scrollbar { display: none; }
+.tab-content { padding: var(--s-1) var(--gutter) calc(var(--safe-bottom) + var(--dock-h) + var(--acc-h) + 64px); }
+/* the dock carries no accessory on Clients, Content and More, so their pages end sooner */
+#screen:is([data-tab="clients"], [data-tab="content"], [data-tab="more"]) .tab-content { padding-bottom: calc(var(--safe-bottom) + var(--dock-h) + 48px); }
+.tab-intro { font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); margin-top: var(--s-1); }
+.tab-intro b { color: var(--ink); font-weight: var(--w-semibold); }
+.large-title { display: block; }
+.pad { padding-left: var(--gutter); padding-right: var(--gutter); }
+
+/* the top bar floats; once content passes under it a scroll-edge veil fades in. No divider, no slab */
+.navbar {
+  position: absolute; z-index: 30; top: 0; left: 0; right: 0;
+  height: calc(var(--safe-top) + var(--topbar-h)); padding: var(--safe-top) var(--s-3) 0;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: var(--s-2);
+  background: transparent; box-shadow: none; pointer-events: none;
+}
+.navbar > * { pointer-events: auto; }
+.navbar::before {
+  content: ""; position: absolute; inset: 0 0 -26px; z-index: -1; pointer-events: none;
+  -webkit-backdrop-filter: var(--veil-blur); backdrop-filter: var(--veil-blur);
+  background: linear-gradient(180deg, var(--e0-veil), transparent);
+  -webkit-mask: var(--veil-mask); mask: var(--veil-mask);
+  opacity: 0; transition: opacity var(--d-state) var(--ease);
+}
+.navbar.scrolled::before { opacity: 1; }
+.navbar .nav-title, .nav-date {
+  justify-self: center; max-width: 210px; font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center;
+  opacity: 0; transform: translateY(6px); transition: opacity var(--d-state) var(--ease), transform var(--d-move) var(--ease);
+}
+.navbar.scrolled .nav-title, .navbar.scrolled .nav-date { opacity: 1; transform: none; }
+.navbar > :first-child { justify-self: start; }
+.navbar > :last-child { justify-self: end; }
+/* chrome buttons in the bar: capsules and circles of glass (or float stock) */
+.gbtn, .nav-back, .nav-pill, .nav-icon {
+  position: relative; isolation: isolate;
+  height: var(--hit); min-width: var(--hit); border-radius: var(--r-pill); padding: 0 var(--s-4);
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s-1);
+  font-size: var(--fs-body); font-weight: var(--w-semibold); color: var(--ink); white-space: nowrap;
+  background: var(--e2); -webkit-backdrop-filter: var(--e2-blur); backdrop-filter: var(--e2-blur); box-shadow: var(--e2-box);
+  transition: transform var(--d-press) var(--ease), filter var(--d-press);
+}
+.gbtn.icon, .nav-icon { padding: 0; width: var(--hit); }
+.gbtn svg, .nav-icon svg { width: 21px; height: 21px; }
+.gbtn:active, .nav-back:active, .nav-pill:active, .nav-icon:active, .gbtn.is-pressed { transform: scale(.92); filter: var(--press-filter); }
+.gbtn[disabled], .nav-pill[disabled] { opacity: var(--off); pointer-events: none; }
+/* prominent chrome: the screen's one primary action, when it lives in the bar, in its domain's fill */
+.gbtn.accent, .nav-pill.strong { background: var(--c, var(--ink)); color: var(--on-ink); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
+.gbtn.accent[style*="--c"], .nav-pill.strong[style*="--c"] { color: var(--on-color); }
+.nav-back { justify-self: start; max-width: 150px; padding: 0 var(--s-4) 0 var(--s-2); font-weight: var(--w-semibold); }
+.nav-back span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.nav-back svg { width: 22px; height: 22px; margin-right: -2px; flex: none; stroke: currentColor; fill: none; stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; }
+.nav-pill { font-size: var(--fs-subhead); padding: 0 var(--s-4); }
+.nav-acts { justify-self: end; display: inline-flex; gap: var(--s-2); }
+.nav-icon svg { fill: none; stroke: currentColor; stroke-width: 1.8; }
+.nav-icon svg .fill { fill: currentColor; stroke: none; }
+.gbtn.avatar, .avatar { font-family: var(--ff-mono-g); font-size: var(--fs-headline); font-weight: var(--w-mono-g); font-variation-settings: var(--fv-mono-g); }
+
+/* page head and section headers: sentence case, hierarchy from size and weight */
+.phead { padding: var(--s-1) 0 var(--s-4); }
+.phead .sub { margin-top: var(--s-1); }
+.sh { display: flex; align-items: baseline; gap: var(--s-2); padding: var(--gap-sec) 0 var(--s-3); }
+.sh h2 { margin: 0; font-size: var(--fs-title3); line-height: var(--lh-title3); font-weight: var(--w-semibold); }
+.sh-count { font-family: var(--round); font-size: var(--fs-subhead); font-weight: var(--w-fig); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.sh-act { position: relative; margin-left: auto; font-size: var(--fs-subhead); font-weight: var(--w-semibold); color: var(--ink-2); display: inline-flex; align-items: center; gap: var(--s-1); min-height: 32px; }
+/* the app's section label: in a sheet it is a quiet group caption; on a page it is the mockup's section header */
+.sec-label { display: flex; align-items: center; gap: var(--s-2); padding: var(--s-4) var(--s-5) var(--s-2); font-size: var(--fs-footnote); line-height: var(--lh-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+.tab-content .sec-label { padding: var(--gap-sec) 0 var(--s-3); font-size: var(--fs-title3); line-height: var(--lh-title3); color: var(--ink); }
+.tab-content .sec-label.needs, .sec-label.overdue { color: var(--needs-ink); }
+.sec-label.done { color: var(--done); }
+.sec-count { font-family: var(--round); font-size: var(--fs-subhead); font-weight: var(--w-fig); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.sheet .sec-count, .item-body .sec-count { font-size: var(--fs-footnote); }
+.sec-act, .sec-label .sec-count + .sec-act { position: relative; margin-left: auto; font-size: var(--fs-subhead); font-weight: var(--w-semibold); color: var(--ink-2); }
+.sec-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); flex: none; }
+
+/* ═══ 6 · LISTS: inset grouped, one surface, hairlines between rows ═══════
+   New markup: .group > .lrow (.tile, .rbody > .rtitle + .rmeta, .rend, .chev). The app's existing lists
+   (.area-list > .area-row, .work-list > .work-row, .task-list, .up-list, .proj-list, .aspect-list, .group > .g-row)
+   are the same component under their own names. */
+.group, .area-list, .work-list, .task-list, .up-list, .proj-list, .aspect-list, .df-files {
+  border-radius: var(--r-lg); overflow: hidden; position: relative; background: var(--e1-bg); box-shadow: var(--e1-box);
+}
+.area-list { margin-top: var(--s-5); }
+.area-list + .area-list, .work-list + .work-list { margin-top: var(--s-3); }
+/* inside an overlay, grouped content is an inlay, not another slab */
+:is(.sheet, .peek) :is(.group, .area-list, .work-list, .task-list, .up-list, .proj-list) { background: var(--inlay); box-shadow: var(--inlay-box); }
+.lrow, .area-row, .work-row, .g-row {
+  position: relative; display: flex; align-items: center; gap: var(--s-3); width: 100%; text-align: left;
+  min-height: 52px; padding: var(--s-3) var(--s-4); color: var(--ink);
+  transition: background-color var(--d-press);
+}
+button.lrow:active, .lrow.tap:active, .area-row:active, .work-row:active, button.g-row:active, .lrow.is-pressed { background: var(--row-press); }
+.lrow + .lrow::before, .area-row + .area-row::before, .work-row + .work-row::before, .g-row + .g-row::before {
+  content: ""; position: absolute; top: 0; right: 0; left: var(--sep-left, var(--s-4)); height: var(--hair); background: var(--sep);
+}
+.lrow.ic, .area-row { --sep-left: 60px; }
+.work-row { --sep-left: 46px; }
+.lrow .rbody, .ar-text, .wr-text { flex: 1; min-width: 0; }
+.lrow .rtitle, .ar-name { display: block; font-size: var(--fs-body); line-height: var(--lh-body); font-weight: var(--w-regular); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lrow .rtitle.wrap { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.lrow .rmeta, .ar-sub { margin-top: 2px; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.lrow .rmeta { display: flex; gap: var(--s-1); align-items: center; }
+.lrow .rmeta > * { flex-shrink: 0; }
+.lrow .rmeta .ell { flex-shrink: 1; overflow: hidden; text-overflow: ellipsis; }
+.lrow .rmeta:not(:has(> *)) { display: block; }
+.lrow .rend, .ar-count { display: flex; align-items: center; gap: var(--s-2); color: var(--ink-2); font-size: var(--fs-subhead); flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.chev { flex: none; width: 14px; height: 14px; stroke: var(--ink-3); fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; color: var(--ink-3); }
+/* a glyph tile: a control at rest, ink glyph. An area's tile carries the area's colour in its glyph only */
+.tile, .area-icon {
+  width: 32px; height: 32px; border-radius: var(--r-sm); flex: none; display: grid; place-items: center;
+  background: var(--ctl); box-shadow: var(--ctl-box); color: var(--c, var(--ink));
+}
+.tile svg, .area-icon svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tile.big, .area-icon.big { width: 58px; height: 58px; border-radius: var(--r-md); }
+.area-icon.big svg { width: 30px; height: 30px; }
+.area-icon.mod-icon, .tile.ink { color: var(--ink); }
+.mod-glyph { font-size: var(--fs-subhead); font-weight: var(--w-semibold); }
+.area-row.untagged .area-icon { color: var(--ink-2); }
+.ar-tag { flex: none; display: inline-flex; align-items: center; height: 24px; padding: 0 var(--s-3); border-radius: var(--r-pill); background: var(--fill-2); color: var(--needs-ink); font-size: var(--fs-footnote); font-weight: var(--w-semibold); }
+
+/* ═══ 7 · CONTROLS ════════════════════════════════════════════════════════
+   One set of states for every control, the same in every skin:
+   rest = --ctl · pressed = --ctl-press (+ --press-filter) and a 3% press · selected = the skin's pick or lens
+   disabled = --off · focus = a 2px ink ring. Colour fills belong to the one primary action only. */
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c, var(--ink-3)); flex-shrink: 0; display: inline-block; }
+/* live status: a static dot; the data is what changes */
+.live-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--c, var(--done)); }
+.live-dot.needs { background: var(--needs); }
+/* pills are status: a neutral fill; a semantic colour tints the words (a skin may tint the fill) */
+.pill {
+  display: inline-flex; align-items: center; gap: var(--s-1); height: 24px; padding: 0 var(--s-3); border-radius: var(--r-pill);
+  font-size: var(--fs-footnote); font-weight: var(--w-semibold); white-space: nowrap;
+  background: var(--fill-2); color: var(--c, var(--ink));
+}
+.pill svg { width: 13px; height: 13px; }
+.pill.plain { color: var(--ink-2); }
+button.pill:active { background: var(--fill-3); }
+/* chips are choices: a control at rest, the skin's pick when chosen */
+.chips { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.chips.scroll { flex-wrap: nowrap; overflow-x: auto; margin: 0 calc(var(--gutter) * -1); padding: 0 var(--gutter) 2px; scrollbar-width: none; overscroll-behavior-x: contain; }
+.sheet .chips.scroll { margin: 0 -20px; padding: 0 20px 2px; }
+.chips.scroll::-webkit-scrollbar { display: none; }
+.chip-btn {
+  position: relative; flex: none; height: 36px; padding: 0 var(--s-4); border-radius: var(--r-pill); display: inline-flex; align-items: center; gap: var(--s-2);
+  font-size: var(--fs-subhead); font-weight: var(--w-semibold); white-space: nowrap; font-variant-numeric: tabular-nums;
+  background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink-2);
+  transition: transform var(--d-press) var(--ease), background-color var(--d-state), color var(--d-state), box-shadow var(--d-state), filter var(--d-press);
+}
+.chip-btn:active { transform: var(--press); filter: var(--press-filter); }
+.chip-btn.on { background: var(--pick); color: var(--pick-fg); box-shadow: var(--pick-edge); }
+.chip-btn i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); flex: none; }
+.chip-btn svg { width: 16px; height: 16px; }
+.chip-btn.danger { color: var(--fail-ink); }
+.chip-btn[disabled], .chip-btn:disabled { opacity: var(--off); pointer-events: none; }
+.chip-count { margin-left: 2px; font-family: var(--round); font-weight: var(--w-fig); color: inherit; opacity: .6; font-variant-numeric: tabular-nums; }
+.chip-btn.on .chip-count { opacity: .75; }
+.chip-btn.warn:not(.on) .chip-count { color: var(--fail-ink); opacity: 1; }
+.chip-btn.badge .chip-count { opacity: 1; min-width: 20px; height: 20px; padding: 0 var(--s-1); border-radius: var(--r-pill); background: var(--fail); color: var(--on-deep); font-size: var(--fs-caption); line-height: 20px; text-align: center; }
+/* a static chip: what the + sheet read out of what you typed */
+.chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 var(--s-3); border-radius: var(--r-pill); background: var(--fill-2); color: var(--ink); font-size: var(--fs-footnote); font-weight: var(--w-semibold); font-variant-numeric: tabular-nums; }
+.chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.chip.area { background: color-mix(in srgb, var(--c) 15%, var(--fill-2)); }
+
+/* buttons: capsules. Secondary is a control at rest; tint keeps the fill neutral and colours the label;
+   primary is the one coloured fill on a screen (its domain's --*-fill), dark label.
+   The app's own names: .act (50px), .small-btn / .ai-btn / .hz-add (36px), .pill-btn, .act.primary */
+.btn, .act {
+  position: relative; height: 50px; border-radius: var(--r-pill); padding: 0 var(--s-5); display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
+  font-size: var(--fs-body); font-weight: var(--w-semibold); white-space: nowrap;
+  background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink);
+  transition: transform var(--d-press) var(--ease), opacity var(--d-state), background-color var(--d-state), filter var(--d-state);
+}
+.btn:active, .act:active, .small-btn:active, .ai-btn:active, .hz-add:active, .pill-btn:active { transform: var(--press); background: var(--ctl-press); filter: var(--press-filter); }
+.btn.primary, .act.primary, .ai-btn.primary, .small-btn.ink, .pill-btn { background: var(--c, var(--ink)); color: var(--on-ink); font-weight: var(--w-bold); box-shadow: none; }
+.btn.primary:active, .act.primary:active, .ai-btn.primary:active, .small-btn.ink:active, .pill-btn:active { background: var(--c, var(--ink)); filter: brightness(.88); }
+/* a domain fill (style="--c:var(--jobs-fill)") takes the dark label; the ink fill takes --on-ink */
+:is(.btn, .act, .ai-btn).primary[style*="--c"] { color: var(--on-color); }
+.btn.tint { color: var(--c, var(--ink)); }
+.act.danger, .btn.danger { color: var(--fail-ink); }
+.btn.sm, .small-btn, .ai-btn, .hz-add, .pill-btn {
+  position: relative; flex: none; height: 36px; padding: 0 var(--s-4); border-radius: var(--r-pill); display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
+  font-size: var(--fs-subhead); font-weight: var(--w-semibold); white-space: nowrap; line-height: 1;
+}
+.small-btn, .ai-btn, .hz-add { background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); }
+.btn.sm.icon { width: 36px; padding: 0; }
+.btn.sm.icon svg { width: 18px; height: 18px; }
+.btn.block, .act.wide { display: flex; width: 100%; }
+.act.wide { margin-top: var(--s-4); }
+.btn svg, .act svg { width: 18px; height: 18px; }
+.btn:disabled, .act:disabled, .small-btn:disabled, .pill-btn:disabled { opacity: var(--off); pointer-events: none; }
+.actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-2); padding-top: var(--s-4); }
+.actions.two { grid-template-columns: 1fr 1fr; }
+.actions .act { padding: 0 var(--s-3); }
+.text-btn { color: var(--ink); font-weight: var(--w-semibold); text-decoration: underline; text-underline-offset: 2px; text-decoration-color: var(--ink-4); }
+
+/* segmented control: a track; the selection is the lens, the same lens as the tab bar.
+   AOS.seg(name, items, on) writes <div class="segmented" data-seg style="--n;--i"><span class="seg-thumb"> + buttons;
+   one delegated listener moves --i and fires a bubbling 'segchange' event ({ detail: value }). Segments are
+   equal width, so the lens is placed by CSS alone and survives any re-render.
+   The Day/Week control and the Life switch keep their own JS (#segThumb, data-pos) and their .seg buttons. */
+.segmented {
+  position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
+  height: 36px; padding: 2px; border-radius: var(--r-pill); background: var(--ctl); box-shadow: var(--ctl-box); touch-action: manipulation;
+}
+.segmented .seg-thumb {
+  position: absolute; z-index: 0; top: 2px; bottom: 2px; left: 2px; width: calc((100% - 4px) / var(--n, 2)); border-radius: var(--r-pill);
+  background: var(--sel); box-shadow: var(--sel-edge); will-change: transform;
+}
+.segmented[data-seg] .seg-thumb { transform: translateX(calc(var(--i, 0) * 100%)); transition: transform .38s var(--spring); }
+.segmented > button {
+  position: relative; z-index: 1; min-width: 0; font-size: var(--fs-subhead); font-weight: var(--w-semibold); color: var(--ink-2);
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s-1); border-radius: var(--r-pill);
+  transition: color var(--d-state); white-space: nowrap;
+}
+.segmented > button[aria-selected="true"], .segmented > button[aria-checked="true"] { color: var(--ink); }
+.segmented > button .n { font-family: var(--round); font-weight: var(--w-fig); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.segmented > button[aria-selected="true"] .n, .segmented > button[aria-checked="true"] .n { color: var(--ink-2); }
+.segmented.sm { height: 32px; }
+.segmented.sm > button { font-size: var(--fs-footnote); padding: 0 var(--s-2); }
+.segmented > button::after { content: ""; position: absolute; inset: -6px 0; }
+/* the small segmented the app draws as .mini-seg (Date | Area, Wyn's views): the same track and lens */
+.mini-seg { position: relative; display: inline-flex; flex: none; padding: 2px; border-radius: var(--r-pill); background: var(--ctl); box-shadow: var(--ctl-box); }
+.mini-seg button { position: relative; height: 32px; padding: 0 var(--s-3); border-radius: var(--r-pill); font-size: var(--fs-footnote); font-weight: var(--w-semibold); line-height: 32px; color: var(--ink-2); transition: color var(--d-state), background-color var(--d-state); }
+.mini-seg button[aria-checked="true"] { background: var(--sel); box-shadow: var(--sel-edge); color: var(--ink); }
+.mini-seg button::after { content: ""; position: absolute; inset: -6px 0; }
+
+/* switch: green means on. The app uses the native <input type="checkbox" switch> (iOS draws it and plays the
+   haptic); .switch is the drawn one for markup that needs it */
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); min-height: var(--hit); margin-top: var(--s-3); font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.switch-row small { display: block; margin-top: 2px; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+.switch-row input { flex: none; width: 51px; height: 31px; margin: 0; accent-color: var(--done); }
+.switch { width: 51px; height: 31px; border-radius: var(--r-pill); background: var(--fill-3); position: relative; transition: background-color var(--d-state); flex-shrink: 0; }
+.switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: var(--knob); box-shadow: var(--knob-shadow); transition: transform .35s var(--spring); }
+.switch.on { background: var(--done); }
+.switch.on::after { transform: translateX(20px); }
+
+/* meters are for magnitudes that are not a goal to close; goals are rings */
+.bar { height: 6px; border-radius: var(--r-track); background: var(--fill-2); overflow: hidden; }
+.bar > i { display: block; height: 100%; width: var(--p, 0%); background: var(--c, var(--ink)); border-radius: inherit; }
+.steps { display: flex; gap: var(--s-0); }
+.steps i { flex: 1; height: 4px; border-radius: var(--r-track); background: var(--fill-3); }
+.steps i.done { background: var(--c, var(--ink)); }
+.steps i.on { background: color-mix(in srgb, var(--c, var(--ink)) 45%, transparent); }
+
+/* fields: a capsule control; the app's search field is the same thing */
+.ifield, .search { display: flex; align-items: center; gap: var(--s-2); min-height: 46px; padding: 0 var(--s-1) 0 var(--s-4); border-radius: var(--r-pill); background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink-3); transition: box-shadow var(--d-state); }
+.ifield input, .ifield textarea, .search input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: var(--ink); font: inherit; font-size: var(--fs-callout); padding: var(--s-2) 0; resize: none; }
+.ifield input::placeholder, .ifield textarea::placeholder, .search input::placeholder { color: var(--ink-3); }
+.ifield:focus-within, .search:focus-within { box-shadow: inset 0 0 0 1.5px var(--field-focus); }
+.ifield svg, .search svg { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.search { margin-top: var(--s-3); }
+.search input { font-size: 16px; -webkit-appearance: none; appearance: none; }
+
+/* empty and hint */
+.note { margin: var(--s-3) 0 0; padding: var(--s-4); border-radius: var(--r-md); font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.empty-line { padding: var(--s-4); border-radius: var(--r-lg); background: var(--inlay); box-shadow: var(--inlay-box); color: var(--ink-2); font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.empty { padding: var(--s-10) var(--s-8); text-align: center; color: var(--ink-2); font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.quiet { padding: var(--s-1) var(--s-1) 2px; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.add-row { position: relative; display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: 50px; margin-top: var(--s-2); padding: 0 var(--s-4); border-radius: var(--r-lg); background: var(--inlay); box-shadow: var(--inlay-box); color: var(--ink); font-size: var(--fs-subhead); font-weight: var(--w-semibold); text-align: left; }
+.add-row svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2.2; fill: none; stroke-linecap: round; }
+.add-row:active { background: var(--fill-2); }
+
+/* the task check: a ring you close. <button class="check"><i>✓</i></button>, done = the row's or block's .done, or
+   .check.on. Scoped to where the app draws it (the timeline, the drag ghost, task rows, the item sheet's head), so a
+   new component's own .check is untouched */
+:where(.timeline, .ghost, .row, .ih-row) .check i {
+  width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
+  box-shadow: inset 0 0 0 2px var(--ink-3);
+  transition: background-color var(--d-state) var(--ease), box-shadow var(--d-state) var(--ease), transform var(--d-state) var(--spring);
+}
+:where(.timeline, .ghost, .row, .ih-row) .check:active i { transform: scale(.85); }
+:where(.timeline, .ghost, .row, .ih-row) .check svg { width: 12px; height: 12px; stroke: var(--on-color); stroke-width: 2.6; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 20; stroke-dashoffset: 20; transition: stroke-dashoffset 220ms var(--ease) 40ms; }
+:where(.timeline, .ghost, .row, .ih-row) .check.on i, :where(.row, .block).done > .check i { background: var(--done); box-shadow: none; }
+:where(.timeline, .ghost, .row, .ih-row) .check.on svg, :where(.row, .block).done > .check svg { stroke-dashoffset: 0; }
+
+/* ═══ 8 · RINGS: the core motif ═════════════════════════════════════════
+   AOS.ring(p, hue, size, w, opts) draws one; AOS.ringSet() nests them; AOS.setRing() moves one; AOS.pulse(root)
+   draws a page's rings in on open. One ring = track + arc + start cap + head cap (+ a marker), plus one layer
+   per skin that needs it: .rg-l is Obsidian's light (hidden unless a skin shows it); .ink-tex is Matte's
+   printed texture. --rp is a registered number, so one property draws the whole ring, and may pass 1. */
+.rg {
+  --size: 44px; --w: 6px;
+  position: relative; display: inline-grid; place-items: center; flex-shrink: 0; width: var(--size); height: var(--size);
+}
+.rg, .rg.today { --ra: var(--today-a); --rb: var(--today-b); --rc: var(--today); }
+.rg.jobs { --ra: var(--jobs-a); --rb: var(--jobs-b); --rc: var(--jobs); }
+.rg.clients { --ra: var(--clients-a); --rb: var(--clients-b); --rc: var(--clients); }
+.rg.content { --ra: var(--content-a); --rb: var(--content-b); --rc: var(--content); }
+.rg.life { --ra: var(--life-a); --rb: var(--life-b); --rc: var(--life); }
+.rg.needs { --ra: var(--needs); --rb: var(--needs); --rc: var(--needs); }
+.rg.go { transition: --rp var(--draw) var(--ease-draw); }
+.rg > i { position: absolute; inset: 0; border-radius: 50%; pointer-events: none; }
+.rg-t, .rg-a, .rg-o {
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--w) - .7px), #000 calc(100% - var(--w) + .3px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - var(--w) - .7px), #000 calc(100% - var(--w) + .3px));
+}
+.rg-l { display: none; }
+.rg-t { background: color-mix(in srgb, var(--rc) 16%, transparent); }
+.rg-a { background: conic-gradient(var(--rc) calc(min(var(--rp), 1) * 1turn), transparent 0); }
+.rg-o {
+  background: conic-gradient(color-mix(in srgb, var(--rc) 78%, #000) calc(max(var(--rp) - 1, 0) * 1turn), transparent 0);
+  opacity: clamp(0, calc((var(--rp) - 1) * 400), 1);
+}
+.rg-s, .rg-h { transform: rotate(calc(var(--rp) * 1turn)); }
+.rg-0::after, .rg-h::after, .rg-s::after { content: ""; position: absolute; left: 50%; top: 0; width: var(--w); height: var(--w); margin-left: calc(var(--w) * -.5); border-radius: 50%; }
+.rg-0 { opacity: min(clamp(0, calc(var(--rp) * 300), 1), clamp(0, calc((1 - var(--rp)) * 300), 1)); }
+.rg-0::after { background: var(--rc); }
+.rg-h { opacity: clamp(0, calc(var(--rp) * 300), 1); }
+.rg-h::after { background: var(--rc); }
+.rg-s { opacity: clamp(0, calc((var(--rp) - .985) * 70), 1); }
+.rg-k { transform: rotate(calc(var(--k) * 1turn)); }
+.rg-k::after { content: ""; position: absolute; left: 50%; top: -2px; width: 2px; height: calc(var(--w) + 4px); margin-left: -1px; border-radius: 1px; background: var(--ink); box-shadow: 0 0 0 1.5px var(--ring-bg, var(--e1)); }
+.rg > b, .rg > span { position: relative; z-index: 1; }
+/* a running job: its head beats. The only ring that moves on its own, and only while the job runs */
+.rg.running .rg-h::after { animation: beat 1.6s var(--ease) infinite; }
+@keyframes beat { 0%, 46%, 100% { transform: scale(1); } 12% { transform: scale(1.45); } 24% { transform: scale(1.05); } 34% { transform: scale(1.3); } }
+.rset { position: relative; flex-shrink: 0; width: var(--size); height: var(--size); }
+.rset > .rg { position: absolute; top: 50%; left: 50%; translate: -50% -50%; }
+
+/* running work: a short arc going round its track. The one loop allowed besides a running job's head */
+.spin {
+  width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; position: relative;
+  background: conic-gradient(var(--c, var(--ink)) 0 .28turn, color-mix(in srgb, var(--c, var(--ink)) 20%, transparent) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.6px), #000 calc(100% - 2.2px)); mask: radial-gradient(farthest-side, transparent calc(100% - 2.6px), #000 calc(100% - 2.2px));
+  animation: rot .9s linear infinite;
+}
+@keyframes rot { to { transform: rotate(360deg); } }
+@keyframes swap { from { opacity: 0; } }
+
+/* agents: glyphs on a control; the shape tells them apart */
+.agent { width: 32px; height: 32px; border-radius: var(--r-sm); display: grid; place-items: center; flex-shrink: 0; position: relative; background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); }
+.agent svg { width: 18px; height: 18px; }
+.agent.sm { width: 26px; height: 26px; border-radius: var(--r-xs); }
+.agent.sm svg { width: 15px; height: 15px; }
+.agent .badge { position: absolute; right: -3px; bottom: -3px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--e1); background: var(--c, var(--needs)); }
+.jring { --size: 46px; --w: 4.5px; }
+.jring .agent { width: 31px; height: 31px; border-radius: 50%; }
+.jring .agent svg { width: 17px; height: 17px; }
+
+/* ═══ 9 · DOCK: the accessory, the tab bar and +, all chrome ═══════════════
+   #accessory (what you are doing now) shows only on Today and Jobs; #screen[data-tab] says which tab is up. */
+.tabbar-wrap { position: absolute; z-index: 33; left: var(--s-3); right: var(--s-3); bottom: var(--safe-bottom); display: flex; gap: var(--s-3); align-items: center; height: var(--dock-h); }
+.tabbar { position: relative; flex: 1; height: var(--dock-h); border-radius: var(--r-pill); padding: var(--s-1); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+/* the selection is a lens that slides between tabs (app.js placePill moves it) */
+.tab-pill { position: absolute; z-index: 0; top: var(--s-1); bottom: var(--s-1); left: var(--s-1); width: calc((100% - 2 * var(--s-1)) / 5); border-radius: var(--r-pill); background: var(--sel); box-shadow: var(--sel-edge); will-change: transform; }
+.tab {
+  position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 0;
+  border-radius: var(--r-pill); color: var(--ink-2); font-size: var(--fs-caption); font-weight: var(--w-semibold); line-height: 1.1;
+  transition: color var(--d-state), transform var(--d-press) var(--ease);
+}
+.tab svg { width: 25px; height: 25px; }
+.tab span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tab:active { transform: scale(.9); }
+.tab.is-active { color: var(--ink); }
+.tab .tab-badge { position: absolute; top: var(--s-0); left: calc(50% + var(--s-1)); display: grid; place-items: center; min-width: 20px; height: 20px; border-radius: var(--r-pill); padding: 0 var(--s-1); background: var(--needs); color: var(--on-color); font-family: var(--round); font-size: var(--fs-footnote); line-height: 1; font-weight: var(--w-fig); font-style: normal; font-variant-numeric: tabular-nums; }
+.tab .tab-dot { position: absolute; top: 6px; left: calc(50% + 7px); width: 9px; height: 9px; border-radius: 50%; background: var(--done); box-shadow: 0 0 0 2px var(--e1); }
+.tab .tab-dot.needs { background: var(--needs); }
+.capture-btn { position: relative; flex: none; width: var(--dock-h); height: var(--dock-h); border-radius: 50%; display: grid; place-items: center; color: var(--ink); transition: transform var(--d-press) var(--ease); }
+.capture-btn svg { width: 26px; height: 26px; }
+.capture-btn:active { transform: scale(.9); }
+
+.accessory {
+  position: absolute; z-index: 32; left: calc(var(--s-3) + var(--s-0)); right: calc(var(--s-3) + var(--s-0)); bottom: calc(var(--safe-bottom) + var(--dock-h) + var(--s-2));
+  height: var(--acc-h); border-radius: var(--r-pill); display: flex; align-items: center; gap: var(--s-2); padding: 0 var(--s-1);
+}
+#screen:is([data-tab="clients"], [data-tab="content"], [data-tab="more"]) .accessory { display: none; }
+.acc-doing { flex: 1; min-width: 0; height: 100%; display: flex; align-items: center; gap: var(--s-3); padding: 0 var(--s-2) 0 var(--s-1); border-radius: var(--r-pill); text-align: left; }
+.acc-doing:active { background: var(--row-press); }
+.acc-ring { width: 32px; height: 32px; flex: none; display: grid; place-items: center; --ring-bg: transparent; }
+.acc-ring svg { width: 28px; height: 28px; rotate: -90deg; overflow: visible; }
+.acc-text { min-width: 0; flex: 1; }
+.acc-title { display: block; font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.acc-sub { display: block; font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.acc-sep { display: none; }
+.acc-plan {
+  position: relative; flex: none; height: 36px; border-radius: var(--r-pill); padding: 0 var(--s-1) 0 var(--s-4); display: inline-flex; align-items: center; gap: var(--s-2);
+  font-size: var(--fs-subhead); font-weight: var(--w-semibold); background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink);
+}
+.acc-plan:active { background: var(--ctl-press); filter: var(--press-filter); }
+.acc-plan::after { content: ""; position: absolute; inset: -4px -2px; }
+.acc-count { display: grid; place-items: center; min-width: 28px; height: 28px; border-radius: var(--r-pill); padding: 0 var(--s-2); background: var(--fill-3); color: var(--ink); font-family: var(--round); font-size: var(--fs-subhead); line-height: 1; font-weight: var(--w-fig); font-variant-numeric: tabular-nums; }
+.acc-count.overdue { background: var(--fail); color: var(--on-deep); }
+.acc-count.bump { animation: bump 380ms var(--ease); }
+@keyframes bump { 40% { transform: scale(1.2); } }
+
+/* ═══ 10 · SHEETS, PEEK, TOAST: overlays ══════════════════════════════════
+   Sheets are positioned by app.js makeSheet (a spring on translateY between detents). The material is E3. */
+.scrim { position: absolute; inset: 0; z-index: 80; background: var(--scrim); opacity: 0; pointer-events: none; }
+.scrim.on { pointer-events: auto; }
+.sheet {
+  position: absolute; z-index: 90; left: 0; right: 0; bottom: 0; height: calc(100% - var(--safe-top) - 10px);
+  border-radius: var(--r-sheet) var(--r-sheet) 0 0; isolation: isolate;
+  background: var(--e3-bg); -webkit-backdrop-filter: var(--e3-blur); backdrop-filter: var(--e3-blur); box-shadow: var(--e3-box);
+  transform: translateY(105%); will-change: transform; display: flex; flex-direction: column; visibility: hidden;
+}
+.sheet.open { visibility: visible; }
+.grabber { flex: none; height: 22px; display: grid; place-items: center; touch-action: none; cursor: grab; }
+.grabber::before { content: ""; width: 36px; height: 5px; border-radius: var(--r-track); background: var(--ink-4); }
+.sheet-head { display: block; padding: var(--s-1) var(--s-5) var(--s-3); touch-action: none; }
+.sheet-head h2 { margin: 0; font-size: var(--fs-title2); line-height: var(--lh-title2); font-weight: var(--w-bold); }
+.sheet-head p { margin: 2px 0 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.sheet-close { position: relative; width: 36px; height: 36px; border-radius: 50%; background: var(--ctl); box-shadow: var(--ctl-box); display: grid; place-items: center; color: var(--ink-2); flex-shrink: 0; }
+.sheet-close:active { background: var(--ctl-press); filter: var(--press-filter); }
+.sheet-close svg { width: 14px; height: 14px; }
+.sheet-body { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 0 0 60px; scrollbar-width: none; }
+.sheet-body::-webkit-scrollbar { display: none; }
+
+/* context peek (hold to preview): AOS.peek(html, menu) */
+.peek-wrap { position: absolute; inset: 0; z-index: 100; display: grid; grid-template-columns: minmax(0, 1fr); align-content: center; padding: 0 var(--s-4); opacity: 0; pointer-events: none; transition: opacity .25s var(--ease); -webkit-backdrop-filter: var(--peek-blur); backdrop-filter: var(--peek-blur); background: var(--peek-veil); }
+.peek-wrap.on { opacity: 1; pointer-events: auto; }
+.peek { border-radius: var(--r-xl); overflow: hidden; transform: scale(.88); transition: transform .45s var(--spring); }
+.peek-wrap.on .peek { transform: none; }
+.peek-menu { margin-top: var(--s-3); border-radius: var(--r-lg); overflow: hidden; width: 240px; transform: scale(.8); transform-origin: top left; transition: transform .45s var(--spring); }
+.peek-wrap.on .peek-menu { transform: none; }
+.peek-menu button { display: flex; width: 100%; min-height: 46px; justify-content: space-between; align-items: center; padding: var(--s-3) var(--s-4); font-size: var(--fs-callout); color: var(--ink); }
+.peek-menu button:active { background: var(--fill-2); }
+.peek-menu button + button { border-top: var(--hair) solid var(--sep); }
+.peek-menu svg { width: 18px; height: 18px; }
+
+/* toast: one line when it can be and two when it must; it never truncates what happened */
+.toast {
+  position: absolute; z-index: 95; left: 50%; top: calc(var(--safe-top) + var(--s-1)); translate: -50% 0;
+  min-height: 46px; width: max-content; max-width: calc(100% - 2 * var(--gutter)); border-radius: var(--r-xl); padding: var(--s-2) var(--s-2) var(--s-2) var(--s-4);
+  display: flex; align-items: center; gap: var(--s-3); isolation: isolate;
+  font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); color: var(--ink);
+  background: var(--e3-bg); -webkit-backdrop-filter: var(--e3-blur); backdrop-filter: var(--e3-blur); box-shadow: var(--e3-box);
+  transform: translateY(-110px) scale(.9); opacity: 0; pointer-events: none; transition: transform .5s var(--spring), opacity .25s;
+}
+.toast.show { transform: none; opacity: 1; pointer-events: auto; }
+.toast > span { min-width: 0; text-wrap: balance; }
+.toast.plain { padding-right: var(--s-4); }
+.toast button { position: relative; flex-shrink: 0; height: 32px; border-radius: var(--r-pill); padding: 0 var(--s-3); background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); font-size: var(--fs-subhead); font-weight: var(--w-semibold); }
+.toast button[hidden] { display: none; }
+
+/* ═══ 11 · THE SKIN SWITCH ════════════════════════════════════════════════
+   The control is the segmented control above; each option leads with a swatch that each skin paints for
+   itself in its own file (.skin-sw[data-sw="…"]), unscoped, so both swatches read the same in either skin.
+   The switch is an attribute write inside a short View Transition crossfade (a plain fade without it). */
+.skin-seg { height: 40px; }
+.skin-seg > button { gap: var(--s-2); }
+.skin-sw { position: relative; width: 20px; height: 20px; border-radius: var(--r-xs); flex-shrink: 0; overflow: hidden; }
+.skin-sw::before { content: ""; position: absolute; inset: 4px; border-radius: 50%; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: var(--d-skin); animation-timing-function: var(--ease); }
+.skin-fade { transition: opacity calc(var(--d-skin) * .6) var(--ease); }
+.skin-out { opacity: 0; }
+
+/* ═══ 12 · ACCESSIBILITY ══════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .rg.go { transition: none !important; }
+  .rg.running .rg-h::after { animation: none !important; }
+  .spin { animation: none !important; }
+  .segmented[data-seg] .seg-thumb { transition-duration: .15s; }
+  /* the skin still crossfades: an opacity change is the reduced-motion way to show a change of state */
+  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 150ms !important; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .chrome, .glass, .gbtn, .nav-back, .nav-pill, .nav-icon { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+}
+
+/* hit areas: small controls keep their size on screen but answer to a 44px touch */
+.chip-btn::after, .btn.sm::after, .small-btn::after, .ai-btn::after, .hz-add::after, .pill-btn::after, .toast button::after { content: ""; position: absolute; inset: -5px -2px; }
+.sh-act::after, .sec-act::after { content: ""; position: absolute; inset: -8px -2px; }
+.sheet-close::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; }

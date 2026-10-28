@@ -1,0 +1,2 @@
+{ "name": "agentos", "version": "0.1.0", "private": true, "type": "module",
+  "scripts": { "test": "bun test src", "build": "bun build src/agentos.ts --compile --outfile dist/agentos.exe", "install-cli": "bun run build && copy /Y dist\\agentos.exe %USERPROFILE%\\.local\\bin\\agentos.exe" } }

@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-skin="obsidian">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<!-- ?skin=obsidian|matte · ?theme=dark|light · ?motion=reduced · ?perf=1 · #section to jump -->
+<script>(function () { try { var q = new URLSearchParams(location.search); var s = q.get('skin'); if (s !== 'matte') s = 'obsidian'; var t = q.get('theme') === 'light' ? 'light' : 'dark'; var d = document.documentElement; d.dataset.skin = s; d.dataset.theme = t; if (q.get('motion') === 'reduced') d.dataset.motion = 'reduced'; } catch (e) {} })();</script>
+<meta name="theme-color" content="#050506" />
+<meta name="color-scheme" content="dark light" />
+<title>Motion lab · Agentic OS</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23000'/%3E%3Ccircle cx='16' cy='16' r='8' fill='%236a3cff'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="css/system.css" />
+<link rel="stylesheet" href="css/skins/obsidian.css" />
+<link rel="stylesheet" href="css/skins/matte.css" />
+<link rel="stylesheet" href="css/motion.css" />
+<link rel="stylesheet" href="css/marks.css" />
+<link rel="stylesheet" href="css/orb.css" />
+<style>
+  /* the lab's own layout (lab-), on the system's components and tokens */
+  .lab-page > .scroll { padding-bottom: calc(var(--safe-bottom) + var(--s-12)); }
+  .lab-sub { margin: var(--s-1) 0 0; }
+  .lab-skinrow { display: flex; gap: var(--s-2); align-items: center; padding: var(--s-1) var(--gutter) 0; }
+  .lab-skinrow .seg { flex: 1; }
+  .lab-cap { font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); }
+  .lab-card { margin: 0 var(--gutter); border-radius: var(--r-lg); padding: var(--s-4); position: relative; }
+  .lab-card + .lab-card { margin-top: var(--s-3); }
+  .lab-card h3 { margin: 0; font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); }
+  .lab-card p.lab-what { margin: 2px 0 var(--s-3); font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); }
+  .lab-row { display: flex; gap: var(--s-2); align-items: center; flex-wrap: wrap; }
+  .lab-row + .lab-row { margin-top: var(--s-2); }
+  .lab-ctl { padding: var(--s-3) var(--gutter) 0; display: grid; gap: var(--s-2); }
+  /* marks */
+  .lab-mgrid { display: grid; grid-template-columns: 58px repeat(6, 1fr); align-items: center; row-gap: var(--s-4); padding: var(--s-4) var(--s-3) var(--s-4) var(--s-4); --am-bg: var(--e1); }
+  .lab-mgrid .lab-cap { text-align: center; }
+  .lab-mgrid .lab-ag { font-size: var(--fs-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+  .lab-mgrid .am { justify-self: center; }
+  .lab-ramp { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--s-1); padding: var(--s-5) var(--s-4) var(--s-4); --am-bg: var(--e1); }
+  .lab-ramp figure { margin: 0; display: grid; justify-items: center; gap: var(--s-2); }
+  .lab-jobs .agent { --am-bg: var(--ctl-solid, var(--e1)); }
+  .lab-jobs .agent .am, .lab-jobs .agent .amg { color: var(--ink); }
+  .lab-jobs .rmeta .lab-st-needs { color: var(--needs-ink); }
+  .lab-jobs .rmeta .lab-st-done { color: var(--done); }
+  .lab-jobs .rmeta .lab-st-failed { color: var(--fail-ink); }
+  /* glyphs */
+  .lab-glyphs { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--s-2); }
+  .lab-gl { height: 54px; border-radius: var(--r-md); display: grid; place-items: center; background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); }
+  .lab-gl svg { width: 24px; height: 24px; }
+  .lab-gl small { display: none; }
+  .lab-gl:active { background: var(--ctl-press); }
+  /* orb */
+  .lab-orbstage { margin: 0 var(--gutter); height: 340px; border-radius: var(--r-xl); display: grid; place-items: center; position: relative; overflow: hidden; }
+  .lab-orbstage .lab-hint { position: absolute; left: 0; right: 0; bottom: var(--s-4); margin: 0; text-align: center; font-size: var(--fs-footnote); color: var(--ink-3); transition: opacity .3s var(--ease); }
+  .lab-orbstage:has(.lv-breathing, .lv-summary) .lab-hint { opacity: 0; }
+  .lab-orbstage .lab-mood { position: absolute; left: var(--s-4); top: var(--s-4); display: flex; align-items: center; gap: var(--s-2); font-size: var(--fs-footnote); font-weight: var(--w-semibold); color: var(--ink-2); }
+  .lab-orbstage .lab-mood i { width: 10px; height: 10px; border-radius: 50%; background: var(--lv-c1); transition: --lv-c1 1.2s var(--ease); }
+  .lab-sl { display: grid; grid-template-columns: 70px 1fr 44px; align-items: center; gap: var(--s-3); min-height: 48px; padding: 0 var(--s-4); }
+  .lab-sl + .lab-sl { border-top: var(--hair) solid var(--sep); }
+  .lab-sl label { font-size: var(--fs-subhead); font-weight: var(--w-semibold); }
+  .lab-sl output { font-family: var(--round); font-weight: var(--w-fig); font-variant-numeric: tabular-nums; font-size: var(--fs-subhead); color: var(--ink-2); text-align: right; }
+  .lab-range { -webkit-appearance: none; appearance: none; width: 100%; height: 30px; background: transparent; margin: 0; }
+  .lab-range::-webkit-slider-runnable-track { height: 6px; border-radius: var(--r-track); background: var(--fill-2); }
+  .lab-range::-moz-range-track { height: 6px; border-radius: var(--r-track); background: var(--fill-2); }
+  .lab-range::-webkit-slider-thumb { -webkit-appearance: none; width: 26px; height: 26px; margin-top: -10px; border-radius: 50%; background: var(--knob); box-shadow: var(--knob-shadow); }
+  .lab-range::-moz-range-thumb { width: 26px; height: 26px; border: 0; border-radius: 50%; background: var(--knob); box-shadow: var(--knob-shadow); }
+  .lab-today { margin: 0 var(--gutter); border-radius: var(--r-xl); padding: var(--s-4) var(--s-4) var(--s-4) var(--s-5); display: flex; align-items: center; gap: var(--s-3); }
+  .lab-today .lab-tt { flex: 1; min-width: 0; }
+  .lab-today .lab-tt .display { font-size: 30px; line-height: 36px; }
+  .lab-hd { --lv-s: 36px; }
+  .lab-call { margin: var(--s-3) var(--gutter) 0; border-radius: var(--r-xl); height: 420px; background: radial-gradient(120% 80% at 50% 30%, #121216, #050506); display: flex; flex-direction: column; align-items: center; padding: var(--s-6) var(--s-4) var(--s-5); color: var(--ink); overflow: hidden; position: relative; }
+  .lab-call .lab-cn { margin: 0; font-size: var(--fs-title1); line-height: var(--lh-title1); font-weight: var(--w-bold); }
+  .lab-call .lab-cs { margin: 2px 0 0; font-family: var(--round); font-weight: var(--w-fig); font-variant-numeric: tabular-nums; font-size: var(--fs-fig-3); color: var(--done); }
+  .lab-call .lab-cstage { flex: 1; display: grid; place-items: center; width: 100%; }
+  .lab-call .lab-co { --lv-s: 210px; }
+  .lab-call .lab-cap2 { margin: 0; min-height: 44px; max-width: 300px; text-align: center; font-size: var(--fs-headline); line-height: 1.35; font-weight: var(--w-semibold); }
+  .lab-lines .row { align-items: flex-start; }
+  .lab-lines .am { margin-top: 2px; }
+  /* kit */
+  .lab-track { position: relative; height: 120px; border-radius: var(--r-md); background: var(--inlay); box-shadow: var(--inlay-box); overflow: hidden; touch-action: none; }
+  .lab-track i.lab-snap { position: absolute; top: 50%; width: 2px; height: 26px; margin: -13px 0 0 -1px; border-radius: 1px; background: var(--fill-3); }
+  .lab-knob { position: absolute; left: 0; top: 50%; width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%; background: var(--ink); box-shadow: 0 6px 20px rgba(0, 0, 0, .35); cursor: grab; will-change: transform; }
+  .lab-plot { width: 100%; height: 86px; margin-top: var(--s-3); display: block; overflow: visible; }
+  .lab-plot path { fill: none; stroke: var(--ink); stroke-width: 1.8; vector-effect: non-scaling-stroke; }
+  .lab-plot line { stroke: var(--sep); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .lab-flip { display: grid; gap: var(--s-2); }
+  .lab-fi { display: flex; align-items: center; gap: var(--s-3); height: 44px; padding: 0 var(--s-3); border-radius: var(--r-md); background: var(--inlay); box-shadow: var(--inlay-box); font-size: var(--fs-subhead); font-weight: var(--w-semibold); }
+  .lab-fi .dot { width: 10px; height: 10px; }
+  .lab-fig { display: flex; align-items: baseline; gap: var(--s-3); }
+  .lab-fig .met { font-size: var(--fs-fig-1); }
+  .lab-fig .lab-pct { font-size: var(--fs-fig-2); color: var(--ink-2); }
+  .lab-morph { display: flex; gap: var(--s-4); align-items: center; }
+  .lab-morph button { width: 76px; height: 76px; border-radius: var(--r-lg); background: var(--inlay); box-shadow: var(--inlay-box); display: grid; place-items: center; }
+  .lab-morph svg { width: 54px; height: 54px; }
+  .lab-morph path.lab-shape { fill: var(--life); }
+  .lab-vtpanel { margin-top: var(--s-3); padding: var(--s-4); border-radius: var(--r-md); background: var(--inlay); box-shadow: var(--inlay-box); min-height: 108px; }
+  .lab-vtpanel h4 { margin: 0; font-size: var(--fs-title3); line-height: var(--lh-title3); }
+  .lab-vtpanel p { margin: var(--s-1) 0 0; font-size: var(--fs-subhead); color: var(--ink-2); }
+  .lab-scroller { height: 260px; overflow-y: auto; border-radius: var(--r-md); background: var(--inlay); box-shadow: var(--inlay-box); position: relative; scrollbar-width: none; overscroll-behavior: contain; }
+  .lab-scroller::-webkit-scrollbar { display: none; }
+  .lab-prog { position: sticky; top: 0; z-index: 2; height: 3px; background: var(--today); }
+  .lab-sci { margin: var(--s-3); padding: var(--s-4); border-radius: var(--r-md); background: var(--ctl); box-shadow: var(--ctl-box); font-size: var(--fs-subhead); }
+  .lab-par { margin: var(--s-3); height: 110px; border-radius: var(--r-md); overflow: hidden; position: relative; background: linear-gradient(135deg, var(--life-a), var(--content-a)); }
+  .lab-par i { position: absolute; inset: -30px 0; background: radial-gradient(40% 50% at 30% 40%, rgba(255, 255, 255, .45), transparent 70%), radial-gradient(30% 40% at 75% 65%, rgba(255, 255, 255, .25), transparent 70%); --mx-depth: 26px; }
+  .lab-par b { position: absolute; left: var(--s-4); bottom: var(--s-3); color: #fff; font-size: var(--fs-headline); }
+  .lab-toastzone { position: relative; height: 96px; border-radius: var(--r-md); background: var(--inlay); box-shadow: var(--inlay-box); overflow: hidden; margin-top: var(--s-3); }
+  .lab-toast { position: absolute; left: var(--s-3); right: var(--s-3); top: var(--s-3); min-height: 46px; border-radius: var(--r-xl); padding: var(--s-2) var(--s-2) var(--s-2) var(--s-4); display: flex; align-items: center; gap: var(--s-3); font-size: var(--fs-subhead); font-weight: var(--w-semibold); touch-action: none; }
+  .lab-toast svg { width: 18px; height: 18px; color: var(--done); flex-shrink: 0; }
+  .lab-toast span { flex: 1; }
+  .lab-hsrc { font-size: var(--fs-footnote); color: var(--ink-3); margin-top: var(--s-2); }
+  /* graph */
+  .lab-graph { margin: 0 var(--gutter); height: 470px; border-radius: var(--r-xl); overflow: hidden; }
+  .lab-ginfo { margin: var(--s-3) var(--gutter) 0; min-height: 44px; display: flex; align-items: center; gap: var(--s-3); padding: var(--s-2) var(--s-4); border-radius: var(--r-lg); }
+  .lab-ginfo .dot { width: 10px; height: 10px; }
+  .lab-ginfo b { font-size: var(--fs-subhead); }
+  .lab-ginfo span { font-size: var(--fs-footnote); color: var(--ink-2); }
+  .lab-perf { position: absolute; z-index: 95; right: 10px; bottom: 10px; padding: 6px 10px; border-radius: 10px; background: rgba(0, 0, 0, .7); color: #a3f000; font: 600 11px/1.35 var(--mono); white-space: pre; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="phone" id="phone">
+    <div class="desk-status" aria-hidden="true"><span class="num">17:40</span><span class="ds-icons">
+      <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+      <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.8" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="16" height="9" rx="2.5"/></svg>
+    </span></div>
+    <div class="pages" id="pages">
+      <section class="page lab-page" id="labPage">
+        <header class="topbar">
+          <div class="tb-left"></div>
+          <div class="tb-title">Motion lab</div>
+          <div class="tb-right"><button class="gbtn chrome icon" id="themeBtn" aria-label="Switch theme"></button><button class="gbtn chrome" id="rmBtn" aria-pressed="false">Reduced</button></div>
+        </header>
+        <div class="scroll" id="labScroll">
+          <div class="phead"><h1 class="display mx-shrink">Motion lab</h1><p class="sub lab-sub">Every shared moving piece, live. Sample data only.</p></div>
+          <div class="lab-skinrow"><div class="seg skin-seg" id="skinSeg" role="tablist"><span class="seg-thumb"></span><button data-v="obsidian" role="tab" aria-selected="true"><span class="skin-sw" data-sw="obsidian" aria-hidden="true"></span>Obsidian</button><button data-v="matte" role="tab" aria-selected="false"><span class="skin-sw" data-sw="matte" aria-hidden="true"></span>Matte</button></div></div>
+
+          <!-- ═══ MARKS ═══ -->
+          <section id="marks">
+            <div class="sh"><h2>Agent marks</h2><span class="sh-count">3 × 6 states</span></div>
+            <div class="group lab-mgrid" id="markGrid"></div>
+            <div class="lab-ctl"><div class="seg sm" id="rampAgent" role="tablist"></div><div class="seg sm" id="rampState" role="tablist"></div></div>
+            <div class="group lab-ramp" id="ramp" style="margin-top: var(--s-3)"></div>
+            <div class="sh"><h2>On a job</h2><button class="sh-act" id="jobReplay">Replay</button></div>
+            <div class="group lab-jobs" id="jobs"></div>
+            <p class="hint">Sample jobs. The marks move only while a job is thinking or working; at rest they barely breathe.</p>
+          </section>
+
+          <!-- ═══ GLYPHS ═══ -->
+          <section id="glyphs">
+            <div class="sh"><h2>Glyph effects</h2><span class="sh-count">tap one</span></div>
+            <div class="lab-card surface"><div class="lab-glyphs" id="glyphGrid"></div><p class="lab-what" style="margin: var(--s-3) 0 0">Any icon in the app can bounce, pulse, wiggle, turn, draw itself or pop (motion.js symbol). Bottom row: live glyphs with their own states.</p></div>
+          </section>
+
+          <!-- ═══ ORB ═══ -->
+          <section id="orb">
+            <div class="sh"><h2>The living orb</h2><span class="sh-count" id="orbRenderer"></span></div>
+            <div class="lab-orbstage surface" id="orbStage"><div class="lab-mood"><i></i><span id="moodWord">Calm</span></div><div class="lab-orb" id="orbBig"></div><p class="lab-hint">Drag her. Hold to breathe.</p></div>
+            <div class="lab-ctl"><div class="seg" id="orbState" role="tablist"></div></div>
+            <div class="group" style="margin-top: var(--s-3)">
+              <div class="lab-sl"><label for="mStress">Stress</label><input class="lab-range" id="mStress" type="range" min="0" max="100" value="20"><output id="oStress">0.20</output></div>
+              <div class="lab-sl"><label for="mEnergy">Energy</label><input class="lab-range" id="mEnergy" type="range" min="0" max="100" value="55"><output id="oEnergy">0.55</output></div>
+              <div class="lab-sl"><label for="mValence">Mood</label><input class="lab-range" id="mValence" type="range" min="-100" max="100" value="10"><output id="oValence">+0.10</output></div>
+            </div>
+            <div class="chips pad" style="margin-top: var(--s-3)" id="moodChips"></div>
+            <div class="sh"><h2>Breathe</h2></div>
+            <div class="lab-card surface" id="breathCard">
+              <p class="lab-what">Hold an orb until it buzzes, let go, and follow it. Each change of phase buzzes (the native programme on the phone, vibrate on the web). Tap to stop.</p>
+              <div class="lab-row"><div class="seg sm" id="breathPat" role="tablist" style="flex: 1"></div><button class="btn sm primary" id="breathGo" style="--c: var(--life-fill)">Breathe now</button></div>
+              <p class="lab-hsrc" id="breathLast">No session yet.</p>
+            </div>
+            <div class="sh"><h2>Where she lives</h2></div>
+            <div class="lab-today surface"><div class="lab-tt"><h3 class="display">Today</h3><p class="sub">Thursday 22 October · hold the orb</p></div><div class="lab-hd" id="orbHead"></div></div>
+            <div class="lab-call stay-dark" id="callStage"><p class="lab-cn">Wyn</p><p class="lab-cs" id="callTime">00:42</p><div class="lab-cstage"><div class="lab-co" id="orbCall"></div></div><p class="lab-cap2" id="callLine">You have two hours free after the shop. Want the gym slot?</p></div>
+            <div class="group lab-lines" style="margin-top: var(--s-3)" id="wynLines"></div>
+          </section>
+
+          <!-- ═══ KIT ═══ -->
+          <section id="kit">
+            <div class="sh"><h2>The motion kit</h2></div>
+            <div class="lab-card surface" id="kitSpring">
+              <h3>Springs and gestures</h3><p class="lab-what">Throw the knob. It lands where the flick was going (Apple's projection), snaps, keeps its speed into the spring, and resists past the ends.</p>
+              <div class="lab-track" id="track"><i class="lab-snap" style="left: 15%"></i><i class="lab-snap" style="left: 50%"></i><i class="lab-snap" style="left: 85%"></i><div class="lab-knob" id="knob"></div></div>
+              <svg class="lab-plot" id="plot" viewBox="0 0 300 86" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="18" x2="300" y2="18"/><line x1="0" y1="80" x2="300" y2="80"/><path id="plotPath"/></svg>
+              <div class="lab-sl" style="padding: 0"><label for="spResp">Response</label><input class="lab-range" id="spResp" type="range" min="15" max="100" value="42"><output id="oResp">0.42</output></div>
+              <div class="lab-sl" style="padding: 0"><label for="spDamp">Damping</label><input class="lab-range" id="spDamp" type="range" min="20" max="120" value="88"><output id="oDamp">0.88</output></div>
+            </div>
+            <div class="lab-card surface" id="kitFlip">
+              <h3>Layout moves (FLIP)</h3><p class="lab-what">Rows glide to their new places; new ones grow in, removed ones fade where they were.</p>
+              <div class="lab-flip" id="flipList"></div>
+              <div class="lab-row" style="margin-top: var(--s-3)"><button class="btn sm" id="flipShuffle">Shuffle</button><button class="btn sm" id="flipAdd">Add</button><button class="btn sm" id="flipDel">Remove</button></div>
+            </div>
+            <div class="lab-card surface" id="kitStagger">
+              <h3>Staggered entrance</h3><p class="lab-what">40 ms apart on the default spring, capped so a long list doesn't make you wait.</p>
+              <div class="lab-flip" id="stagList"></div>
+              <div class="lab-row" style="margin-top: var(--s-3)"><button class="btn sm" id="stagGo">Replay</button></div>
+            </div>
+            <div class="lab-card surface" id="kitRoll">
+              <h3>Rolling numbers</h3><p class="lab-what">Each digit rolls the short way, the ones first; up when it grows, down when it shrinks.</p>
+              <div class="lab-fig"><span class="met" id="rollMoney"></span><span class="met lab-pct" id="rollPct"></span></div>
+              <div class="lab-row" style="margin-top: var(--s-3)"><button class="btn sm" id="rollUp">+ ₹1,250</button><button class="btn sm" id="rollDn">− ₹380</button><button class="btn sm" id="rollBig">+ ₹9,99,000</button><button class="btn sm" id="rollRnd">Random</button></div>
+            </div>
+            <div class="lab-card surface" id="kitMorph">
+              <h3>Morphing shapes</h3><p class="lab-what">Tap a shape. Any two paths blend, matched point for point so nothing twists.</p>
+              <div class="lab-morph"><button id="morphBtn" aria-label="Morph"><svg viewBox="0 0 64 64"><path class="lab-shape" id="morphPath"/></svg></button><button id="ppBtn" aria-label="Play or pause"></button><span class="lab-cap" id="morphName">Circle</span></div>
+            </div>
+            <div class="lab-card surface" id="kitVt">
+              <h3>View Transitions</h3><p class="lab-what">The browser composes the change: a quick crossfade that leans toward the side you picked. The same type runs the app's tab switch.</p>
+              <div class="seg sm" id="vtSeg" role="tablist"></div>
+              <div class="lab-vtpanel mx-vt-swap" id="vtPanel"></div>
+            </div>
+            <div class="lab-card surface" id="kitScroll">
+              <h3>Scroll-driven</h3><p class="lab-what">CSS scroll timelines: rows rise as they enter, the picture drifts, the bar fills. No script runs while you scroll.</p>
+              <div class="lab-scroller" id="scroller"><div class="lab-prog mx-progress"></div></div>
+            </div>
+            <div class="lab-card surface" id="kitToast">
+              <h3>Enter, exit, swipe away</h3><p class="lab-what">The toast arrives on a spring and leaves the way it came. Swipe it up to dismiss; let go early and it rubber-bands home.</p>
+              <div class="lab-row"><button class="btn sm" id="toastGo">Show a toast</button><button class="btn sm" id="hapticBtn">Haptics</button></div>
+              <div class="lab-toastzone" id="toastZone"><div class="lab-toast overlay" id="labToast" hidden></div></div>
+              <div class="chips" id="hapticChips" style="margin-top: var(--s-3)" hidden></div>
+              <p class="lab-hsrc" id="hapticSrc"></p>
+            </div>
+          </section>
+
+          <!-- ═══ GRAPH ═══ -->
+          <section id="graph">
+            <div class="sh"><h2>The graph</h2><span class="sh-count" id="graphCount">Sample</span></div>
+            <div class="lab-ctl"><div class="seg" id="graphMode" role="tablist"></div></div>
+            <div class="chips pad" style="margin: var(--s-3) 0" id="graphChips"></div>
+            <div class="lab-graph surface" id="graphBox"></div>
+            <div class="lab-ginfo surface" id="graphInfo"><span>Tap a node to trace its links. Pinch or scroll to zoom; double-tap to zoom in.</span></div>
+          </section>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+<script type="module">
+import { I } from './js/icons.js';
+import * as M from './js/motion.js';
+import { markHTML, setMarkState, MARK_STATES, glyphHTML, setGlyph, setGlyphLevel, setMarkLevel, twinkle, pauseOffscreen } from './js/marks.js';
+import { mountOrb, setMood, getMood, BREATH, moodColor } from './js/orb.js';
+import { mountGraph } from './js/graph.js';
+
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const root = document.documentElement;
+const Q = new URLSearchParams(location.search);
+
+// ── the system's segmented control (core.js has the real one; the lab keeps its own tiny copy) ──
+function seg(el, items, on, onChange) {
+  el.innerHTML = `<span class="seg-thumb"></span>${items.map(([v, l]) => `<button data-v="${v}" role="tab" aria-selected="${v === on}">${l}</button>`).join('')}`;
+  wireSeg(el, onChange);
+}
+function wireSeg(el, onChange) {
+  const th = $('.seg-thumb', el);
+  const place = (instant) => { const b = $('button[aria-selected="true"]', el) ?? $('button', el); if (instant) th.style.transition = 'none'; th.style.width = `${b.offsetWidth}px`; th.style.transform = `translateX(${b.offsetLeft - 3}px)`; if (instant) requestAnimationFrame(() => { th.style.transition = ''; }); };
+  requestAnimationFrame(() => place(true)); new ResizeObserver(() => place(true)).observe(el);
+  el.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b || !el.contains(b)) return; const prev = $('button[aria-selected="true"]', el); $$('button', el).forEach((x) => x.setAttribute('aria-selected', String(x === b))); place(); M.haptic('selection'); onChange?.(b.dataset.v, prev?.dataset.v, b); });
+  el._place = place;
+}
+
+// ── chrome: skin, theme, reduced motion, and the inline title as you scroll ──
+wireSeg($('#skinSeg'), (v) => M.viewTransition(() => { root.dataset.skin = v; }, { type: 'fade' }));
+if (root.dataset.skin === 'matte') { $$('#skinSeg button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.v === 'matte'))); }
+const themeIcon = () => { $('#themeBtn').innerHTML = root.dataset.theme === 'light' ? I.moon : I.sun; };
+themeIcon();
+$('#themeBtn').addEventListener('click', () => { M.viewTransition(() => { root.dataset.theme = root.dataset.theme === 'light' ? 'dark' : 'light'; themeIcon(); }, { type: 'fade' }); });
+const rmSync = () => { const on = root.dataset.motion === 'reduced'; $('#rmBtn').setAttribute('aria-pressed', String(on)); $('#rmBtn').classList.toggle('accent', on); };
+$('#rmBtn').addEventListener('click', () => { if (root.dataset.motion === 'reduced') delete root.dataset.motion; else root.dataset.motion = 'reduced'; rmSync(); });
+rmSync();
+const sc = $('#labScroll');
+sc.addEventListener('scroll', () => $('#labPage').classList.toggle('scrolled', sc.scrollTop > 44), { passive: true });
+
+// ═══ MARKS ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+const AGENTS = [['claude', 'Claude'], ['codex', 'Codex'], ['wyn', 'Wyn']];
+const SHORT = { idle: 'Idle', thinking: 'Think', working: 'Work', needs: 'Needs', done: 'Done', failed: 'Failed' };
+$('#markGrid').innerHTML = `<span></span>${MARK_STATES.map((s) => `<span class="lab-cap">${SHORT[s]}</span>`).join('')}`
+  + AGENTS.map(([a, n]) => `<span class="lab-ag">${n}</span>${MARK_STATES.map((s) => markHTML(a, { state: s, size: 30 })).join('')}`).join('');
+let rampA = 'claude', rampS = 'working';
+const ramp = () => { $('#ramp').innerHTML = [14, 18, 24, 32, 48, 64, 96].map((z) => `<figure>${markHTML(rampA, { state: rampS, size: z })}<figcaption class="lab-cap">${z}</figcaption></figure>`).join(''); };
+seg($('#rampAgent'), AGENTS, rampA, (v) => { rampA = v; ramp(); });
+seg($('#rampState'), MARK_STATES.map((s) => [s, SHORT[s]]), rampS, (v) => { rampS = v; $$('#ramp .am').forEach((m) => setMarkState(m, v)); });
+ramp();
+// three sample jobs walking through a life: thinking → working → needs you → working → done (or failed)
+const JOBS = [
+  { agent: 'claude', title: 'Fix the login redirect on the client page', steps: [['thinking', 'Reading the code', 1600], ['working', 'Working · step 2 of 5', 2600], ['needs', 'Needs you · approve the migration?', 2400], ['working', 'Working · step 4 of 5', 2200], ['done', 'Done · 3 files changed', 0]] },
+  { agent: 'codex', title: 'Nightly: tidy the Corner Market listings', steps: [['thinking', 'Planning', 1300], ['working', 'Working · 18 of 42 listings', 3400], ['done', 'Done · 42 listings', 0]] },
+  { agent: 'codex', title: 'Bump the iOS build to 2.0.0', steps: [['working', 'Working · signing', 2800], ['failed', 'Failed · the CI runner timed out', 0]] },
+];
+let jobTimers = [];
+function playJobs() {
+  jobTimers.forEach(clearTimeout); jobTimers = [];
+  $('#jobs').innerHTML = JOBS.map((j, i) => `<div class="row ic" data-j="${i}"><span class="agent">${markHTML(j.agent, { state: 'idle', size: 18 })}</span><span class="rbody"><span class="rtitle">${esc(j.title)}</span><span class="rmeta"><span class="lab-st">Queued</span></span></span></div>`).join('');
+  JOBS.forEach((j, i) => {
+    const row = $(`[data-j="${i}"]`); let t = 300 + i * 500;
+    j.steps.forEach(([s, label, d]) => { jobTimers.push(setTimeout(() => { setMarkState(row, s); const st = $('.lab-st', row); st.textContent = label; st.className = `lab-st lab-st-${s}`; if (s === 'done') M.haptic('success'); }, t)); t += d; });
+  });
+}
+$('#jobReplay').addEventListener('click', playJobs);
+playJobs();
+pauseOffscreen(document);
+
+// ═══ GLYPHS ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+const GL = [['today', 'draw'], ['wheel', 'rotate'], ['work', 'bounce'], ['content', 'pop'], ['agent', 'twinkle'], ['scan', 'pulse'], ['bell', 'wiggle'], ['heart', 'bounce'], ['send', 'launch'], ['sync', 'rotate'], ['check', 'draw'], ['plus', 'turn']];
+$('#glyphGrid').innerHTML = GL.map(([n, fx]) => `<button class="lab-gl" data-g="${n}" data-fx="${fx}" aria-label="${n}: ${fx}">${n === 'agent' ? glyphHTML('spark', { size: 24 }) : I[n]}</button>`).join('')
+  + `<button class="lab-gl" id="glPP" aria-label="Play or pause">${glyphHTML('playpause', { size: 24 })}</button><button class="lab-gl" id="glScan" aria-label="Scan">${glyphHTML('scan', { size: 24 })}</button><button class="lab-gl" id="glMic" aria-label="Mic level">${glyphHTML('mic', { size: 24 })}</button><button class="lab-gl" id="glSpark" aria-label="Spark thinking">${glyphHTML('spark', { size: 24 })}</button><button class="lab-gl" id="glClaude" aria-label="Claude">${markHTML('claude', { size: 24 })}</button><button class="lab-gl" id="glCodex" aria-label="Codex">${markHTML('codex', { size: 24 })}</button>`;
+$('#glyphGrid').addEventListener('click', (e) => {
+  const b = e.target.closest('.lab-gl'); if (!b) return;
+  if (b.dataset.fx === 'twinkle') twinkle(b); else if (b.dataset.fx) M.symbol(b, b.dataset.fx);
+  if (b.id === 'glPP') { const g = $('.amg', b); setGlyph(g, g.dataset.state === 'pause' ? 'play' : 'pause'); }
+  if (b.id === 'glScan') { const g = $('.amg', b); setGlyph(g, g.dataset.state === 'scanning' ? 'idle' : 'scanning'); }
+  if (b.id === 'glSpark') { const g = $('.amg', b); setGlyph(g, g.dataset.state === 'thinking' ? 'idle' : 'thinking'); }
+  if (b.id === 'glClaude' || b.id === 'glCodex') { const m = $('.am', b); const i = MARK_STATES.indexOf(m.dataset.state); setMarkState(m, MARK_STATES[(i + 1) % MARK_STATES.length]); }
+  M.haptic('tick');
+});
+M.clock.add((t) => { if (!$('#glMic')?.isConnected) return false; setGlyphLevel($('#glMic'), 0.5 + 0.5 * Math.sin(t / 180) * Math.abs(Math.sin(t / 530))); return true; });
+
+// ═══ ORB ═════════════════════════════════════════════════════════════════════════════════════════════════════════════
+const fmtV = (v, sign) => `${sign && v > 0 ? '+' : ''}${v.toFixed(2)}`;
+const moodName = (m) => (m.stress > 0.82 ? 'Overloaded' : m.stress > 0.6 ? 'Stressed' : m.stress > 0.38 ? 'Busy' : m.energy < 0.3 ? 'Low' : m.valence > 0.45 ? 'Happy' : 'Calm');
+const syncMood = () => {
+  const m = getMood();
+  $('#mStress').value = Math.round(m.stress * 100); $('#mEnergy').value = Math.round(m.energy * 100); $('#mValence').value = Math.round(m.valence * 100);
+  $('#oStress').textContent = fmtV(m.stress); $('#oEnergy').textContent = fmtV(m.energy); $('#oValence').textContent = fmtV(m.valence, true);
+  $('#moodWord').textContent = moodName(m);
+};
+const big = mountOrb($('#orbBig'), { size: 200, label: 'Wyn', onTap: () => M.haptic('light'), onBreathEnd: (s) => { $('#breathLast').textContent = `Last: ${s.name}, ${s.rounds} ${s.rounds === 1 ? 'round' : 'rounds'}, ${s.seconds}s${s.completed ? '' : ' (stopped)'}.`; } });
+$('#orbRenderer').textContent = big.renderer === 'webgl' ? 'WebGL' : big.renderer === '2d' ? 'Canvas 2D' : 'CSS';
+seg($('#orbState'), [['calm', 'Calm'], ['listening', 'Listen'], ['thinking', 'Think'], ['speaking', 'Speak']], 'calm', (v) => { big.setState(v); });
+M.clock.add((t) => { const s = big.state; if (s === 'speaking' || s === 'listening') { const lvl = s === 'speaking' ? Math.max(0, Math.sin(t / 110) * 0.5 + Math.sin(t / 47) * 0.3 + 0.25) * (0.6 + 0.4 * Math.sin(t / 900)) : Math.max(0, Math.sin(t / 260)) * 0.35; big.setLevel(lvl); } return true; });
+['Stress', 'Energy', 'Valence'].forEach((k) => $(`#m${k}`).addEventListener('input', (e) => { setMood({ [k.toLowerCase()]: e.target.value / 100 }); syncMood(); }));
+const PRESETS = [['Calm morning', { stress: 0.08, energy: 0.62, valence: 0.35 }], ['Focused', { stress: 0.3, energy: 0.8, valence: 0.2 }], ['Busy', { stress: 0.52, energy: 0.7, valence: 0 }], ['Overloaded', { stress: 0.95, energy: 0.6, valence: -0.5 }], ['Low', { stress: 0.35, energy: 0.15, valence: -0.4 }], ['Happy', { stress: 0.1, energy: 0.85, valence: 0.9 }]];
+$('#moodChips').innerHTML = PRESETS.map(([n], i) => `<button class="chip sm" data-p="${i}">${n}</button>`).join('');
+$('#moodChips').addEventListener('click', (e) => { const b = e.target.closest('[data-p]'); if (!b) return; setMood(PRESETS[+b.dataset.p][1]); syncMood(); $$('#moodChips .chip').forEach((c) => c.classList.toggle('on', c === b)); M.haptic('selection'); });
+setMood({ stress: 0.2, energy: 0.55, valence: 0.1 }); syncMood();
+let pat = 'box';
+seg($('#breathPat'), [['box', 'Box 4-4-4-4'], ['478', '4-7-8']], pat, (v) => { pat = v; });
+$('#breathGo').addEventListener('click', () => { big.startBreathing({ pattern: pat, cycles: 2 }); $('#orbStage').scrollIntoView({ behavior: M.reduced() ? 'auto' : 'smooth', block: 'center' }); });
+const head = mountOrb($('#orbHead'), { size: 36, label: 'Wyn', pattern: 'box', cycles: 2, onTap: () => M.haptic('light') });
+const call = mountOrb($('#orbCall'), { size: 210, interactive: 'full', hold: false, state: 'speaking', label: 'Wyn, speaking' });
+let callSec = 42; setInterval(() => { callSec++; $('#callTime').textContent = `${String(Math.floor(callSec / 60)).padStart(2, '0')}:${String(callSec % 60).padStart(2, '0')}`; }, 1000);
+M.clock.add((t) => { call.setLevel(Math.max(0, Math.sin(t / 95) * 0.45 + Math.sin(t / 37) * 0.25 + 0.2) * (0.5 + 0.5 * Math.abs(Math.sin(t / 1300)))); return true; });
+$('#wynLines').innerHTML = [['idle', 'Moved “Gym” to 7:30 tomorrow. The 22:00 slot was too late.', '07:50'], ['thinking', 'Looking at your week…', 'now'], ['needs', 'Dad asked about the GST filing. Reply now or tonight?', '17:12']].map(([s, t, w]) => `<div class="row">${markHTML('wyn', { state: s, size: 24 })}<span class="rbody"><span class="rtitle wrap">${esc(t)}</span><span class="rmeta">${w}</span></span></div>`).join('');
+
+// ═══ KIT ═════════════════════════════════════════════════════════════════════════════════════════════════════════════
+// springs: a knob you can throw between three snap points
+const track = $('#track'), knob = $('#knob');
+const spCfg = () => ({ response: +$('#spResp').value / 100, damping: +$('#spDamp').value / 100 });
+let dragger = null;
+const snaps = () => { const w = track.clientWidth; return [0.15, 0.5, 0.85].map((f) => ({ x: f * w, y: 0 })); };
+const makeDrag = () => {
+  dragger?.destroy();
+  const w = track.clientWidth;
+  dragger = M.drag(knob, { axis: 'x', handle: track, initial: { x: 0.5 * w, y: 0 }, bounds: () => ({ left: 0.15 * track.clientWidth, right: 0.85 * track.clientWidth }), snap: (p) => snaps().reduce((b, s) => (Math.abs(s.x - p.x) < Math.abs(b.x - p.x) ? s : b)), spring: spCfg(), onRest: () => M.haptic('tick') });
+};
+requestAnimationFrame(makeDrag);
+const plot = () => {
+  const c = spCfg(); const f = M.springCurve(c); $('#oResp').textContent = c.response.toFixed(2); $('#oDamp').textContent = c.damping.toFixed(2);
+  const T = f.duration / 1000; const pts = []; const osc = (t) => { const w0 = 2 * Math.PI / c.response; const z = c.damping; if (Math.abs(z - 1) < 1e-3) return 1 - Math.exp(-w0 * t) * (1 + w0 * t); if (z < 1) { const wd = w0 * Math.sqrt(1 - z * z); return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t)); } const q = Math.sqrt(z * z - 1), r1 = -w0 * (z - q), r2 = -w0 * (z + q), C1 = (-r2 * -1) / (r1 - r2), C2 = -1 - C1; return 1 + C1 * Math.exp(r1 * t) + C2 * Math.exp(r2 * t); };
+  for (let i = 0; i <= 60; i++) { const t = (i / 60) * Math.max(T, 0.3); pts.push(`${(i / 60) * 300} ${80 - osc(t) * 62}`); }
+  $('#plotPath').setAttribute('d', `M${pts.join('L')}`);
+  makeDrag();
+};
+['#spResp', '#spDamp'].forEach((s) => $(s).addEventListener('input', plot));
+requestAnimationFrame(plot);
+// FLIP
+let flipItems = [['Morning pages', 'growth'], ['Gym, push day', 'body'], ['Shop accounts with Dad', 'family'], ['Reel: the kurta fold', 'mission'], ['Read 20 pages', 'mind']].map(([t, a], i) => ({ id: `f${i}`, t, a }));
+let fid = 5;
+const flipRender = () => { $('#flipList').innerHTML = flipItems.map((x) => `<div class="lab-fi" data-key="${x.id}"><i class="dot" style="--c: var(--${x.a})"></i>${esc(x.t)}</div>`).join(''); };
+flipRender();
+$('#flipShuffle').addEventListener('click', () => M.flipList($('#flipList'), () => { flipItems = flipItems.map((x) => [Math.random(), x]).sort((a, b) => a[0] - b[0]).map((x) => x[1]); flipRender(); }));
+$('#flipAdd').addEventListener('click', () => M.flipList($('#flipList'), () => { const opts = [['Call Kabir', 'friends'], ['Budget for November', 'money'], ['Ten minutes, no phone', 'soul']]; const [t, a] = opts[fid % 3]; flipItems.splice(1, 0, { id: `f${fid++}`, t, a }); flipRender(); }));
+$('#flipDel').addEventListener('click', () => { if (!flipItems.length) return; M.flipList($('#flipList'), () => { flipItems.splice(Math.min(1, flipItems.length - 1), 1); flipRender(); }); });
+// stagger
+$('#stagList').innerHTML = ['Inbox zero', 'Plan tomorrow', 'Close the day', 'Walk, 20 min', 'Sleep by 23:30'].map((t, i) => `<div class="lab-fi"><i class="dot" style="--c: var(--${['growth', 'mission', 'growth', 'body', 'body'][i]})"></i>${t}</div>`).join('');
+$('#stagGo').addEventListener('click', () => M.stagger($$('#stagList .lab-fi')));
+// rolling numbers
+let money = 123456, pct = 64;
+$('#rollMoney').innerHTML = M.rollHTML(money, { prefix: '₹' });
+$('#rollPct').innerHTML = M.rollHTML(pct, { suffix: '%' });
+const setMoney = (v) => { money = Math.max(0, v); M.roll($('#rollMoney'), money, { prefix: '₹' }); pct = Math.round(Math.min(100, money / 2000)); M.roll($('#rollPct'), pct, { suffix: '%' }); };
+$('#rollUp').addEventListener('click', () => setMoney(money + 1250));
+$('#rollDn').addEventListener('click', () => setMoney(money - 380));
+$('#rollBig').addEventListener('click', () => setMoney(money + 999000));
+$('#rollRnd').addEventListener('click', () => setMoney(Math.round(Math.random() * 200000)));
+// morph
+const poly = (n, r, rot = -90, cx = 32, cy = 32) => `M${Array.from({ length: n }, (_, i) => { const a = (rot + (360 * i) / n) * Math.PI / 180; return `${(cx + r * Math.cos(a)).toFixed(2)} ${(cy + r * Math.sin(a)).toFixed(2)}`; }).join('L')}Z`;
+const star = (n, r1, r2) => `M${Array.from({ length: n * 2 }, (_, i) => { const r = i % 2 ? r2 : r1; const a = (-90 + (180 * i) / n) * Math.PI / 180; return `${(32 + r * Math.cos(a)).toFixed(2)} ${(32 + r * Math.sin(a)).toFixed(2)}`; }).join('L')}Z`;
+const SHAPES = [['Circle', 'M32 6a26 26 0 1 1 0 52a26 26 0 1 1 0-52Z'], ['Hexagon', poly(6, 27)], ['Star', star(5, 28, 12)], ['Heart', 'M32 54C14 42 6 32 6 21c0-7 6-13 13-13 6 0 10 3 13 8 3-5 7-8 13-8 7 0 13 6 13 13 0 11-8 21-26 33Z'], ['Blob', 'M33 6c11 0 23 7 24 19 1 10-5 14-4 22 1 9-9 13-19 12-11-1-14-8-21-11C5 45 5 35 7 27 9 15 21 6 33 6Z']];
+let mi = 0; $('#morphPath').setAttribute('d', SHAPES[0][1]);
+$('#morphBtn').addEventListener('click', () => { mi = (mi + 1) % SHAPES.length; $('#morphName').textContent = SHAPES[mi][0]; M.morph($('#morphPath'), SHAPES[mi][1], { spring: 'reshape' }); M.haptic('tick'); });
+$('#ppBtn').innerHTML = glyphHTML('playpause', { size: 40 });
+$('#ppBtn').addEventListener('click', () => { const g = $('.amg', $('#ppBtn')); setGlyph(g, g.dataset.state === 'pause' ? 'play' : 'pause'); M.haptic('tick'); });
+// view transitions
+const VT = { today: ['Today', '3 of 8 tasks done, 1h still free.'], life: ['Life', 'Growth moved most since July. Romance hasn’t.'], work: ['Work', 'Two jobs running, one needs you.'] };
+const vtOrder = Object.keys(VT);
+const vtShow = (k) => { $('#vtPanel').innerHTML = `<h4>${VT[k][0]}</h4><p>${VT[k][1]}</p>`; };
+vtShow('today');
+seg($('#vtSeg'), vtOrder.map((k) => [k, VT[k][0]]), 'today', (v, prev) => M.viewTransition(() => vtShow(v), { type: 'tab', dir: Math.sign(vtOrder.indexOf(v) - vtOrder.indexOf(prev)) }));
+// scroll-driven
+$('#scroller').insertAdjacentHTML('beforeend', [...Array(3)].map((_, i) => `<div class="lab-sci mx-reveal">Row ${i + 1} rises as it enters</div>`).join('') + '<div class="lab-par"><i class="mx-parallax"></i><b>The picture drifts</b></div>' + [...Array(5)].map((_, i) => `<div class="lab-sci mx-reveal">Row ${i + 4}</div>`).join(''));
+M.scrollFx($('#scroller'));
+// toast: presence + a swipe up to dismiss
+const toast = $('#labToast');
+toast.innerHTML = `${I.check}<span>Expense logged · ₹240, chai with Rohan</span><button class="btn sm">Undo</button>`;
+let toastDrag = null, toastT;
+const toastHide = () => { clearTimeout(toastT); M.presence(toast, false, { y: -14 }); };
+$('#toastGo').addEventListener('click', () => {
+  toastDrag?.destroy(); toast.style.transform = '';
+  M.presence(toast, true, { y: -18, scale: 0.94, spring: 'snappy' }); M.haptic('success');
+  toastDrag = M.drag(toast, { axis: 'y', bounds: { top: -120, bottom: 0 }, rubber: 0.4, onRelease: ({ y, vy }) => { if (y < -28 || vy < -350) { toastHide(); return { x: 0, y: -90 }; } return { x: 0, y: 0 }; } });
+  clearTimeout(toastT); toastT = setTimeout(toastHide, 3200);
+});
+const HN = ['tick', 'light', 'medium', 'heavy', 'success', 'warning', 'error', 'breathe-in', 'breathe-hold', 'breathe-out', 'ring-close', 'heartbeat'];
+$('#hapticChips').innerHTML = HN.map((n) => `<button class="chip sm" data-h="${n}">${n}</button>`).join('');
+$('#hapticBtn').addEventListener('click', () => { $('#hapticChips').hidden = !$('#hapticChips').hidden; });
+$('#hapticChips').addEventListener('click', (e) => { const b = e.target.closest('[data-h]'); if (!b) return; M.haptic(b.dataset.h); setTimeout(() => { $('#hapticSrc').textContent = `“${b.dataset.h}” went through: ${M.hapticSource()}`; }, 30); });
+
+// ═══ GRAPH ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+const ASP = [['body', 'Body', 0.2], ['mind', 'Mind', 0.3], ['soul', 'Soul', 0.2], ['mission', 'Mission', 0.3], ['money', 'Money', 0.4], ['growth', 'Growth', 0.5], ['family', 'Family', 0.5], ['romance', 'Romance', 0.1], ['friends', 'Friends', 0.2]];
+function lifeMap() {
+  const nodes = [{ id: 'me', kind: 'hub', label: 'You', initial: 'V' }];
+  const links = [];
+  for (const [id, label, s] of ASP) { nodes.push({ id: `a:${id}`, kind: 'aspect', group: id, label, size: s * 2, ring: s, hollow: id === 'romance' }); links.push(['me', `a:${id}`]); }
+  const AREAS = [['college', 'City College', 'mind', 'mission'], ['store', 'Morgan & Co.', 'family', 'money'], ['market', 'Corner Market', 'money', 'mission'], ['studio', 'Northwind Studio', 'mission', 'money'], ['projects', 'Projects', 'growth', 'mission'], ['content', 'Content', 'mission', 'growth'], ['health', 'Personal + Health', 'body', 'soul']];
+  for (const [id, label, a, b] of AREAS) { nodes.push({ id: `r:${id}`, kind: 'area', group: a, label }); links.push([`a:${a}`, `r:${id}`]); if (b) links.push({ source: `r:${id}`, target: `a:${b}`, dotted: true }); }
+  const GOALS = [['g1', '₹1 lakh a month', 'r:studio', 'money'], ['g2', 'Ship Agentic OS 2.0', 'r:projects', 'growth'], ['g3', 'Gym four times a week', 'r:health', 'body'], ['g4', 'Twelve books this year', 'r:college', 'mind'], ['g5', 'Store live with 200 kurtas', 'r:market', 'money'], ['g6', 'A reel every day', 'r:content', 'mission']];
+  for (const [id, label, area, g] of GOALS) { nodes.push({ id, kind: 'goal', group: g, label }); links.push([area, id]); }
+  const PROJ = [['p1', 'Agentic OS', 'r:projects', 'growth'], ['p2', 'Reel Lab', 'r:content', 'mission'], ['p3', 'Tapline', 'r:projects', 'growth'], ['p4', 'Corner Market app', 'r:market', 'money']];
+  for (const [id, label, area, g] of PROJ) { nodes.push({ id, kind: 'project', group: g, label }); links.push([area, id]); }
+  const TASKS = [['r:college', 'mind', 4], ['r:store', 'family', 3], ['r:market', 'money', 5], ['r:studio', 'mission', 3], ['r:projects', 'growth', 4], ['r:content', 'mission', 3], ['r:health', 'body', 2]];
+  let n = 0; for (const [area, g, c] of TASKS) for (let i = 0; i < c; i++) { const id = `t${n++}`; nodes.push({ id, kind: 'task', group: g, label: `Task ${n}`, done: i === 0 }); links.push([area, id]); }
+  for (const [id, label, g] of [['dad', 'Dad', 'family'], ['mom', 'Mom', 'family'], ['kabir', 'Kabir', 'friends'], ['rohan', 'Rohan', 'friends']]) { nodes.push({ id: `p:${id}`, kind: 'person', group: g, label }); links.push([`a:${g}`, `p:${id}`]); }
+  links.push({ source: 'p:dad', target: 'r:store', dotted: true });
+  return { nodes, links };
+}
+function brain() {
+  const d = lifeMap(); const ids = ASP.map(([id]) => id); let k = 0;
+  for (const g of ids) { const c = 22 + ((g.length * 7) % 10); for (let i = 0; i < c; i++) { const id = `n:${g}${i}`; d.nodes.push({ id, kind: 'note', group: g, label: `${g[0].toUpperCase()}${g.slice(1)} note ${i + 1}` }); d.links.push([`a:${g}`, id]); if (i > 1 && i % 3 === 0) d.links.push([id, `n:${g}${i - 2}`]); if (k % 5 === 0) d.links.push({ source: id, target: `n:${ids[(ids.indexOf(g) + 1) % ids.length]}0`, dotted: true }); k++; } }
+  return d;
+}
+const info = (n) => {
+  const box = $('#graphInfo');
+  if (!n) { box.innerHTML = '<span>Tap a node to trace its links. Pinch or scroll to zoom; double-tap to zoom in.</span>'; return; }
+  box.innerHTML = `<i class="dot" style="--c: var(--${n.group ?? 'ink'})"></i><b>${esc(n.label)}</b><span>${esc(n.kind)}${n.group ? ` · ${esc(n.group)}` : ''}</span>`;
+};
+let graph = null, mode = 'map';
+const mountG = () => { graph?.destroy(); const d = mode === 'map' ? lifeMap() : brain(); graph = mountGraph($('#graphBox'), { ...d, capture: 'card', label: mode === 'map' ? 'Life map' : 'Brain', onTap: info }); $('#graphCount').textContent = `Sample · ${d.nodes.length} nodes`; info(null); window.__lab.graph = graph; };
+seg($('#graphMode'), [['map', 'Life map'], ['brain', 'Brain (240 notes)']], 'map', (v) => { mode = v; mountG(); });
+$('#graphChips').innerHTML = [['fit', 'Fit'], ['money', 'Focus Money'], ['family', 'Focus Family'], ['add', 'Add a goal'], ['clear', 'Clear']].map(([k, l]) => `<button class="chip sm" data-gc="${k}">${l}</button>`).join('');
+let added = 0;
+$('#graphChips').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-gc]'); if (!b || !graph) return; const k = b.dataset.gc;
+  if (k === 'fit') graph.zoomTo('fit');
+  if (k === 'money' || k === 'family') { graph.focus(`a:${k}`); info({ label: k[0].toUpperCase() + k.slice(1), kind: 'aspect', group: k }); }
+  if (k === 'clear') { graph.focus(null); info(null); }
+  if (k === 'add') { const d = mode === 'map' ? lifeMap() : brain(); added++; for (let i = 0; i < added; i++) { d.nodes.push({ id: `gx${i}`, kind: 'goal', group: 'romance', label: i ? `Romance goal ${i + 1}` : 'Plan one real date' }); d.links.push(['a:romance', `gx${i}`]); } d.nodes.find((n) => n.id === 'a:romance').hollow = false; graph.update(d); }
+});
+const timed = () => document.getAnimations().filter((a) => a.timeline === document.timeline && typeof a.currentTime === 'number' || a.currentTime == null && a.timeline === document.timeline);
+window.__lab = { M, big, head, call, getMood, setMarkState, graph: null, mountG,
+  setMood: (m) => { setMood(m); syncMood(); },
+  // frame-exact captures: freeze the motion clock and every CSS / WAAPI animation, then advance them together
+  freeze() { M.clock.manual(); timed().forEach((a) => a.pause()); },
+  advance(dt) { M.clock.step(dt); for (const a of timed()) { if (a.playState !== 'paused') a.pause(); a.currentTime = (+a.currentTime || 0) + dt; } },
+  thaw() { timed().forEach((a) => a.play()); M.clock.auto(); },
+};
+mountG();
+
+// ═══ PERF (?perf=1): frame times of the last second ═════════════════════════════════════════════════════════════════
+if (Q.get('perf')) {
+  const box = document.createElement('div'); box.className = 'lab-perf'; $('#phone').append(box);
+  let last = performance.now(), times = [], long = 0, total = 0;
+  const loop = (t) => { const d = t - last; last = t; times.push(d); total++; if (d > 20) long++; requestAnimationFrame(loop); };
+  requestAnimationFrame(loop);
+  setInterval(() => { const s = [...times].sort((a, b) => a - b); const p = (q) => s[Math.min(s.length - 1, Math.floor(q * s.length))]?.toFixed(1); box.textContent = `fps ${times.length}  p50 ${p(0.5)}  p95 ${p(0.95)}  max ${s[s.length - 1]?.toFixed(1)}\nlong ${long}/${total}`; window.__perf = { fps: times.length, p50: +p(0.5), p95: +p(0.95), max: s[s.length - 1], long, total }; times = []; }, 1000);
+}
+if (location.hash) requestAnimationFrame(() => document.querySelector(location.hash)?.scrollIntoView({ block: 'start' }));
+</script>
+</body>
+</html>

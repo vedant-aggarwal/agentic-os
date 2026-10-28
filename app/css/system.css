@@ -1,0 +1,672 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   AGENTIC OS · the shared system. One app, two skins: Obsidian and Matte.
+
+   FILE MAP (index.html loads them in this order; the order is part of the design)
+     css/system.css          shared structure: layout, geometry, spacing, type roles, every shared component.
+                             Colours and materials are only ever read here through tokens. Owned by the lead.
+     css/skins/obsidian.css  Obsidian's tokens, materials, textures, fonts, ring paint, light and bloom.
+     css/skins/matte.css     Matte's tokens, materials, textures, fonts, ring paint and ink-in.
+     css/screens/<area>.css  one file per screen area. Each file has three blocks, in this order:
+                               1 · shared   the screen's layout, written once for every skin
+                               2 · OBSIDIAN what Obsidian does differently on this screen
+                               3 · MATTE    what Matte does differently on this screen
+                             A screen's owner edits only that file (and the screen's JS).
+
+   HOW SKINS ARE SCOPED
+     The skin is an attribute on <html>: data-skin="obsidian" | "matte". index.html sets it before the
+     first paint from ?skin=, else localStorage (aos-skin), else Obsidian; js/skin.js switches it.
+     · Skin tokens:  :root[data-skin="x"] { --token: value }       (beats the defaults in :root below)
+     · Skin rules:   :where(:root[data-skin="x"]) .selector { … }  The :where() adds no specificity, so a
+       skin rule weighs exactly what the shared rule it amends weighs and wins by coming later. A more
+       specific shared rule (a screen's .ask-b .btn) still beats a skin's .btn, as it would in one file.
+     · Light theme: data-theme="light" on <html> as well; skins scope it as :root[data-skin="x"][data-theme="light"].
+     · .stay-dark: the teleprompter and the call screen keep the dark tokens in the light theme.
+     · Keyframes: shared ones keep plain names (rot, swap, beat, check-*); a skin's own start with
+       its prefix (obs-*, mat-*), so the two can never collide.
+
+   THE TOKEN CONTRACT: every skin defines
+     ink        --ink --ink-2 --ink-3 --ink-4 --on-color --on-deep --island
+     domains    --{today|jobs|clients|content|life} plus -a, -b (ring ends), -ink (text-safe tint), -fill (what that
+                domain's one primary action is filled with); --content-2 (Content's second channel)
+     semantics  --needs --needs-ink --done --warn --fail --fail-ink
+     materials  E0 ground   --e0 (colour) --e0-bg (background) --e0-veil
+                E1 surface  --e1 (solid colour, for knockouts) --e1-bg --e1-box   everything you read
+                E2 chrome   --e2 (background) --e2-box --e2-blur                  what floats: bars, + , top buttons
+                E3 overlay  --e3 --e3-bg --e3-box --e3-blur                       sheets, peek, menus, toast, banners
+                controls    --ctl --ctl-box --ctl-press   a control at rest, and pressed · --row-press a pressed row
+                inlay       --inlay --inlay-box           an area set into a surface or a sheet
+                fills       --fill-1 --fill-2 --fill-3 --sep --scrim --peek-veil --peek-blur --veil-blur --veil-mask
+     states     --sel --sel-edge (the selection lens: tab bar, segmented) · --pick --pick-fg --pick-edge (a chosen chip,
+                list or option) · --press --press-filter --off --focus --field-focus --knob --knob-shadow
+     frame      --stage-bg --frame-1 --frame-2 --page-shadow --push-dim
+     motion     --draw --ease-draw --count-ease (spring | ink)
+   …and may retune the structural tokens marked "skin" below.
+
+   ADDING A THIRD SKIN
+     1 Copy css/skins/matte.css to css/skins/<name>.css, scope it to :root[data-skin="<name>"], set every
+       token in the contract, then paint the rings (.rg-t, .rg-a, .rg-o and the caps) and the swatch.
+     2 Link it in index.html and system.html after the other skins; add { id, name, bar, icon } to SKINS in js/skin.js
+       and the name to the ok() check in index.html's first script.
+     3 Add a "<NAME>" block at the end of each screen file for whatever that screen should do differently.
+     Nothing in the shared blocks needs to change.
+
+   Default skin: Obsidian. A skin block restates only what that skin does differently.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600..900&family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap');
+
+@property --rp { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --cp { syntax: '<number>'; inherits: false; initial-value: 0; }
+
+/* ═══ 1 · STRUCTURAL TOKENS ═══════════════════════════════════════════════ */
+:root {
+  /* 1.1 families. SF on iPhone; Geist, Nunito and Geist Mono stand in on desktop previews only */
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Geist", system-ui, sans-serif;
+  --round: ui-rounded, "SF Pro Rounded", "Nunito", -apple-system, system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Geist Mono", Menlo, Consolas, monospace;
+  /* titles and monograms: their face, weight and optical size (skin) */
+  --ff-title: var(--font); --w-display: 700; --w-title: 700; --fv-display: normal; --fv-title: normal; --ls-display: 0;
+  --ff-mono-g: var(--round); --w-mono-g: 700; --fv-mono-g: normal;
+
+  /* 1.2 spacing: a 4pt grid on an 8pt rhythm, named by multiples of 4. s-0 is for hairline gaps between rings only */
+  --s-0: 2px; --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px;
+  --s-8: 32px; --s-10: 40px; --s-12: 48px; --s-16: 64px;
+  --gutter: var(--s-4);              /* page margin (skin) */
+  --gap-sec: var(--s-6);             /* the rhythm between sections (skin) */
+  --hit: 44px;                       /* smallest touch target */
+
+  /* 1.3 type roles: size / line height. Weights are 400, 600, 700 */
+  --fs-display: 34px;  --lh-display: 41px;    /* large titles (skin) */
+  --fs-title1: 28px;   --lh-title1: 34px;
+  --fs-title2: 22px;   --lh-title2: 28px;
+  --fs-title3: 20px;   --lh-title3: 25px;     /* section headers */
+  --fs-headline: 17px; --lh-headline: 22px;   /* semibold row titles */
+  --fs-body: 17px;     --lh-body: 22px;
+  --fs-callout: 16px;  --lh-callout: 21px;    /* inputs, bubbles */
+  --fs-subhead: 15px;  --lh-subhead: 20px;
+  --fs-footnote: 13px; --lh-footnote: 18px;   /* meta */
+  --fs-caption: 12px;  --lh-caption: 16px;    /* the floor: nothing smaller */
+  --w-regular: 400; --w-semibold: 600; --w-bold: 700;
+  /* figures: SF Rounded, tabular. Large figures may go lighter so they read at the same weight (skin) */
+  --fs-fig-hero: 64px; --fs-fig-1: 44px; --fs-fig-2: 28px; --fs-fig-3: 20px; --fs-fig-4: 15px;
+  --w-fig-l: 600; --w-fig: 700;
+  /* two displays read at arm's length: the teleprompter line and its countdown */
+  --fs-prompt: 30px; --lh-prompt: 39px; --fs-countdown: 108px;
+
+  /* 1.4 radii. Inner radius = outer radius − padding, so nested corners stay concentric */
+  --r-xs: 6px; --r-sm: 10px; --r-md: 14px; --r-lg: 20px; --r-xl: 26px; --r-sheet: 38px; --r-pill: 999px;
+  --r-track: var(--r-pill);          /* bars, strips, rails (skin) */
+  --hair: .5px;                      /* hairline rules (skin) */
+
+  /* 1.5 motion shared by every skin. The ring draw is the skin's own (--draw, --ease-draw) */
+  --ease: cubic-bezier(.22, 1, .36, 1);          /* settle */
+  --ease-move: cubic-bezier(.32, .72, 0, 1);     /* pages and sheets */
+  --spring: cubic-bezier(.2, .9, .25, 1);        /* small things that land */
+  --d-press: 120ms; --d-state: 220ms; --d-move: 480ms; --d-skin: 240ms;
+
+  /* 1.6 areas (live agentos colours): only ever 8px dots and 3px rails */
+  --a-college: #5b8def; --a-store: #d9822b; --a-market: #e0559b; --a-northwind: #7c5cff;
+  --a-projects: #2bb39a; --a-content: #f2b134; --a-personal: #4caf50; --a-none: #8e8e93;
+
+  /* 1.8 the nine aspects of the life wheel (reimagine). Each skin sets the base (--body …); the ring ends, the
+     text-safe tint and the fill derive from it, and a skin may set any of them itself. Mixing the tint toward --ink
+     lightens it on dark and darkens it on light, so one rule reads in both themes. Inside an aspect app,
+     [data-aspect] maps them onto --as --as-a --as-b --as-ink --as-fill (css/aspects.css). */
+  --body-a: color-mix(in oklch, var(--body) 84%, #000); --body-b: color-mix(in oklch, var(--body) 70%, #fff); --body-ink: color-mix(in oklch, var(--body) 74%, var(--ink)); --body-fill: var(--body);
+  --mind-a: color-mix(in oklch, var(--mind) 84%, #000); --mind-b: color-mix(in oklch, var(--mind) 70%, #fff); --mind-ink: color-mix(in oklch, var(--mind) 74%, var(--ink)); --mind-fill: var(--mind);
+  --soul-a: color-mix(in oklch, var(--soul) 84%, #000); --soul-b: color-mix(in oklch, var(--soul) 70%, #fff); --soul-ink: color-mix(in oklch, var(--soul) 74%, var(--ink)); --soul-fill: var(--soul);
+  --mission-a: color-mix(in oklch, var(--mission) 84%, #000); --mission-b: color-mix(in oklch, var(--mission) 70%, #fff); --mission-ink: color-mix(in oklch, var(--mission) 74%, var(--ink)); --mission-fill: var(--mission);
+  --money-a: color-mix(in oklch, var(--money) 84%, #000); --money-b: color-mix(in oklch, var(--money) 70%, #fff); --money-ink: color-mix(in oklch, var(--money) 74%, var(--ink)); --money-fill: var(--money);
+  --growth-a: color-mix(in oklch, var(--growth) 84%, #000); --growth-b: color-mix(in oklch, var(--growth) 70%, #fff); --growth-ink: color-mix(in oklch, var(--growth) 74%, var(--ink)); --growth-fill: var(--growth);
+  --family-a: color-mix(in oklch, var(--family) 84%, #000); --family-b: color-mix(in oklch, var(--family) 70%, #fff); --family-ink: color-mix(in oklch, var(--family) 74%, var(--ink)); --family-fill: var(--family);
+  --romance-a: color-mix(in oklch, var(--romance) 84%, #000); --romance-b: color-mix(in oklch, var(--romance) 70%, #fff); --romance-ink: color-mix(in oklch, var(--romance) 74%, var(--ink)); --romance-fill: var(--romance);
+  --friends-a: color-mix(in oklch, var(--friends) 84%, #000); --friends-b: color-mix(in oklch, var(--friends) 70%, #fff); --friends-ink: color-mix(in oklch, var(--friends) 74%, var(--ink)); --friends-fill: var(--friends);
+  /* the label on each aspect's fill (a skin overrides it where the skin's --on-color falls under 4.5:1; tools/contrast.mjs) */
+  --body-on: var(--on-color); --mind-on: var(--on-color); --soul-on: var(--on-color); --mission-on: var(--on-color); --money-on: var(--on-color); --growth-on: var(--on-color); --family-on: var(--on-color); --romance-on: var(--on-color); --friends-on: var(--on-color);
+
+  /* 1.7 layout. The desktop preview frame overrides the safe areas on .phone */
+  --safe-top: max(env(safe-area-inset-top), 14px);
+  --safe-bottom: max(env(safe-area-inset-bottom), 12px);
+  --topbar-h: 52px;
+  --dock-h: 62px;
+  --acc-h: 44px;
+
+  /* names the screens and the mock data already use, mapped onto the contract */
+  --bg: var(--e0); --surface: var(--e1);
+  --orange: var(--needs); --amber: var(--needs); --red: var(--fail-ink); --green: var(--done);
+  --blue: var(--ink); --mint: var(--content); --violet: var(--life); --indigo: var(--life);
+  --yellow: var(--warn); --pink: var(--today);
+  --claude: var(--ink); --codex: var(--ink);    /* agents are glyphs, not colours */
+}
+
+/* ═══ 2 · BASE ════════════════════════════════════════════════════════════ */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; background: var(--e0); }
+body {
+  font-family: var(--font); font-size: var(--fs-body); line-height: var(--lh-body); color: var(--ink);
+  -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%; font-kerning: normal;
+  overscroll-behavior: none; overflow: hidden;
+}
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
+input, textarea { font: inherit; color: inherit; }
+svg { display: block; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.vh { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.num { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--mono); font-size: .86em; }
+.rnd { font-family: var(--round); font-weight: var(--w-fig); font-variant-numeric: tabular-nums; }
+/* the figure face: SF Rounded, tabular, so counting numbers never jitter */
+.met { font-family: var(--round); font-weight: var(--w-fig); font-variant-numeric: tabular-nums; line-height: 1; }
+.met small, .met .u { font-family: var(--round); font-weight: var(--w-semibold); font-size: .5em; color: var(--ink-2); margin-left: .1em; }
+.c-today { color: var(--today-ink); }
+.c-jobs { color: var(--jobs-ink); }
+.c-clients { color: var(--clients-ink); }
+.c-content { color: var(--content-ink); }
+.c-life { color: var(--life-ink); }
+.c-body { color: var(--body-ink); }
+.c-mind { color: var(--mind-ink); }
+.c-soul { color: var(--soul-ink); }
+.c-mission { color: var(--mission-ink); }
+.c-money { color: var(--money-ink); }
+.c-growth { color: var(--growth-ink); }
+.c-family { color: var(--family-ink); }
+.c-romance { color: var(--romance-ink); }
+.c-friends { color: var(--friends-ink); }
+.c-needs, .amber { color: var(--needs-ink) !important; }
+.late { color: var(--needs-ink); }
+/* a glyph each skin drew for itself (js/icons.js): the default skin's shows, a skin may swap in its own */
+svg .ig-matte { display: none; }
+
+/* ═══ 3 · TYPE ROLES ══════════════════════════════════════════════════════ */
+.display, .lt { font-family: var(--ff-title); font-size: var(--fs-display); line-height: var(--lh-display); font-weight: var(--w-display); font-variation-settings: var(--fv-display); letter-spacing: var(--ls-display); margin: 0; }
+.title1 { font-family: var(--ff-title); font-size: var(--fs-title1); line-height: var(--lh-title1); font-weight: var(--w-title); font-variation-settings: var(--fv-title); margin: 0; }
+.title2, .t1 { font-size: var(--fs-title2); line-height: var(--lh-title2); font-weight: var(--w-bold); margin: 0; }
+.title3 { font-size: var(--fs-title3); line-height: var(--lh-title3); font-weight: var(--w-semibold); margin: 0; }
+.headline, .t2 { font-size: var(--fs-headline); line-height: var(--lh-headline); font-weight: var(--w-semibold); margin: 0; }
+.body { font-size: var(--fs-body); line-height: var(--lh-body); margin: 0; }
+.callout { font-size: var(--fs-callout); line-height: var(--lh-callout); margin: 0; }
+.subhead, .sub { font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); margin: 0; }
+.footnote, .foot { font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); margin: 0; }
+.caption, .cap { font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--ink-3); }
+.kicker { font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold); color: var(--ink-2); }
+.sub b, .foot b { color: var(--ink); font-weight: var(--w-semibold); }
+
+/* ═══ 4 · STAGE (desktop preview frame; on a phone the page is the screen) ═══ */
+.stage { position: fixed; inset: 0; display: grid; place-items: center; background: var(--e0); }
+.phone { position: relative; width: 100vw; height: 100dvh; overflow: hidden; overflow: clip; background: var(--e0-bg); isolation: isolate; }   /* clip: scrollIntoView can't scroll the frame itself */
+@media (min-width: 640px) {
+  .stage { background: var(--stage-bg); }
+  .phone {
+    width: 402px; height: 874px; border-radius: 58px;
+    box-shadow: 0 0 0 11px var(--frame-1), 0 0 0 12.5px var(--frame-2), 0 40px 100px rgba(0, 0, 0, .6);
+    --safe-top: 58px; --safe-bottom: 26px;
+  }
+  .phone::after { content: ""; position: absolute; z-index: 90; top: 11px; left: 50%; translate: -50% 0; width: 124px; height: 36px; border-radius: 20px; background: #000; }
+  .desk-status { display: flex !important; }
+}
+.desk-status {
+  display: none; position: absolute; z-index: 89; top: 0; left: 0; right: 0; height: 54px;
+  padding: 18px 34px 0 46px; justify-content: space-between; align-items: center;
+  font-size: var(--fs-callout); font-weight: var(--w-semibold); line-height: 1; pointer-events: none;
+}
+.desk-status .ds-icons { display: flex; gap: var(--s-1); align-items: center; }
+.desk-status svg { fill: var(--ink); }
+
+/* ═══ 5 · MATERIALS ═══════════════════════════════════════════════════════
+   Three classes for markup; screens apply the same tokens to their own elements.
+     .surface  E1: everything you read (cards, panels). .group and .note are surfaces too
+     .chrome   E2: what floats over content (tab bar, accessory, +, top-bar buttons, sticky switch, composer)
+     .overlay  E3: what is modal or passing (sheets, peek, menus, toast, banners)
+   A skin decides what they are made of (Obsidian: stone and glass; Matte: matte stock). */
+.surface, .group, .note { background: var(--e1-bg); box-shadow: var(--e1-box); }
+.chrome {
+  position: relative; isolation: isolate;
+  background: var(--e2);
+  -webkit-backdrop-filter: var(--e2-blur); backdrop-filter: var(--e2-blur);
+  box-shadow: var(--e2-box);
+}
+.overlay {
+  position: relative; isolation: isolate;
+  background: var(--e3-bg);
+  -webkit-backdrop-filter: var(--e3-blur); backdrop-filter: var(--e3-blur);
+  box-shadow: var(--e3-box);
+}
+
+/* ═══ 6 · PAGES, TOP BAR ══════════════════════════════════════════════════ */
+.pages { position: absolute; inset: 0; z-index: 1; transition: transform var(--mx-page-d, var(--d-move)) var(--mx-page, var(--ease-move)), filter var(--mx-page-d, var(--d-move)) var(--mx-page, var(--ease-move)); }
+.page { position: absolute; inset: 0; display: flex; flex-direction: column; background: transparent; }
+.page[hidden] { display: none; }
+.scroll {
+  flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;
+  padding: calc(var(--safe-top) + var(--topbar-h)) 0 calc(var(--safe-bottom) + var(--dock-h) + 96px);
+  scrollbar-width: none;
+}
+.scroll::-webkit-scrollbar { display: none; }
+.pad { padding-left: var(--gutter); padding-right: var(--gutter); }
+
+/* the top bar floats; once content passes under it, a scroll-edge veil fades in. No divider */
+.topbar {
+  position: absolute; z-index: 20; top: 0; left: 0; right: 0;
+  height: calc(var(--safe-top) + var(--topbar-h)); padding: var(--safe-top) var(--s-3) 0;
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--s-2);
+  pointer-events: none;
+}
+.topbar > * { pointer-events: auto; }
+.topbar::before {
+  content: ""; position: absolute; inset: 0 0 -26px; z-index: -1; pointer-events: none;
+  -webkit-backdrop-filter: var(--veil-blur); backdrop-filter: var(--veil-blur);
+  background: linear-gradient(180deg, var(--e0-veil), transparent);
+  -webkit-mask: var(--veil-mask); mask: var(--veil-mask);
+  opacity: 0; transition: opacity var(--d-state) var(--ease);
+}
+.page.scrolled .topbar::before { opacity: 1; }
+.tb-left { justify-self: start; display: flex; gap: var(--s-2); align-items: center; }
+.tb-right { justify-self: end; display: flex; gap: var(--s-2); align-items: center; }
+.tb-title {
+  font-size: var(--fs-headline); font-weight: var(--w-semibold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; text-align: center;
+  opacity: 0; transform: translateY(6px); transition: opacity var(--d-state) var(--ease), transform var(--d-move) var(--ease);
+}
+.tb-title small { display: block; font-size: var(--fs-caption); font-weight: var(--w-regular); color: var(--ink-2); text-align: center; }
+.page.scrolled .tb-title, .tb-title.always { opacity: 1; transform: none; }
+
+/* chrome buttons in the top bar: circles and capsules */
+.gbtn {
+  height: var(--hit); min-width: var(--hit); border-radius: var(--r-pill); padding: 0 var(--s-4);
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s-1);
+  font-size: var(--fs-body); font-weight: var(--w-semibold);
+  transition: transform var(--d-press) var(--ease), filter var(--d-press);
+}
+.gbtn.icon { padding: 0; width: var(--hit); }
+.gbtn svg { width: 21px; height: 21px; }
+.gbtn:active, .gbtn.is-pressed { transform: scale(.92); filter: var(--press-filter); }
+.gbtn[disabled] { opacity: var(--off); pointer-events: none; }
+/* prominent chrome: the screen's one primary action, when it lives in the top bar */
+.gbtn.accent { background: var(--c, var(--ink)); color: var(--on-color); }
+.gbtn.back { padding: 0 var(--s-4) 0 var(--s-2); max-width: 150px; }
+.gbtn.back span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.gbtn.back svg { width: 22px; height: 22px; margin-right: -2px; }
+.gbtn.avatar { font-family: var(--ff-mono-g); font-size: var(--fs-headline); font-weight: var(--w-mono-g); font-variation-settings: var(--fv-mono-g); }
+
+/* page head and section headers: sentence case, hierarchy from size and weight */
+.phead { padding: var(--s-1) var(--gutter) var(--s-4); }
+.phead .sub { margin-top: var(--s-1); }
+.sh { display: flex; align-items: baseline; gap: var(--s-2); padding: var(--gap-sec) var(--gutter) var(--s-3); }
+.sh h2 { margin: 0; font-size: var(--fs-title3); line-height: var(--lh-title3); font-weight: var(--w-semibold); }
+.sh .sh-count { font-family: var(--round); font-size: var(--fs-subhead); font-weight: var(--w-fig); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.sh .sh-act { margin-left: auto; font-size: var(--fs-subhead); font-weight: var(--w-semibold); color: var(--ink-2); display: inline-flex; align-items: center; gap: var(--s-1); min-height: 32px; }
+.sh .sh-act svg { width: 13px; height: 13px; color: inherit; }
+.sh .sh-act .chev { width: 8px; height: 13px; }
+
+/* ═══ 7 · LISTS ═══════════════════════════════════════════════════════════ */
+.group { margin: 0 var(--gutter); border-radius: var(--r-lg); overflow: hidden; position: relative; }
+.group.rim { overflow: visible; }
+.row {
+  position: relative; display: flex; align-items: center; gap: var(--s-3); width: 100%; text-align: left;
+  min-height: 52px; padding: var(--s-3) var(--s-4);
+  transition: background-color var(--d-press);
+}
+button.row:active, .row.tap:active, .row.is-pressed { background: var(--row-press); }
+.row + .row::before { content: ""; position: absolute; top: 0; right: 0; left: var(--sep-left, var(--s-4)); height: var(--hair); background: var(--sep); }
+.row.ic { --sep-left: 60px; }
+.row .rbody { flex: 1; min-width: 0; }
+.row .rtitle { display: block; font-size: var(--fs-body); line-height: var(--lh-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .rtitle.wrap { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.row .rtitle.mono { font-size: var(--fs-subhead); line-height: var(--lh-subhead); }
+.row .rmeta { margin-top: 2px; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-2); display: flex; gap: var(--s-1); align-items: center; white-space: nowrap; overflow: hidden; }
+.row .rmeta > * { flex-shrink: 0; }
+.row .rmeta .ell { flex-shrink: 1; overflow: hidden; text-overflow: ellipsis; }
+/* a meta line of bare text has no flex items to shrink, so it ellipsizes as a block instead of clipping */
+.row .rmeta:not(:has(> *)) { display: block; text-overflow: ellipsis; }
+.row .rend { display: flex; align-items: center; gap: var(--s-2); color: var(--ink-2); font-size: var(--fs-subhead); flex-shrink: 0; }
+.chev { width: 8px; height: 14px; color: var(--ink-3); flex-shrink: 0; }
+/* a glyph tile: a control at rest, ink glyph */
+.tile { width: 32px; height: 32px; border-radius: var(--r-sm); flex-shrink: 0; display: grid; place-items: center; background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); }
+.tile svg { width: 18px; height: 18px; }
+.tile.big { width: var(--hit); height: var(--hit); border-radius: var(--r-md); font-size: var(--fs-title2); }
+
+/* ═══ 8 · CONTROLS ════════════════════════════════════════════════════════
+   One set of states for every control, the same in every skin:
+   rest = --ctl · pressed = --ctl-press (+ --press-filter) and a 3% press · selected = the skin's pick or lens
+   disabled = --off · focus = a 2px ink ring. Colour fills belong to the one primary action only. */
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c, var(--ink-3)); flex-shrink: 0; display: inline-block; }
+/* pills are status: a neutral fill; a semantic colour tints the words (a skin may tint the fill) */
+.pill {
+  display: inline-flex; align-items: center; gap: var(--s-1); height: 24px; padding: 0 var(--s-3); border-radius: var(--r-pill);
+  font-size: var(--fs-footnote); font-weight: var(--w-semibold); white-space: nowrap;
+  background: var(--fill-2); color: var(--c, var(--ink));
+}
+.pill svg { width: 13px; height: 13px; }
+.pill.plain { background: var(--fill-2); color: var(--ink-2); }
+button.pill:active { background: var(--fill-3); }
+.chip {
+  height: 36px; padding: 0 var(--s-4); border-radius: var(--r-pill); display: inline-flex; align-items: center; gap: var(--s-2);
+  font-size: var(--fs-subhead); font-weight: var(--w-semibold); background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink-2); white-space: nowrap;
+  transition: transform var(--d-press) var(--ease), background-color var(--d-state), color var(--d-state), box-shadow var(--d-state), filter var(--d-press);
+}
+.chip:active { transform: var(--press); background: var(--ctl-press); filter: var(--press-filter); }
+.chip.on { background: var(--pick); color: var(--pick-fg); box-shadow: var(--pick-edge); }
+.chip svg { width: 16px; height: 16px; }
+.chip.sm { height: 36px; padding: 0 var(--s-3); font-size: var(--fs-footnote); }
+.chips { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+
+/* buttons: capsules. Secondary is a control at rest; tint keeps the fill neutral and colours the label;
+   primary is the one coloured fill on a screen (its domain's --*-fill), dark label */
+.btn {
+  height: 50px; border-radius: var(--r-pill); padding: 0 var(--s-5); display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
+  font-size: var(--fs-body); font-weight: var(--w-semibold); background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); white-space: nowrap;
+  transition: transform var(--d-press) var(--ease), opacity var(--d-state), background-color var(--d-state), filter var(--d-state);
+}
+.btn:active { transform: var(--press); background: var(--ctl-press); filter: var(--press-filter); }
+.btn.primary { background: var(--c, var(--ink)); color: var(--on-color); font-weight: var(--w-bold); box-shadow: none; }
+.btn.primary:active { background: var(--c, var(--ink)); filter: brightness(.88); }
+.btn.tint { color: var(--c, var(--ink)); }
+.btn.sm { height: 36px; padding: 0 var(--s-4); font-size: var(--fs-subhead); }
+/* square icon-only small button */
+.btn.sm.icon { width: 36px; padding: 0; justify-content: center; }
+.btn.sm.icon svg { width: 18px; height: 18px; }
+.btn.block { width: 100%; }
+.btn svg { width: 18px; height: 18px; }
+.btn:disabled { opacity: var(--off); pointer-events: none; }
+
+/* segmented control: a track; the selection is the lens, the same lens as the tab bar */
+.seg {
+  position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+  height: 36px; padding: 2px; border-radius: var(--r-pill); background: var(--ctl); box-shadow: var(--ctl-box);
+}
+.seg .seg-thumb {
+  position: absolute; top: 2px; bottom: 2px; left: 2px; border-radius: var(--r-pill);
+  background: var(--sel); box-shadow: var(--sel-edge);
+  transition: transform var(--mx-snappy-d, .38s) var(--mx-snappy, var(--spring)), width var(--mx-snappy-d, .38s) var(--mx-snappy, var(--spring));
+}
+.seg button {
+  position: relative; z-index: 1; font-size: var(--fs-subhead); font-weight: var(--w-semibold); color: var(--ink-2);
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s-1); transition: color var(--d-state);
+  border-radius: var(--r-pill);   /* so focus follows the lens */
+}
+.seg button[aria-selected="true"] { color: var(--ink); }
+.seg button .n { font-family: var(--round); font-size: var(--fs-subhead); font-weight: var(--w-fig); color: var(--ink-3); font-variant-numeric: tabular-nums; transition: color var(--d-state); }
+.seg button[aria-selected="true"] .n { color: var(--ink-2); }
+.seg.sm { height: 32px; }
+.seg.sm button { font-size: var(--fs-footnote); padding: 0 var(--s-2); }
+
+/* switch: green means on */
+.switch { width: 51px; height: 31px; border-radius: var(--r-pill); background: var(--fill-3); position: relative; transition: background-color var(--d-state); flex-shrink: 0; }
+.switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: var(--knob); box-shadow: var(--knob-shadow); transition: transform var(--mx-snappy-d, .35s) var(--mx-snappy, var(--spring)); }
+.switch.on { background: var(--done); }
+.switch.on::after { transform: translateX(20px); }
+
+/* meters are for magnitudes that are not a goal to close; goals are rings */
+.bar { height: 6px; border-radius: var(--r-track); background: var(--fill-2); overflow: hidden; }
+.bar > i { display: block; height: 100%; width: var(--p, 0%); background: var(--c, var(--ink)); border-radius: inherit; }
+.steps { display: flex; gap: var(--s-0); }
+.steps i { flex: 1; height: 4px; border-radius: var(--r-track); background: var(--fill-3); }
+.steps i.done { background: var(--c, var(--ink)); }
+.steps i.on { background: color-mix(in srgb, var(--c, var(--ink)) 45%, transparent); }
+
+/* field */
+.field { display: flex; align-items: center; gap: var(--s-2); min-height: 46px; padding: 0 var(--s-1) 0 var(--s-4); border-radius: var(--r-pill); background: var(--ctl); box-shadow: var(--ctl-box); transition: box-shadow var(--d-state); }
+.field input, .field textarea { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font-size: var(--fs-body); padding: var(--s-2) 0; resize: none; }
+.field input::placeholder, .field textarea::placeholder { color: var(--ink-3); }
+.field:focus-within { box-shadow: inset 0 0 0 1.5px var(--field-focus); }
+.field svg { width: 20px; height: 20px; color: var(--ink-3); }
+.field .fbtn { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; }
+
+/* ═══ 9 · RINGS: the core motif ═════════════════════════════════════════
+   One ring = track + arc + start cap + head cap (+ a marker), plus one layer per skin that needs it:
+   .rg-l is Obsidian's light (hidden unless a skin shows it); .ink-tex is Matte's printed texture.
+   --rp is a registered number, so one property draws the whole ring, and may pass 1 (the ring laps itself).
+   This block is the geometry and a plain flat paint; each skin repaints track, arc, lap and caps its own way. */
+.rg {
+  --size: 44px; --w: 6px;
+  position: relative; display: inline-grid; place-items: center; flex-shrink: 0; width: var(--size); height: var(--size);
+}
+/* each domain hands its ring the ends of its gradient (-a, -b) and its flat pigment (--rc) */
+.rg, .rg.today { --ra: var(--today-a); --rb: var(--today-b); --rc: var(--today); }
+.rg.jobs { --ra: var(--jobs-a); --rb: var(--jobs-b); --rc: var(--jobs); }
+.rg.clients { --ra: var(--clients-a); --rb: var(--clients-b); --rc: var(--clients); }
+.rg.content { --ra: var(--content-a); --rb: var(--content-b); --rc: var(--content); }
+.rg.life { --ra: var(--life-a); --rb: var(--life-b); --rc: var(--life); }
+.rg.body { --ra: var(--body-a); --rb: var(--body-b); --rc: var(--body); }
+.rg.mind { --ra: var(--mind-a); --rb: var(--mind-b); --rc: var(--mind); }
+.rg.soul { --ra: var(--soul-a); --rb: var(--soul-b); --rc: var(--soul); }
+.rg.mission { --ra: var(--mission-a); --rb: var(--mission-b); --rc: var(--mission); }
+.rg.money { --ra: var(--money-a); --rb: var(--money-b); --rc: var(--money); }
+.rg.growth { --ra: var(--growth-a); --rb: var(--growth-b); --rc: var(--growth); }
+.rg.family { --ra: var(--family-a); --rb: var(--family-b); --rc: var(--family); }
+.rg.romance { --ra: var(--romance-a); --rb: var(--romance-b); --rc: var(--romance); }
+.rg.friends { --ra: var(--friends-a); --rb: var(--friends-b); --rc: var(--friends); }
+.rg.as { --ra: var(--as-a); --rb: var(--as-b); --rc: var(--as); }
+.rg.needs { --ra: var(--needs); --rb: var(--needs); --rc: var(--needs); }
+.rg.go { transition: --rp var(--draw) var(--ease-draw); }
+.rg > i { position: absolute; inset: 0; border-radius: 50%; pointer-events: none; }
+.rg-t, .rg-a, .rg-o {
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--w) - .7px), #000 calc(100% - var(--w) + .3px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - var(--w) - .7px), #000 calc(100% - var(--w) + .3px));
+}
+.rg-l { display: none; }
+/* the default paint: flat pigment on a 16% groove */
+.rg-t { background: color-mix(in srgb, var(--rc) 16%, transparent); }
+.rg-a { background: conic-gradient(var(--rc) calc(min(var(--rp), 1) * 1turn), transparent 0); }
+.rg-o {
+  background: conic-gradient(color-mix(in srgb, var(--rc) 78%, #000) calc(max(var(--rp) - 1, 0) * 1turn), transparent 0);
+  opacity: clamp(0, calc((var(--rp) - 1) * 400), 1);
+}
+.rg-s, .rg-h { transform: rotate(calc(var(--rp) * 1turn)); }
+.rg-0::after, .rg-h::after, .rg-s::after { content: ""; position: absolute; left: 50%; top: 0; width: var(--w); height: var(--w); margin-left: calc(var(--w) * -.5); border-radius: 50%; }
+.rg-0 { opacity: min(clamp(0, calc(var(--rp) * 300), 1), clamp(0, calc((1 - var(--rp)) * 300), 1)); }
+.rg-0::after { background: var(--rc); }
+.rg-h { opacity: clamp(0, calc(var(--rp) * 300), 1); }
+.rg-h::after { background: var(--rc); }
+.rg-s { opacity: clamp(0, calc((var(--rp) - .985) * 70), 1); }
+/* a goal or time marker across the track */
+.rg-k { transform: rotate(calc(var(--k) * 1turn)); }
+.rg-k::after { content: ""; position: absolute; left: 50%; top: -2px; width: 2px; height: calc(var(--w) + 4px); margin-left: -1px; border-radius: 1px; background: var(--ink); box-shadow: 0 0 0 1.5px var(--ring-bg, var(--e1)); }
+.rg > b, .rg > span { position: relative; z-index: 1; }
+/* a running job: its head beats. The only ring that moves on its own, and only while the job runs */
+.rg.running .rg-h::after { animation: beat 1.6s var(--ease) infinite; }
+@keyframes beat { 0%, 46%, 100% { transform: scale(1); } 12% { transform: scale(1.45); } 24% { transform: scale(1.05); } 34% { transform: scale(1.3); } }
+/* ring set: concentric rings with a 2px gap, as on the Watch */
+.rset { position: relative; flex-shrink: 0; width: var(--size); height: var(--size); }
+.rset > .rg { position: absolute; top: 50%; left: 50%; translate: -50% -50%; }
+
+/* check circle: closes like a ring when you finish something */
+.check {
+  width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; position: relative;
+  border: 2px solid var(--c-check, var(--ink-3)); display: grid; place-items: center;
+  transition: background-color var(--d-state), border-color var(--d-state), transform var(--d-state) var(--spring);
+}
+.check svg { width: 13px; height: 13px; opacity: 0; transform: scale(.4); transition: opacity .25s, transform .3s var(--spring); stroke: var(--on-color); stroke-width: 2.6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.check.done { background: var(--done); border-color: var(--done); }
+.check.done svg { opacity: 1; transform: none; }
+.check:active { transform: scale(.85); }
+.check.closing { animation: check-pop .5s var(--ease) both; }
+.check.closing::before {
+  content: ""; position: absolute; inset: -2px; border-radius: 50%; --cp: 0;
+  background: conic-gradient(var(--jobs-a), var(--jobs-b) calc(var(--cp) * 1turn), transparent 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.6px)); mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.6px));
+  animation: check-close .28s var(--ease-draw) both;
+}
+.check.closing svg { animation: check-tick .5s var(--ease) both; }
+@keyframes check-close { to { --cp: 1; } }
+@keyframes check-pop { 0%, 52% { background: transparent; border-color: var(--ink-4); transform: none; } 68% { background: var(--done); border-color: var(--done); transform: scale(1.12); } 100% { transform: none; } }
+@keyframes check-tick { 0%, 55% { opacity: 0; transform: scale(.4); } 100% { opacity: 1; transform: none; } }
+.row.is-done .rtitle { color: var(--ink-3); text-decoration: line-through; text-decoration-color: var(--ink-4); }
+
+/* live status: a static dot; the data is what changes */
+.live { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--c, var(--done)); }
+/* running work: a short arc going round its track. The one loop allowed besides a running job's head */
+.spin {
+  width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; position: relative;
+  background: conic-gradient(var(--c, var(--ink)) 0 .28turn, color-mix(in srgb, var(--c, var(--ink)) 20%, transparent) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.6px), #000 calc(100% - 2.2px)); mask: radial-gradient(farthest-side, transparent calc(100% - 2.6px), #000 calc(100% - 2.2px));
+  animation: rot .9s linear infinite;
+}
+@keyframes rot { to { transform: rotate(360deg); } }
+@keyframes swap { from { opacity: 0; } }
+
+/* agents: glyphs on a control; the shape tells them apart */
+.agent { width: 32px; height: 32px; border-radius: var(--r-sm); display: grid; place-items: center; flex-shrink: 0; position: relative; background: var(--ctl); box-shadow: var(--ctl-box); color: var(--ink); }
+.agent svg { width: 18px; height: 18px; }
+.agent.sm { width: 26px; height: 26px; border-radius: var(--r-xs); }
+.agent.sm svg { width: 15px; height: 15px; }
+.agent .badge { position: absolute; right: -3px; bottom: -3px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--e1); background: var(--c, var(--needs)); }
+/* an agent wrapped in its job's ring */
+.jring { --size: 46px; --w: 4.5px; }
+.jring .agent { width: 31px; height: 31px; border-radius: 50%; }
+.jring .agent svg { width: 17px; height: 17px; }
+
+/* ═══ 10 · DOCK: accessory + tab bar + capture, all chrome. The accessory's contents belong to Today (screens/today.css) ═══ */
+.dock { position: absolute; z-index: 40; left: 0; right: 0; bottom: var(--safe-bottom); padding: 0 var(--s-3); pointer-events: none; transition: transform var(--d-move) var(--ease); }
+.dock > * { pointer-events: auto; }
+.accessory {
+  height: var(--acc-h); border-radius: var(--r-pill); margin: 0 var(--s-0) var(--s-2); padding: 0 var(--s-1) 0 var(--s-2);
+  display: flex; align-items: center; gap: var(--s-3);
+  transition: transform .5s var(--spring), opacity .3s var(--ease), margin .5s var(--spring);
+}
+.tabrow { display: flex; align-items: center; gap: var(--s-3); }
+.tabbar { flex: 1; height: var(--dock-h); border-radius: var(--r-pill); padding: var(--s-1); display: grid; grid-template-columns: repeat(var(--tabs, 5), 1fr); position: relative; transition: flex .5s var(--spring); }
+/* the selection is a lens that slides between tabs */
+.tab-lens { position: absolute; top: var(--s-1); bottom: var(--s-1); left: var(--s-1); width: calc((100% - 2 * var(--s-1)) / var(--tabs, 5)); border-radius: var(--r-pill); background: var(--sel); box-shadow: var(--sel-edge); transition: transform var(--mx-pill-d, .42s) var(--mx-pill, var(--spring)); }
+.tab {
+  position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  color: var(--ink-2); font-size: var(--fs-caption); font-weight: var(--w-semibold); line-height: 1.1;
+  transition: color var(--d-state), transform var(--d-press) var(--ease);
+}
+.tab svg { width: 25px; height: 25px; }
+.tab:active { transform: scale(.9); }
+.tab.on { color: var(--ink); }
+.tab .tbadge { position: absolute; top: var(--s-0); left: calc(50% + var(--s-1)); display: grid; place-items: center; min-width: 20px; height: 20px; border-radius: var(--r-pill); padding: 0 var(--s-1); background: var(--needs); color: var(--on-color); font-family: var(--round); font-size: var(--fs-footnote); line-height: 1; font-weight: var(--w-fig); font-style: normal; font-variant-numeric: tabular-nums; }
+.capture { width: var(--dock-h); height: var(--dock-h); border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; transition: transform var(--d-press) var(--ease); }
+.capture svg { width: 26px; height: 26px; }
+.capture:active { transform: scale(.9); }
+
+/* minimised dock on scroll: the tab bar shrinks to its active tab, the accessory slides in beside it */
+.dock.min .tabbar { flex: 0 0 var(--dock-h); grid-template-columns: 1fr; }
+.dock.min .tab:not(.on) { display: none; }
+.dock.min .tabbar:not(:has(.tab.on)) { visibility: hidden; }
+.dock.min .tab span { display: none; }
+.dock.min .tab-lens { opacity: 0; }
+.dock.min .capture { margin-left: auto; }
+.dock.min .acc-side { display: none; }
+.dock.min .accessory { position: absolute; left: calc(var(--s-3) + var(--dock-h) + var(--s-3)); right: calc(var(--s-3) + var(--dock-h) + var(--s-3)); bottom: calc((var(--dock-h) - var(--acc-h)) / 2); margin: 0; }
+/* the accessory (what you're doing now) shows where it matters: Today and Jobs. Elsewhere the dock is just the tab row. */
+.dock:is([data-tab="life"], [data-tab="agent"], [data-tab="clients"], [data-tab="content"], [data-tab="more"]) .accessory { display: none; }
+#pages > .page:is([data-tab="life"], [data-tab="agent"], [data-tab="clients"], [data-tab="content"], [data-tab="more"]) > .scroll { padding-bottom: calc(var(--safe-bottom) + var(--dock-h) + var(--s-8)); }
+.dock.away { transform: translateY(calc(100% + var(--safe-bottom) + 20px)); }
+
+/* swipe rows */
+.swipe-host { position: relative; }
+.row.swiping { transition: none; z-index: 2; background: var(--e1-bg); }
+.row:not(.swiping) { transition: transform .4s var(--spring), background-color var(--d-press); }
+.row[data-swipe="right"] { box-shadow: -200px 0 0 0 color-mix(in srgb, var(--done) 85%, transparent); }
+.row[data-swipe="left"] { box-shadow: 200px 0 0 0 color-mix(in srgb, var(--needs) 85%, transparent); }
+
+/* ═══ 11 · NAVIGATION STACK ═══════════════════════════════════════════════ */
+.stack { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
+/* a pushed page is fresh ground, its own stacking context, lifted by a shadow while it slides */
+.stack .page { pointer-events: auto; background: var(--e0-bg); isolation: isolate; transform: translateX(100%); transition: transform var(--mx-page-d, var(--d-move)) var(--mx-page, var(--ease-move)); box-shadow: var(--page-shadow); }
+.stack .page.in { transform: none; }
+.stack .page > .scroll { position: relative; z-index: 1; }
+.pages.pushed { transform: translateX(-28%); filter: brightness(var(--push-dim)); }
+.stack .page .scroll { padding-bottom: calc(var(--safe-bottom) + var(--s-10)); }
+.stack.has-dock .page .scroll { padding-bottom: calc(var(--safe-bottom) + var(--dock-h) + var(--s-10)); }
+
+/* ═══ 12 · SHEETS, PEEK, TOAST: overlays ══════════════════════════════════ */
+.scrim { position: absolute; inset: 0; z-index: 60; background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity .35s var(--ease); }
+.scrim.on { opacity: 1; pointer-events: auto; }
+.sheet {
+  position: absolute; z-index: 61; left: var(--s-2); right: var(--s-2); bottom: var(--s-2);
+  max-height: calc(100% - var(--safe-top) - 10px);
+  border-radius: var(--r-sheet); display: flex; flex-direction: column; overflow: hidden;
+  transform: translateY(calc(100% + 20px)); transition: transform var(--mx-page-d, .5s) var(--mx-page, var(--spring));
+  touch-action: none;
+}
+.sheet.large { top: calc(var(--safe-top) + var(--s-2)); left: 0; right: 0; bottom: 0; border-radius: var(--r-sheet) var(--r-sheet) 0 0; }
+.sheet.in { transform: none; }
+.sheet.drag { transition: none; -webkit-user-select: none; user-select: none; }
+.grab { width: 36px; height: 5px; border-radius: var(--r-track); background: var(--ink-4); margin: var(--s-2) auto 2px; flex-shrink: 0; }
+.sheet-head { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-2) var(--s-4) var(--s-3) var(--s-5); flex-shrink: 0; }
+.sheet-head .sh-text { flex: 1; min-width: 0; }
+.sheet-head h3 { margin: 0; font-size: var(--fs-title2); line-height: var(--lh-title2); font-weight: var(--w-bold); }
+.sheet-head p { margin: 2px 0 0; font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.sheet-close { width: 36px; height: 36px; border-radius: 50%; background: var(--ctl); box-shadow: var(--ctl-box); display: grid; place-items: center; color: var(--ink-2); flex-shrink: 0; }
+.sheet-close:active { background: var(--ctl-press); filter: var(--press-filter); }
+.sheet-close svg { width: 14px; height: 14px; }
+.sheet-body { flex: 1; overflow-y: auto; padding: var(--s-1) 0 calc(var(--safe-bottom) + var(--s-3)); touch-action: pan-y; overscroll-behavior: contain; scrollbar-width: none; }
+.sheet-body::-webkit-scrollbar { display: none; }
+/* inside an overlay, grouped content is an inlay, not another slab */
+.sheet .group, .peek .group { background: var(--inlay); box-shadow: var(--inlay-box); }
+
+/* context peek (hold to preview) */
+.peek-wrap { position: absolute; inset: 0; z-index: 70; display: grid; grid-template-columns: minmax(0, 1fr); align-content: center; padding: 0 var(--s-4); opacity: 0; pointer-events: none; transition: opacity .25s var(--ease); -webkit-backdrop-filter: var(--peek-blur); backdrop-filter: var(--peek-blur); background: var(--peek-veil); }
+.peek-wrap.on { opacity: 1; pointer-events: auto; }
+.peek { border-radius: var(--r-xl); overflow: hidden; transform: scale(.88); transition: transform .45s var(--spring); }
+.peek-wrap.on .peek { transform: none; }
+.peek-menu { margin-top: var(--s-3); border-radius: var(--r-lg); overflow: hidden; width: 240px; transform: scale(.8); transform-origin: top left; transition: transform .45s var(--spring); }
+.peek-wrap.on .peek-menu { transform: none; }
+.peek-menu button { display: flex; width: 100%; min-height: 46px; justify-content: space-between; align-items: center; padding: var(--s-3) var(--s-4); font-size: var(--fs-callout); }
+.peek-menu button:active { background: var(--fill-2); }
+.peek-menu button + button { border-top: var(--hair) solid var(--sep); }
+.peek-menu svg { width: 18px; height: 18px; }
+
+/* toast: one line when it can be and two when it must; it never truncates what happened */
+.toast {
+  position: absolute; z-index: 80; left: 50%; top: calc(var(--safe-top) + var(--s-1)); translate: -50% 0;
+  min-height: 46px; width: max-content; max-width: calc(100% - 2 * var(--gutter)); border-radius: var(--r-xl); padding: var(--s-2) var(--s-2) var(--s-2) var(--s-4);
+  display: flex; align-items: center; gap: var(--s-3);
+  font-size: var(--fs-subhead); line-height: var(--lh-subhead); font-weight: var(--w-semibold);
+  transform: translateY(-110px) scale(.9); opacity: 0; transition: transform var(--mx-spring-d, .5s) var(--mx-spring, var(--spring)), opacity .25s;
+}
+.toast.on { transform: none; opacity: 1; }
+.toast > span { min-width: 0; text-wrap: balance; }
+.toast button { height: 32px; border-radius: var(--r-pill); padding: 0 var(--s-3); background: var(--ctl); box-shadow: var(--ctl-box); font-size: var(--fs-subhead); font-weight: var(--w-semibold); flex-shrink: 0; }
+.toast svg { width: 18px; height: 18px; color: var(--done); flex-shrink: 0; }
+.toast > span:last-child { padding-right: var(--s-2); }
+
+/* empty and hint */
+.note { margin: var(--s-3) var(--gutter) 0; padding: var(--s-4); border-radius: var(--r-md); font-size: var(--fs-subhead); line-height: var(--lh-subhead); color: var(--ink-2); }
+.hint { padding: var(--s-3) calc(var(--gutter) + var(--s-1)) 0; font-size: var(--fs-footnote); line-height: var(--lh-footnote); color: var(--ink-3); }
+
+/* content is there on the first frame; the rings and figures do the arriving */
+.rise { }
+
+/* ═══ 13 · THE SKIN SWITCH ════════════════════════════════════════════════
+   The control is the segmented control above; each option leads with a swatch that each skin paints for
+   itself in its own file (.skin-sw[data-sw="…"]), unscoped, so both swatches read the same in either skin.
+   The switch is an attribute write inside a short crossfade: View Transitions where they exist (input waits
+   only for --d-skin), a plain fade of the phone otherwise. Either way the page you are on re-draws its rings. */
+.skin-seg { height: 40px; }
+.skin-seg button { gap: var(--s-2); }
+.skin-sw { position: relative; width: 20px; height: 20px; border-radius: var(--r-xs); flex-shrink: 0; overflow: hidden; }
+.skin-sw::before { content: ""; position: absolute; inset: 4px; border-radius: 50%; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: var(--d-skin); animation-timing-function: var(--ease); }
+.skin-fade { transition: opacity calc(var(--d-skin) * .6) var(--ease); }
+.skin-out { opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .15s !important; }
+  .rg.go { transition: none !important; }
+  .rg.running .rg-h::after { animation: none !important; }
+  .spin { animation: none !important; }
+  /* the skin still crossfades: an opacity change is the reduced-motion way to show a change of state */
+  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 150ms !important; }
+}
+
+/* horizontal swipes go to the row, vertical ones still scroll */
+.trow, .jcard, [data-swipe] { touch-action: pan-y; }
+
+/* static state hooks: the same states as :active and :focus-visible, so the style guide can show them at rest */
+.btn.is-pressed, .chip.is-pressed { transform: var(--press); background: var(--ctl-press); filter: var(--press-filter); }
+.btn.primary.is-pressed { background: var(--c, var(--ink)); filter: brightness(.88); }
+.row.is-pressed { background: var(--row-press); }
+.is-focus { outline: 2px solid var(--focus); outline-offset: 2px; }
+.chip:disabled, .switch:disabled, .seg button:disabled { opacity: var(--off); pointer-events: none; }
+
+/* hit areas: small controls keep their size on screen but answer to a 44px touch */
+.chip, .pill, .btn.sm, .check, .fbtn, .sheet-close, .acc-x, .mem-x, .ask-x, .toast button, .nb-undo button, .sh-act, .diffstat, .qchip, .schip, .np-end { position: relative; }
+.chip::after, .btn.sm::after, .qchip::after, .schip::after, .toast button::after, .nb-undo button::after { content: ""; position: absolute; inset: -5px -2px; }
+button.pill::after, .sh-act::after, button.diffstat::after { content: ""; position: absolute; inset: -8px -2px; }
+.seg button::after { content: ""; position: absolute; inset: -8px 0; }
+button.check::after, .fbtn::after, .sheet-close::after, .acc-x::after, .mem-x::after, .ask-x::after, .np-end::after { content: ""; position: absolute; inset: -9px; border-radius: 50%; }
+button.switch::before { content: ""; position: absolute; inset: -7px -2px; }

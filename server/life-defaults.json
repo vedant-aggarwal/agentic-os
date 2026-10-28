@@ -1,0 +1,35 @@
+{
+  "_note": "Sample life wheel. The snapshot scores are fictional placeholders; replace them with your own first review. areaAspects is a proposed mapping of agentos areas onto the nine aspects; edit it freely.",
+  "families": [
+    { "key": "self", "name": "Self" },
+    { "key": "work", "name": "Work" },
+    { "key": "people", "name": "People" }
+  ],
+  "aspects": [
+    { "key": "body", "name": "Body", "family": "self" },
+    { "key": "mind", "name": "Mind", "family": "self" },
+    { "key": "soul", "name": "Soul", "family": "self" },
+    { "key": "mission", "name": "Mission", "family": "work" },
+    { "key": "money", "name": "Money", "family": "work" },
+    { "key": "growth", "name": "Growth", "family": "work" },
+    { "key": "family", "name": "Family", "family": "people" },
+    { "key": "romance", "name": "Romance", "family": "people" },
+    { "key": "friends", "name": "Friends", "family": "people" }
+  ],
+  "areaAspects": {
+    "college": ["mind", "growth"],
+    "morgan-co": ["family", "money"],
+    "corner-market": ["money", "family"],
+    "northwind": ["mission", "money"],
+    "projects": ["growth", "mission"],
+    "content": ["growth", "mission"],
+    "personal": ["body", "mind"]
+  },
+  "snapshots": [
+    {
+      "date": "2026-07-06",
+      "source": "Sample life review",
+      "scores": { "body": 3, "mind": 3, "soul": 3, "mission": 3, "money": 3, "growth": 3, "family": 3, "romance": 3, "friends": 3 }
+    }
+  ]
+}
